@@ -12,7 +12,7 @@ def hello(name=None):
     return render_template('hello.html', person=name)
 
 @app.route('/desktop/')
-def hello():
+def desktop():
     return render_template('desktop.html')
 
 @app.route('/static/<path:filename>')
