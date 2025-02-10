@@ -1,3 +1,5 @@
+from enum import Enum
+
 class Pattern:
     def __init__(self, duration=0):
         self.slices = []
@@ -96,6 +98,7 @@ class PatternSlice:
     def iterate_development_periods(self):
         for index in range(0, self.development_periods + 1):
             factor = self.development_periods
+            # Check for the first and last index as these are half the value of the other indexes
             if index == 0 or index == self.development_periods:
                 factor = factor * 2
             print(f"({self.start_offset+(index * self.duration_offset)} , {self.start_offset+((index + 1) * self.duration_offset)} , {self.distribution/factor})", end='\t')
@@ -111,11 +114,28 @@ class PatternSlice:
     def __str__(self):
         return f"PatternSlice: (Distribution: {self.distribution}, Start Distribution: {self.start_distribution}, Duration: {self.duration}, Start Offset: {self.start_offset}, Duration Offset: {self.duration_offset}, Development Periods: {self.development_periods})"
 
+class BlockShape(Enum):
+    TRIANGLE = 1
+    RECTANGLE = 2
+
+class PatternBlock:
+    def __init__(self, start_point=0, end_point=0, area=0, shape=BlockShape.RECTANGLE):
+        self.start_point = start_point
+        self.end_point = end_point
+        self.area = area
+        self.shape = shape
+
+    def display(self):
+        print(f"PatternBlock: Start Point: {self.start_point}, End Point: {self.end_point}, Area: {self.area}, Shape: {self.shape.name}")
+
+    def __str__(self):
+        return f"PatternBlock with Start Point: {self.start_point}, End Point: {self.end_point}, Area: {self.area}, Shape: {self.shape.name}"
+
 def main():
     pattern = Pattern(360)
-    pattern.add_slice(PatternSlice(0, 0.1284))
+    pattern.add_slice(PatternSlice(0, 0.1))
     pattern.add_slice(PatternSlice())
-    pattern.add_slice(PatternSlice())
+    pattern.add_slice(PatternSlice(0, 0.1))
     pattern.add_slice(PatternSlice())
 
     pattern.display()        
