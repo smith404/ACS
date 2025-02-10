@@ -72,6 +72,18 @@ class Pattern:
             blocks.extend(slice.get_pattern_blocks())
         return sorted(blocks, key=lambda block: block.start_point)
 
+    def get_pattern_blocks_less_than(self, point):
+        blocks = self.get_all_pattern_blocks()
+        return [block for block in blocks if block.start_point < point]
+
+    def get_pattern_blocks_greater_than(self, point):
+        blocks = self.get_all_pattern_blocks()
+        return [block for block in blocks if block.start_point > point]
+
+    def get_pattern_blocks_between(self, start_point, end_point):
+        blocks = self.get_all_pattern_blocks()
+        return [block for block in blocks if start_point <= block.start_point < end_point]
+
     def display(self):
         print(self)
         for slice in self.slices:
@@ -100,6 +112,23 @@ class PatternSlice:
 
     def set_development_periods(self, development_periods):
         self.development_periods = development_periods
+
+    def iterate_development_periods(self):
+        for index in range(0, self.development_periods + 1):
+            factor = self.development_periods
+            # Check for the first and last index as these are half the value of the other indexes
+            if index == 0 or index == self.development_periods:
+                factor = factor * 2
+            print(f"({self.start_offset+(index * self.duration_offset)} , {(self.start_offset+((index + 1) * self.duration_offset))-1} , {self.distribution/factor})", end='\t')
+        # For a new line after the loop
+        print()
+
+    def iterate_start_periods(self):
+        factor = self.development_periods
+        for index in range(self.development_periods):
+            print(f"({self.start_offset+(index * self.duration_offset)} , {(self.start_offset+((index + 1) * self.duration_offset))-1} , {self.start_distribution/factor})", end='\t')
+        # For a new line after the loop
+        print()
 
     def get_pattern_blocks(self):
         blocks = []
@@ -154,9 +183,16 @@ def main():
     print("Distribution check:", pattern.check_distribution())
     print("Duration check:", pattern.check_durations())
 
-    blocks = pattern.get_all_pattern_blocks()
-    for block in blocks:
+    print("Blocks less than point 90:")
+    blocks_less_than_90 = pattern.get_pattern_blocks_less_than(90)
+    for block in blocks_less_than_90:
         print(block)
+
+    print("Blocks between 90 and 270:")
+    blocks_between_90_and_270 = pattern.get_pattern_blocks_between(90, 270)
+    for block in blocks_between_90_and_270:
+        print(block)
+
 
 if __name__ == "__main__":
     main()
