@@ -31,7 +31,12 @@ class Pattern:
 
     def expand(self):
         for index, slice in enumerate(self.slices, start=1):
-            print(f"Slice {index}: {slice}")
+            # Check for a start distribution
+            if (slice.start_distribution != 0):
+                print(f"Slice {index}: {slice.start_distribution}")
+            # Check for a distribution
+            if (slice.distribution != 0):
+                print(f"Slice {index}: {slice.distribution}")
 
     def check_distribution(self):
         total_distribution = sum(slice.distribution + slice.start_distribution for slice in self.slices)
@@ -56,6 +61,9 @@ class Pattern:
         self.set_all_start_distributions_to_zero()
         self.set_all_distributions_to_zero()
 
+    def __str__(self):
+        return f"Pattern with {len(self.slices)} slices"
+
 class PatternSlice:
     def __init__(self, duration, distribution=0, start_distribution=0, development_periods=0):
         self.distribution = distribution
@@ -77,25 +85,19 @@ class PatternSlice:
 
 def main():
     pattern = Pattern()
-    pattern.add_slice(PatternSlice(90, 0.2, 0.15))
+    pattern.add_slice(PatternSlice(90, 0, 0.1284))
     pattern.add_slice(PatternSlice(90))
     pattern.add_slice(PatternSlice(90))
     pattern.add_slice(PatternSlice(90))
 
-    pattern.expand()
+    pattern.display()        
     print("Distribution check:", pattern.check_distribution())
-    pattern.distribute_remaining()
-    pattern.expand()
-    print("Distribution check:", pattern.check_distribution())
-    pattern.set_all_distributions_to_zero()
-    pattern.distribute_remaining()
-    pattern.expand()
-    print("Distribution check:", pattern.check_distribution())
-    pattern.set_pattern_to_zero()
+
     pattern.distribute_remaining()
     pattern.align_slice_periods()
-    pattern.expand()
+    pattern.display()
     print("Distribution check:", pattern.check_distribution())
+    pattern.expand()
 
 if __name__ == "__main__":
     main()
