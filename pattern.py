@@ -29,11 +29,6 @@ class Pattern:
         else:
             raise ValueError("PatternSlice not found in slices")
 
-    def display(self):
-        print(self)
-        for slice in self.slices:
-            slice.display()
-
     def expand(self):
         for index, slice in enumerate(self.slices, start=1):
             # Check for a start distribution
@@ -69,6 +64,11 @@ class Pattern:
     def check_durations(self):
         return all(slice.duration == self.duration for slice in self.slices)
 
+    def display(self):
+        print(self)
+        for slice in self.slices:
+            print(slice)
+
     def __str__(self):
         return f"Pattern with {len(self.slices)} slices and duration {self.duration}"
 
@@ -93,21 +93,18 @@ class PatternSlice:
     def set_development_periods(self, development_periods):
         self.development_periods = development_periods
 
-    def display(self):
-        print(self)
-
     def iterate_development_periods(self):
         for index in range(0, self.development_periods + 1):
             factor = self.development_periods
             if index == 0 or index == self.development_periods:
                 factor = factor * 2
-            print(f"{self.distribution/factor}", end='\t')
+            print(f"({self.start_offset+(index * self.duration_offset)} , {self.start_offset+((index + 1) * self.duration_offset)} , {self.distribution/factor})", end='\t')
         # For a new line after the loop
         print()
 
     def iterate_start_periods(self):
-        for _ in range(self.development_periods):
-            print(self.start_distribution, end='\t')
+        for index in range(self.development_periods):
+            print(f"({self.start_offset+(index * self.duration_offset)} , {self.start_offset+((index + 1) * self.duration_offset)} , {self.start_distribution})", end='\t')
         # For a new line after the loop
         print()
 
