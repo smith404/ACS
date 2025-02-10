@@ -66,6 +66,12 @@ class Pattern:
     def check_durations(self):
         return all(slice.duration == self.duration for slice in self.slices)
 
+    def get_all_pattern_blocks(self):
+        blocks = []
+        for slice in self.slices:
+            blocks.extend(slice.get_pattern_blocks())
+        return sorted(blocks, key=lambda block: block.start_point)
+
     def display(self):
         print(self)
         for slice in self.slices:
@@ -95,21 +101,27 @@ class PatternSlice:
     def set_development_periods(self, development_periods):
         self.development_periods = development_periods
 
-    def iterate_development_periods(self):
+    def get_pattern_blocks(self):
+        blocks = []
+        for index in range(self.development_periods):
+            shape = BlockShape.RECTANGLE
+            start_point = self.start_offset + (index * self.duration_offset)
+            end_point = self.start_offset + ((index + 1) * self.duration_offset) - 1
+            block = PatternBlock(start_point=start_point, end_point=end_point, area=self.start_distribution / self.development_periods, shape=shape)
+            blocks.append(block)
         for index in range(0, self.development_periods + 1):
+            shape = BlockShape.RECTANGLE
             factor = self.development_periods
             # Check for the first and last index as these are half the value of the other indexes
             if index == 0 or index == self.development_periods:
                 factor = factor * 2
-            print(f"({self.start_offset+(index * self.duration_offset)} , {self.start_offset+((index + 1) * self.duration_offset)} , {self.distribution/factor})", end='\t')
-        # For a new line after the loop
-        print()
+                shape = BlockShape.TRIANGLE
+            start_point = self.start_offset+(index * self.duration_offset)
+            end_point = (self.start_offset+((index + 1) * self.duration_offset))-1
+            block = PatternBlock(start_point=start_point, end_point=end_point, area=self.distribution / factor, shape=shape)
+            blocks.append(block)
 
-    def iterate_start_periods(self):
-        for index in range(self.development_periods):
-            print(f"({self.start_offset+(index * self.duration_offset)} , {self.start_offset+((index + 1) * self.duration_offset)} , {self.start_distribution})", end='\t')
-        # For a new line after the loop
-        print()
+        return blocks
 
     def __str__(self):
         return f"PatternSlice: (Distribution: {self.distribution}, Start Distribution: {self.start_distribution}, Duration: {self.duration}, Start Offset: {self.start_offset}, Duration Offset: {self.duration_offset}, Development Periods: {self.development_periods})"
@@ -125,9 +137,6 @@ class PatternBlock:
         self.area = area
         self.shape = shape
 
-    def display(self):
-        print(f"PatternBlock: Start Point: {self.start_point}, End Point: {self.end_point}, Area: {self.area}, Shape: {self.shape.name}")
-
     def __str__(self):
         return f"PatternBlock with Start Point: {self.start_point}, End Point: {self.end_point}, Area: {self.area}, Shape: {self.shape.name}"
 
@@ -138,16 +147,16 @@ def main():
     pattern.add_slice(PatternSlice(0, 0.1))
     pattern.add_slice(PatternSlice())
 
-    pattern.display()        
-    print("Distribution check:", pattern.check_distribution())
-    print("Duration check:", pattern.check_durations())
-
     pattern.distribute_remaining()
     pattern.align_slice_periods()
+
     pattern.display()
     print("Distribution check:", pattern.check_distribution())
     print("Duration check:", pattern.check_durations())
-    pattern.expand()
+
+    blocks = pattern.get_all_pattern_blocks()
+    for block in blocks:
+        print(block)
 
 if __name__ == "__main__":
     main()
