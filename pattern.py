@@ -5,6 +5,7 @@ class Pattern:
 
     def add_slice(self, pattern_slice):
         if isinstance(pattern_slice, PatternSlice):
+            pattern_slice.set_duration(self.duration)
             self.slices.append(pattern_slice)
         else:
             raise TypeError("Expected a PatternSlice instance")
@@ -72,13 +73,13 @@ class Pattern:
         return f"Pattern with {len(self.slices)} slices and duration {self.duration}"
 
 class PatternSlice:
-    def __init__(self, duration, distribution=0, start_distribution=0, development_periods=0, start_offset=0, duration_offset=0):
+    def __init__(self, distribution=0, start_distribution=0, duration=0, start_offset=0, duration_offset=0, development_periods=0):
         self.distribution = distribution
-        self.duration = duration
         self.start_distribution = start_distribution
-        self.development_periods = development_periods
+        self.duration = duration
         self.start_offset = start_offset
         self.duration_offset = duration_offset
+        self.development_periods = development_periods
 
     def set_duration(self, duration):
         self.duration = duration
@@ -111,14 +112,14 @@ class PatternSlice:
         print()
 
     def __str__(self):
-        return f"PatternSlice: (Duration: {self.duration}, Distribution: {self.distribution}, Start Distribution: {self.start_distribution}, Development Periods: {self.development_periods}, Start Offset: {self.start_offset}, Duration Offset: {self.duration_offset})"
+        return f"PatternSlice: (Distribution: {self.distribution}, Start Distribution: {self.start_distribution}, Duration: {self.duration}, Start Offset: {self.start_offset}, Duration Offset: {self.duration_offset}, Development Periods: {self.development_periods})"
 
 def main():
     pattern = Pattern(360)
-    pattern.add_slice(PatternSlice(360, 0, 0.1284))
-    pattern.add_slice(PatternSlice(360))
-    pattern.add_slice(PatternSlice(360))
-    pattern.add_slice(PatternSlice(360))
+    pattern.add_slice(PatternSlice(0, 0.1284))
+    pattern.add_slice(PatternSlice())
+    pattern.add_slice(PatternSlice())
+    pattern.add_slice(PatternSlice())
 
     pattern.display()        
     print("Distribution check:", pattern.check_distribution())
