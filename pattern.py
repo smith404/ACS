@@ -1,7 +1,9 @@
 from enum import Enum
+import uuid
 
 class Pattern:
     def __init__(self, duration=0):
+        self.identifier = uuid.uuid4()
         self.slices = []
         self.duration = duration
 
@@ -11,6 +13,9 @@ class Pattern:
             self.slices.append(pattern_slice)
         else:
             raise TypeError("Expected a PatternSlice instance")
+
+    def set_identifier(self, identifier):
+        self.identifier = identifier
 
     def set_duration(self, duration):
         self.duration = duration
@@ -69,7 +74,7 @@ class Pattern:
     def get_all_pattern_blocks(self):
         blocks = []
         for slice in self.slices:
-            blocks.extend(slice.get_pattern_blocks())
+            blocks.extend(slice.get_pattern_blocks(self.identifier))
         return sorted(blocks, key=lambda block: block.start_point)
 
     def get_pattern_blocks_less_than(self, point):
@@ -130,13 +135,13 @@ class PatternSlice:
         # For a new line after the loop
         print()
 
-    def get_pattern_blocks(self):
+    def get_pattern_blocks(self, pattern_id):
         blocks = []
         for index in range(self.development_periods):
             shape = BlockShape.RECTANGLE
             start_point = self.start_offset + (index * self.duration_offset)
             end_point = self.start_offset + ((index + 1) * self.duration_offset) - 1
-            block = PatternBlock(start_point=start_point, end_point=end_point, area=self.start_distribution / self.development_periods, shape=shape)
+            block = PatternBlock(pattern_id, start_point=start_point, end_point=end_point, area=self.start_distribution / self.development_periods, shape=shape)
             blocks.append(block)
         for index in range(0, self.development_periods + 1):
             shape = BlockShape.RECTANGLE
@@ -147,7 +152,7 @@ class PatternSlice:
                 shape = BlockShape.TRIANGLE
             start_point = self.start_offset+(index * self.duration_offset)
             end_point = (self.start_offset+((index + 1) * self.duration_offset))-1
-            block = PatternBlock(start_point=start_point, end_point=end_point, area=self.distribution / factor, shape=shape)
+            block = PatternBlock(pattern_id, start_point=start_point, end_point=end_point, area=self.distribution / factor, shape=shape)
             blocks.append(block)
 
         return blocks
@@ -160,17 +165,19 @@ class BlockShape(Enum):
     RECTANGLE = 2
 
 class PatternBlock:
-    def __init__(self, start_point=0, end_point=0, area=0, shape=BlockShape.RECTANGLE):
+    def __init__(self, pattern, start_point=0, end_point=0, area=0, shape=BlockShape.RECTANGLE):
+        self.pattern = pattern
         self.start_point = start_point
         self.end_point = end_point
         self.area = area
         self.shape = shape
 
     def __str__(self):
-        return f"PatternBlock with Start Point: {self.start_point}, End Point: {self.end_point}, Area: {self.area}, Shape: {self.shape.name}"
+        return f"PatternBlock with Pattern: {self.pattern}, Start Point: {self.start_point}, End Point: {self.end_point}, Area: {self.area}, Shape: {self.shape.name}"
 
 def main():
     pattern = Pattern(360)
+    pattern.set_identifier("Test Pattern")
     pattern.add_slice(PatternSlice(0, 0.1))
     pattern.add_slice(PatternSlice())
     pattern.add_slice(PatternSlice(0, 0.1))
