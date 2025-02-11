@@ -40,3 +40,6 @@ obj/
 # Azurite Files
 __azurite*
 .vscode/settings.json
+
+# Paython cache
+__pycache__/

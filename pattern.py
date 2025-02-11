@@ -77,18 +77,6 @@ class Pattern:
             blocks.extend(slice.get_pattern_blocks(self.identifier))
         return sorted(blocks, key=lambda block: block.start_point)
 
-    def get_pattern_blocks_less_than(self, point):
-        blocks = self.get_all_pattern_blocks()
-        return [block for block in blocks if block.start_point < point]
-
-    def get_pattern_blocks_greater_than(self, point):
-        blocks = self.get_all_pattern_blocks()
-        return [block for block in blocks if block.start_point > point]
-
-    def get_pattern_blocks_between(self, start_point, end_point):
-        blocks = self.get_all_pattern_blocks()
-        return [block for block in blocks if start_point <= block.start_point < end_point]
-
     def display(self):
         print(self)
         for slice in self.slices:
@@ -149,7 +137,10 @@ class PatternSlice:
             # Check for the first and last index as these are half the value of the other indexes
             if index == 0 or index == self.development_periods:
                 factor = factor * 2
-                shape = BlockShape.TRIANGLE
+                if index == 0:
+                    shape = BlockShape.LTRIANGLE
+                else:
+                    shape = BlockShape.RTRIANGLE
             start_point = self.start_offset+(index * self.duration_offset)
             end_point = (self.start_offset+((index + 1) * self.duration_offset))-1
             block = PatternBlock(pattern_id, start_point=start_point, end_point=end_point, area=self.distribution / factor, shape=shape)
@@ -161,8 +152,9 @@ class PatternSlice:
         return f"PatternSlice: (Distribution: {self.distribution}, Start Distribution: {self.start_distribution}, Duration: {self.duration}, Start Offset: {self.start_offset}, Duration Offset: {self.duration_offset}, Development Periods: {self.development_periods})"
 
 class BlockShape(Enum):
-    TRIANGLE = 1
-    RECTANGLE = 2
+    LTRIANGLE = 1
+    RTRIANGLE = 2
+    RECTANGLE = 3
 
 class PatternBlock:
     def __init__(self, pattern, start_point=0, end_point=0, area=0, shape=BlockShape.RECTANGLE):
@@ -172,8 +164,45 @@ class PatternBlock:
         self.area = area
         self.shape = shape
 
+    def generate_polygon(self, colour="blue", y_axis=0, height=50):
+        if self.shape == BlockShape.RECTANGLE:
+            points = f"{self.start_point},{y_axis} {self.end_point},{y_axis} {self.end_point},{y_axis + height} {self.start_point},{y_axis + height}"
+        elif self.shape == BlockShape.LTRIANGLE:
+            points = f"{self.start_point},{y_axis} {self.end_point},{y_axis} {self.end_point},{y_axis + height}"
+        elif self.shape == BlockShape.RTRIANGLE:
+            points = f"{self.start_point},{y_axis} {self.end_point},{y_axis + height} {self.end_point},{y_axis}"
+        return f'<polygon points="{points}" fill="{colour}" />'
+
     def __str__(self):
         return f"PatternBlock with Pattern: {self.pattern}, Start Point: {self.start_point}, End Point: {self.end_point}, Area: {self.area}, Shape: {self.shape.name}"
+
+class PatternEvaluator:
+    def __init__(self, pattern_blocks):
+        if not all(isinstance(block, PatternBlock) for block in pattern_blocks):
+            raise TypeError("All elements must be instances of PatternBlock")
+        self.pattern_blocks = pattern_blocks
+
+    def get_pattern_blocks_less_than(self, point):
+        return [block for block in self.pattern_blocks if block.start_point < point]
+
+    def get_pattern_blocks_greater_than(self, point):
+        return [block for block in self.pattern_blocks if block.start_point > point]
+
+    def get_pattern_blocks_between(self, start_point, end_point):
+        return [block for block in self.pattern_blocks if start_point <= block.start_point < end_point]
+
+    def create_svg(self):
+        y_axis = 0
+        height = 40
+        svg_elements = [block.generate_polygon("grey", y_axis, height) for block in self.pattern_blocks]
+        return f'<svg xmlns="http://www.w3.org/2000/svg">{"".join(svg_elements)}</svg>'
+
+    def evaluate(self):
+        # Placeholder for evaluation logic
+        pass
+
+    def __str__(self):
+        return f"PatternEvaluator with {len(self.pattern_blocks)} blocks"
 
 def main():
     pattern = Pattern(360)
@@ -190,16 +219,13 @@ def main():
     print("Distribution check:", pattern.check_distribution())
     print("Duration check:", pattern.check_durations())
 
-    print("Blocks less than point 90:")
-    blocks_less_than_90 = pattern.get_pattern_blocks_less_than(90)
-    for block in blocks_less_than_90:
-        print(block)
+    evaluator = PatternEvaluator(pattern.get_all_pattern_blocks())
 
-    print("Blocks between 90 and 270:")
-    blocks_between_90_and_270 = pattern.get_pattern_blocks_between(90, 270)
-    for block in blocks_between_90_and_270:
-        print(block)
+    print(evaluator.create_svg())
 
+    blocks = evaluator.get_pattern_blocks_between(90,180)
+    for block in blocks:
+        print(block.generate_polygon())
 
 if __name__ == "__main__":
     main()
