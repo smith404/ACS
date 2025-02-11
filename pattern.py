@@ -1,4 +1,5 @@
 from enum import Enum
+import json
 import uuid
 
 class Pattern:
@@ -151,10 +152,10 @@ class PatternSlice:
     def __str__(self):
         return f"PatternSlice: (Distribution: {self.distribution}, Start Distribution: {self.start_distribution}, Duration: {self.duration}, Start Offset: {self.start_offset}, Duration Offset: {self.duration_offset}, Development Periods: {self.development_periods})"
 
-class BlockShape(Enum):
-    LTRIANGLE = 1
-    RTRIANGLE = 2
-    RECTANGLE = 3
+class BlockShape(str, Enum):
+    LTRIANGLE = "LTRIANGLE"
+    RTRIANGLE = "RTRIANGLE"
+    RECTANGLE = "RECTANGLE"
 
 class PatternBlock:
     def __init__(self, pattern, start_point=0, end_point=0, area=0, shape=BlockShape.RECTANGLE):
@@ -197,6 +198,17 @@ class PatternEvaluator:
         svg_elements = [block.generate_polygon("grey", y_axis, height) for block in self.pattern_blocks]
         return f'<svg xmlns="http://www.w3.org/2000/svg">{"".join(svg_elements)}</svg>'
 
+    def save_to_file(self, filename):
+        with open(filename, 'w') as file:
+            json.dump([block.__dict__ for block in self.pattern_blocks], file)
+
+    @classmethod
+    def load_from_file(cls, filename):
+        with open(filename, 'r') as file:
+            blocks_data = json.load(file)
+            pattern_blocks = [PatternBlock(**block_data) for block_data in blocks_data]
+            return cls(pattern_blocks)
+
     def evaluate(self):
         # Placeholder for evaluation logic
         pass
@@ -221,11 +233,9 @@ def main():
 
     evaluator = PatternEvaluator(pattern.get_all_pattern_blocks())
 
-    print(evaluator.create_svg())
-
-    blocks = evaluator.get_pattern_blocks_between(90,180)
-    for block in blocks:
-        print(block.generate_polygon())
+    evaluator.save_to_file("scratch/pattern.json")
+    loaded_evaluator = PatternEvaluator.load_from_file("scratch/pattern.json")
+    print(loaded_evaluator)
 
 if __name__ == "__main__":
     main()

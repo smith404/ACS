@@ -43,3 +43,4 @@ __azurite*
 
 # Paython cache
 __pycache__/
+scratch/
