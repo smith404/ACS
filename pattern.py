@@ -200,12 +200,15 @@ class PatternEvaluator:
     def get_pattern_blocks_between(self, start_point, end_point):
         return [block for block in self.pattern_blocks if start_point <= block.start_point < end_point]
 
-    def create_svg(self, x_axis=0, y_axis=0):
-        y_axis = 0
-        height = 50
+    def create_svg(self, height = 50, x_cut = 0, y_cut = 0, pre_colour = "white", colour = "blue"):
         svg_elements = []
         for block in self.pattern_blocks:
-            element = block.generate_polygon("blue", y_axis=height*block.level, height=height)
+            block_colour = colour
+            if block.start_point < x_cut:
+                block_colour = pre_colour
+            if block.level < y_cut:
+                block_colour = pre_colour
+            element = block.generate_polygon(block_colour, y_axis=height*block.level, height=height)
             svg_elements.append(element)
         return f'<svg xmlns="http://www.w3.org/2000/svg">{"".join(svg_elements)}</svg>'
 
@@ -232,7 +235,7 @@ def main():
     pattern.set_identifier("Test Pattern")
     pattern.add_slice(PatternSlice(0, 0.1))
     pattern.add_slice(PatternSlice())
-    pattern.add_slice(PatternSlice(0, 0.1))
+    pattern.add_slice(PatternSlice())
     pattern.add_slice(PatternSlice())
 
     pattern.distribute_remaining()
@@ -248,7 +251,7 @@ def main():
 
     #evaluator.save_to_file("scratch/pattern.json")
     #loaded_evaluator = PatternEvaluator.load_from_file("scratch/pattern.json")
-    print(evaluator.create_svg())
+    print(evaluator.create_svg(x_cut=180, y_cut=2))
 
 if __name__ == "__main__":
     main()
