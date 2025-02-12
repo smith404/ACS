@@ -218,14 +218,14 @@ class PatternEvaluator:
             return []
         return [block for block in self.pattern_blocks if block.slice_number <= latest_written_slice]
 
-    def evaluate_unwritten(self, latest_written_slice):
+    def evaluate_unwritten_blocks(self, latest_written_slice):
         # Input expected to be 1 based internal we use zero based
         latest_written_slice = latest_written_slice - 1
         if not self.pattern_blocks:
             return []
         return [block for block in self.pattern_blocks if block.slice_number > latest_written_slice]
 
-    def evaluate_lrc_blocks(self, latest_written_slice):
+    def evaluate_lrc_blocks_blocks(self, latest_written_slice):
         # Input expected to be 1 based internal we use zero based
         latest_written_slice = latest_written_slice - 1
         if not self.pattern_blocks:
