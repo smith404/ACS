@@ -92,6 +92,23 @@ class Pattern:
         for slice in self.slices:
             print(slice)
 
+    def save_to_file(self, filename):
+        with open(filename, 'w') as file:
+            json.dump({
+                'identifier': str(self.identifier),
+                'duration': self.duration,
+                'slices': [slice.__dict__ for slice in self.slices]
+            }, file)
+
+    @classmethod
+    def load_from_file(cls, filename):
+        with open(filename, 'r') as file:
+            data = json.load(file)
+            pattern = cls(duration=data['duration'])
+            pattern.identifier = uuid.UUID(data['identifier'])
+            pattern.slices = [PatternSlice(**slice_data) for slice_data in data['slices']]
+            return pattern
+
     def __str__(self):
         return f"Pattern with {len(self.slices)} slices and duration {self.duration}"
 
@@ -307,6 +324,8 @@ def main():
     pattern.display()
     print("Distribution check:", pattern.check_distribution())
     print("Duration check:", pattern.check_durations())
+
+    pattern.save_to_file("scratch/pattern.json")
 
     evaluator = PatternEvaluator(pattern.get_all_pattern_blocks())
     for block in pattern.get_all_pattern_blocks():
