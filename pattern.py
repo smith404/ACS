@@ -230,6 +230,25 @@ class PatternEvaluator:
         # Placeholder for evaluation logic
         pass
 
+    def find_min_max_points(self):
+        if not self.pattern_blocks:
+            return None, None
+        min_start_point = min(block.start_point for block in self.pattern_blocks)
+        max_end_point = max(block.end_point for block in self.pattern_blocks)
+        return min_start_point, max_end_point
+
+    def find_lowest_start_point_heights(self):
+        if not self.pattern_blocks:
+            return {}
+        lowest_start_point_heights = {}
+        for block in self.pattern_blocks:
+            if block.display_level not in lowest_start_point_heights or block.start_point < lowest_start_point_heights[block.display_level]['start_point']:
+                lowest_start_point_heights[block.display_level] = {
+                    'start_point': block.start_point,
+                    'height': block.height
+                }
+        return {level: data['height'] for level, data in lowest_start_point_heights.items()}
+
     def __str__(self):
         return f"PatternEvaluator with {len(self.pattern_blocks)} blocks"
 
@@ -254,7 +273,13 @@ def main():
 
     #evaluator.save_to_file("scratch/pattern.json")
     #loaded_evaluator = PatternEvaluator.load_from_file("scratch/pattern.json")
-    print(evaluator.create_svg(slice_cut=1))
+    #print(evaluator.create_svg(slice_cut=1))
+
+    min_start, max_end = evaluator.find_min_max_points()
+    print(f"Min start point: {min_start}, Max end point: {max_end}")
+
+    lowest_start_point_heights = evaluator.find_lowest_start_point_heights()
+    print(f"Lowest start point heights by display level: {lowest_start_point_heights}")
 
 if __name__ == "__main__":
     main()
