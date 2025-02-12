@@ -244,19 +244,6 @@ class PatternEvaluator:
         print(end_point_of_latest_slice)
         return [block for block in self.pattern_blocks if block.end_point > end_point_of_latest_slice]
 
-    @staticmethod
-    def create_svg(pattern_blocks, height = 50, day_cut = 0, slice_cut = 0, pre_colour = "white", colour = "blue"):
-        svg_elements = []
-        for block in pattern_blocks:
-            block_colour = colour
-            if block.start_point < day_cut:
-                block_colour = pre_colour
-            if block.slice_number < slice_cut:
-                block_colour = pre_colour
-            element = block.generate_polygon(block_colour, y_axis=height*block.display_level, height=height)
-            svg_elements.append(element)
-        return f'<svg viewBox="0 0 900 900" xmlns="http://www.w3.org/2000/svg">{"".join(svg_elements)}</svg>'
-
     def save_to_file(self, filename):
         with open(filename, 'w') as file:
             json.dump([block.__dict__ for block in self.pattern_blocks], file)
@@ -268,18 +255,34 @@ class PatternEvaluator:
             pattern_blocks = [PatternBlock(**block_data) for block_data in blocks_data]
             return cls(pattern_blocks)
 
-    def find_min_max_points(self):
-        if not self.pattern_blocks:
+    @staticmethod
+    def create_svg(pattern_blocks, latest_written_slice = 1, day_cut = 0, height = 50, pre_colour = "white", colour = "blue"):
+        latest_written_slice = latest_written_slice - 1
+        svg_elements = []
+        for block in pattern_blocks:
+            block_colour = colour
+            if block.start_point < day_cut:
+                block_colour = pre_colour
+            if block.slice_number < latest_written_slice:
+                block_colour = pre_colour
+            element = block.generate_polygon(block_colour, y_axis=height*block.display_level, height=height)
+            svg_elements.append(element)
+        return f'<svg viewBox="0 0 900 900" xmlns="http://www.w3.org/2000/svg">{"".join(svg_elements)}</svg>'
+
+    @staticmethod
+    def find_min_max_points(pattern_blocks):
+        if not pattern_blocks:
             return None, None
-        min_start_point = min(block.start_point for block in self.pattern_blocks)
-        max_end_point = max(block.end_point for block in self.pattern_blocks)
+        min_start_point = min(block.start_point for block in pattern_blocks)
+        max_end_point = max(block.end_point for block in pattern_blocks)
         return min_start_point, max_end_point
 
-    def find_lowest_start_point_heights(self):
-        if not self.pattern_blocks:
+    @staticmethod
+    def find_lowest_start_point_heights(pattern_blocks):
+        if not pattern_blocks:
             return {}
         lowest_start_point_heights = {}
-        for block in self.pattern_blocks:
+        for block in pattern_blocks:
             if block.display_level not in lowest_start_point_heights or block.start_point < lowest_start_point_heights[block.display_level]['start_point']:
                 lowest_start_point_heights[block.display_level] = {
                     'start_point': block.start_point,
@@ -309,10 +312,10 @@ def main():
     for block in pattern.get_all_pattern_blocks():
         print(block)
 
-    min_start, max_end = evaluator.find_min_max_points()
+    min_start, max_end = evaluator.find_min_max_points(evaluator.pattern_blocks)
     print(f"Min start point: {min_start}, Max end point: {max_end}")
 
-    lowest_start_point_heights = evaluator.find_lowest_start_point_heights()
+    lowest_start_point_heights = evaluator.find_lowest_start_point_heights(evaluator.pattern_blocks)
     print(f"Lowest start point heights by display level: {lowest_start_point_heights}")
 
     store_string_to_file("scratch/lic.svg",evaluator.create_svg(evaluator.evaluate_lic_blocks(2)))
@@ -325,7 +328,7 @@ def main():
 
     store_string_to_file("scratch/unwritten.svg",evaluator.create_svg(evaluator.evaluate_unwritten_blocks(2)))
 
-    store_string_to_file("scratch/pattern.svg",evaluator.create_svg(evaluator.pattern_blocks))
+    store_string_to_file("scratch/pattern.svg",evaluator.create_svg(evaluator.pattern_blocks, latest_written_slice=2, pre_colour="yellow", colour="red"))
 
 if __name__ == "__main__":
     main()
