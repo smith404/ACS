@@ -2,6 +2,8 @@ from enum import Enum
 import json
 import uuid
 
+from utils import store_string_to_file
+
 class Pattern:
     def __init__(self, duration=0):
         self.identifier = uuid.uuid4()
@@ -211,7 +213,7 @@ class PatternEvaluator:
         end_point_of_latest_slice = min(block.end_point for block in self.pattern_blocks if block.slice_number == latest_written_slice)
         return [block for block in self.pattern_blocks if block.slice_number <= latest_written_slice and block.end_point <= end_point_of_latest_slice]
 
-    def evaluate_written(self, latest_written_slice):
+    def evaluate_written_blocks(self, latest_written_slice):
         # Input expected to be 1 based internal we use zero based
         latest_written_slice = latest_written_slice - 1
         if not self.pattern_blocks:
@@ -225,7 +227,7 @@ class PatternEvaluator:
             return []
         return [block for block in self.pattern_blocks if block.slice_number > latest_written_slice]
 
-    def evaluate_lrc_blocks_blocks(self, latest_written_slice):
+    def evaluate_lrc_blocks(self, latest_written_slice):
         # Input expected to be 1 based internal we use zero based
         latest_written_slice = latest_written_slice - 1
         if not self.pattern_blocks:
@@ -253,7 +255,7 @@ class PatternEvaluator:
                 block_colour = pre_colour
             element = block.generate_polygon(block_colour, y_axis=height*block.display_level, height=height)
             svg_elements.append(element)
-        return f'<svg xmlns="http://www.w3.org/2000/svg">{"".join(svg_elements)}</svg>'
+        return f'<svg viewBox="0 0 900 900" xmlns="http://www.w3.org/2000/svg">{"".join(svg_elements)}</svg>'
 
     def save_to_file(self, filename):
         with open(filename, 'w') as file:
@@ -313,14 +315,17 @@ def main():
     lowest_start_point_heights = evaluator.find_lowest_start_point_heights()
     print(f"Lowest start point heights by display level: {lowest_start_point_heights}")
 
-    print("LIC blocks")
-    print(evaluator.create_svg(evaluator.evaluate_lic_blocks(2)))
+    store_string_to_file("scratch/lic.svg",evaluator.create_svg(evaluator.evaluate_lic_blocks(2)))
 
-    print("LRC blocks")
-    print(evaluator.create_svg(evaluator.evaluate_lrc_blocks(2)))
+    store_string_to_file("scratch/lrc.svg",evaluator.create_svg(evaluator.evaluate_lrc_blocks(2)))
 
-    print("UPR blocks")
-    print(evaluator.create_svg(evaluator.evaluate_upr_blocks(2)))
+    store_string_to_file("scratch/upr.svg",evaluator.create_svg(evaluator.evaluate_upr_blocks(2)))
+
+    store_string_to_file("scratch/written.svg",evaluator.create_svg(evaluator.evaluate_written_blocks(2)))
+
+    store_string_to_file("scratch/unwritten.svg",evaluator.create_svg(evaluator.evaluate_unwritten_blocks(2)))
+
+    store_string_to_file("scratch/pattern.svg",evaluator.create_svg(evaluator.pattern_blocks))
 
 if __name__ == "__main__":
     main()
