@@ -203,9 +203,49 @@ class PatternEvaluator:
     def get_pattern_blocks_between(self, start_point, end_point):
         return [block for block in self.pattern_blocks if start_point <= block.start_point < end_point]
 
-    def create_svg(self, height = 50, day_cut = 0, slice_cut = 0, pre_colour = "white", colour = "blue"):
+    def evaluate_lic_blocks(self, latest_written_slice):
+        # Input expected to be 1 based internal we use zero based
+        latest_written_slice = latest_written_slice - 1
+        if not self.pattern_blocks:
+            return []
+        end_point_of_latest_slice = min(block.end_point for block in self.pattern_blocks if block.slice_number == latest_written_slice)
+        return [block for block in self.pattern_blocks if block.slice_number <= latest_written_slice and block.end_point <= end_point_of_latest_slice]
+
+    def evaluate_written(self, latest_written_slice):
+        # Input expected to be 1 based internal we use zero based
+        latest_written_slice = latest_written_slice - 1
+        if not self.pattern_blocks:
+            return []
+        return [block for block in self.pattern_blocks if block.slice_number <= latest_written_slice]
+
+    def evaluate_unwritten(self, latest_written_slice):
+        # Input expected to be 1 based internal we use zero based
+        latest_written_slice = latest_written_slice - 1
+        if not self.pattern_blocks:
+            return []
+        return [block for block in self.pattern_blocks if block.slice_number > latest_written_slice]
+
+    def evaluate_lrc_blocks(self, latest_written_slice):
+        # Input expected to be 1 based internal we use zero based
+        latest_written_slice = latest_written_slice - 1
+        if not self.pattern_blocks:
+            return []
+        end_point_of_latest_slice = min(block.end_point for block in self.pattern_blocks if block.slice_number == latest_written_slice)
+        return [block for block in self.pattern_blocks if block.slice_number <= latest_written_slice and block.end_point > end_point_of_latest_slice]
+
+    def evaluate_upr_blocks(self, latest_written_slice):
+        # Input expected to be 1 based internal we use zero based
+        latest_written_slice = latest_written_slice - 1
+        if not self.pattern_blocks:
+            return []
+        end_point_of_latest_slice = min(block.end_point for block in self.pattern_blocks if block.slice_number == latest_written_slice)
+        print(end_point_of_latest_slice)
+        return [block for block in self.pattern_blocks if block.end_point > end_point_of_latest_slice]
+
+    @staticmethod
+    def create_svg(pattern_blocks, height = 50, day_cut = 0, slice_cut = 0, pre_colour = "white", colour = "blue"):
         svg_elements = []
-        for block in self.pattern_blocks:
+        for block in pattern_blocks:
             block_colour = colour
             if block.start_point < day_cut:
                 block_colour = pre_colour
@@ -225,10 +265,6 @@ class PatternEvaluator:
             blocks_data = json.load(file)
             pattern_blocks = [PatternBlock(**block_data) for block_data in blocks_data]
             return cls(pattern_blocks)
-
-    def evaluate(self):
-        # Placeholder for evaluation logic
-        pass
 
     def find_min_max_points(self):
         if not self.pattern_blocks:
@@ -271,15 +307,20 @@ def main():
     for block in pattern.get_all_pattern_blocks():
         print(block)
 
-    #evaluator.save_to_file("scratch/pattern.json")
-    #loaded_evaluator = PatternEvaluator.load_from_file("scratch/pattern.json")
-    #print(evaluator.create_svg(slice_cut=1))
-
     min_start, max_end = evaluator.find_min_max_points()
     print(f"Min start point: {min_start}, Max end point: {max_end}")
 
     lowest_start_point_heights = evaluator.find_lowest_start_point_heights()
     print(f"Lowest start point heights by display level: {lowest_start_point_heights}")
+
+    print("LIC blocks")
+    print(evaluator.create_svg(evaluator.evaluate_lic_blocks(2)))
+
+    print("LRC blocks")
+    print(evaluator.create_svg(evaluator.evaluate_lrc_blocks(2)))
+
+    print("UPR blocks")
+    print(evaluator.create_svg(evaluator.evaluate_upr_blocks(2)))
 
 if __name__ == "__main__":
     main()
