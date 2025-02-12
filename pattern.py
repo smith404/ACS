@@ -74,11 +74,11 @@ class Pattern:
 
     def get_all_pattern_blocks(self):
         blocks = []
-        level = 0
+        slice_number = 0
         display_level = 0
         for slice in self.slices:
-            blocks.extend(slice.get_pattern_blocks(pattern_id=self.identifier, level=level, display_level=display_level))
-            level = level + 1
+            blocks.extend(slice.get_pattern_blocks(pattern_id=self.identifier, slice_number=slice_number, display_level=display_level))
+            slice_number = slice_number + 1
             if slice.start_distribution != 0:
                 display_level = display_level + 2
             else:
@@ -131,14 +131,14 @@ class PatternSlice:
         # For a new line after the loop
         print()
 
-    def get_pattern_blocks(self, pattern_id, level=0, display_level=0):
+    def get_pattern_blocks(self, pattern_id, slice_number=0, display_level=0):
         blocks = []
         if self.start_distribution != 0:
             for index in range(self.development_periods):
                 shape = BlockShape.RECTANGLE
                 start_point = self.start_offset + (index * self.duration_offset)
                 end_point = self.start_offset + ((index + 1) * self.duration_offset) - 1
-                block = PatternBlock(pattern_id, level=level, display_level=display_level, start_point=start_point, end_point=end_point, area=self.start_distribution / self.development_periods, shape=shape)
+                block = PatternBlock(pattern_id, slice_number=slice_number, display_level=display_level, start_point=start_point, end_point=end_point, height=self.start_distribution / self.development_periods, shape=shape)
                 blocks.append(block)
             display_level = display_level + 1
         if self.distribution != 0:
@@ -154,7 +154,7 @@ class PatternSlice:
                         shape = BlockShape.RTRIANGLE
                 start_point = self.start_offset+(index * self.duration_offset)
                 end_point = (self.start_offset+((index + 1) * self.duration_offset))-1
-                block = PatternBlock(pattern_id, level=level, display_level=display_level, start_point=start_point, end_point=end_point, area=self.distribution / factor, shape=shape)
+                block = PatternBlock(pattern_id, slice_number=slice_number, display_level=display_level, start_point=start_point, end_point=end_point, height=self.distribution / factor, shape=shape)
                 blocks.append(block)
         return sorted(blocks, key=lambda block: block.start_point)
 
@@ -167,13 +167,13 @@ class BlockShape(str, Enum):
     RECTANGLE = "RECTANGLE"
 
 class PatternBlock:
-    def __init__(self, pattern, level=0, display_level=0, start_point=0, end_point=0, area=0, shape=BlockShape.RECTANGLE):
+    def __init__(self, pattern, slice_number=0, display_level=0, start_point=0, end_point=0, height=0, shape=BlockShape.RECTANGLE):
         self.pattern = pattern
-        self.level = level
+        self.slice_number = slice_number
         self.display_level = display_level
         self.start_point = start_point
         self.end_point = end_point
-        self.area = area
+        self.height = height
         self.shape = shape
 
     def generate_polygon(self, colour="blue", stroke="black", y_axis=0, height=50):
@@ -183,10 +183,10 @@ class PatternBlock:
             points = f"{self.start_point},{y_axis} {self.end_point},{y_axis} {self.end_point},{y_axis + height}"
         elif self.shape == BlockShape.RTRIANGLE:
             points = f"{self.start_point},{y_axis} {self.start_point},{y_axis + height} {self.end_point},{y_axis + height} "
-        return f'<polygon points="{points}" fill="{colour}" stroke="{stroke}" />'
+        return f'<polygon vector-effect="non-scaling-stroke" stroke-width="1" points="{points}" fill="{colour}" stroke="{stroke}" />'
 
     def __str__(self):
-        return f"PatternBlock with Pattern: {self.pattern}, Level: {self.level}, Display Level: {self.display_level}, Start Point: {self.start_point}, End Point: {self.end_point}, Area: {self.area}, Shape: {self.shape.name}"
+        return f"PatternBlock with Pattern: {self.pattern}, Slice Number: {self.slice_number}, Display Level: {self.display_level}, Start Point: {self.start_point}, End Point: {self.end_point}, Height: {self.height}, Shape: {self.shape.name}"
 
 class PatternEvaluator:
     def __init__(self, pattern_blocks):
@@ -203,13 +203,13 @@ class PatternEvaluator:
     def get_pattern_blocks_between(self, start_point, end_point):
         return [block for block in self.pattern_blocks if start_point <= block.start_point < end_point]
 
-    def create_svg(self, height = 50, x_cut = 0, y_cut = 0, pre_colour = "white", colour = "blue"):
+    def create_svg(self, height = 50, day_cut = 0, slice_cut = 0, pre_colour = "white", colour = "blue"):
         svg_elements = []
         for block in self.pattern_blocks:
             block_colour = colour
-            if block.start_point < x_cut:
+            if block.start_point < day_cut:
                 block_colour = pre_colour
-            if block.level < y_cut:
+            if block.slice_number < slice_cut:
                 block_colour = pre_colour
             element = block.generate_polygon(block_colour, y_axis=height*block.display_level, height=height)
             svg_elements.append(element)
@@ -254,7 +254,7 @@ def main():
 
     #evaluator.save_to_file("scratch/pattern.json")
     #loaded_evaluator = PatternEvaluator.load_from_file("scratch/pattern.json")
-    print(evaluator.create_svg(y_cut=1))
+    print(evaluator.create_svg(slice_cut=1))
 
 if __name__ == "__main__":
     main()
