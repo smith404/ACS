@@ -2,11 +2,11 @@
 <title>Pattern Display</title>
 {% if pattern %}
   <h1>Pattern {{ pattern }}!</h1>
+  <img src="{{ url_for('static', filename = '../scratch/' + pattern + '.svg')}}" alt="Pattern {{ pattern }}">
 {% else %}
   <h1>Default Pattern</h1>
 {% endif %}
 
-<svg viewBox="0 0 900 900" xmlns="http://www.w3.org/2000/svg"><polygon vector-effect="non-scaling-stroke" stroke-width="1" points="0.0,0 89.0,0 89.0,50 0.0,50" fill="blue" stroke="black" /><polygon vector-effect="non-scaling-stroke" stroke-width="1" points="0.0,50 89.0,50 89.0,100" fill="blue" stroke="black" /><polygon vector-effect="non-scaling-stroke" stroke-width="1" points="90.0,0 179.0,0 179.0,50 90.0,50" fill="blue" stroke="black" /><polygon vector-effect="non-scaling-stroke" stroke-width="1" points="90.0,50 179.0,50 179.0,100 90.0,100" fill="blue" stroke="black" /><polygon vector-effect="non-scaling-stroke" stroke-width="1" points="90.0,100 179.0,100 179.0,150" fill="blue" stroke="black" /></svg>
 
 
 
