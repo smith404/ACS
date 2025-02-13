@@ -9,4 +9,14 @@ angular.module('app').controller('MainController', function() {
     };
     this.maxSlice = this.patternData.slices.length;
     this.selectedSlice = 0;
+
+    this.onSliceChange = function() {
+        this.maxSlice = this.patternData.slices.length;
+        console.log('Slice changed. New maxSlice:', this.maxSlice);
+    };
+
+    this.onSelectedSliceChange = function(selectedSlice) {
+        this.selectedSlice = selectedSlice;
+        console.log('Selected slice changed:', this.selectedSlice);
+    };
 });

@@ -1,6 +1,7 @@
 angular.module('app').component('pattern', {
   bindings: {
-    patternData: '<'
+    patternData: '<',
+    onSliceChange: '&'
   },
   controller: function() {
     var ctrl = this;
@@ -13,10 +14,12 @@ angular.module('app').component('pattern', {
 
     ctrl.addSlice = function(slice) {
       ctrl.slices.push(slice);
+      ctrl.onSliceChange();
     };
 
     ctrl.removeSlice = function(index) {
       ctrl.slices.splice(index, 1);
+      ctrl.onSliceChange();
     };
 
     ctrl.setDuration = function(duration) {
@@ -40,10 +43,10 @@ angular.module('app').component('pattern', {
             duration-offset="slice.durationOffset" 
             development-periods="slice.developmentPeriods">
           </pattern-slice>
-          <button ng-click="$ctrl.removeSlice($index)">Remove Slice</button>
+          <button class="btn btn-pond" ng-click="$ctrl.removeSlice($index)">Remove Slice</button>
         </li>
       </ul>
-      <button ng-click="$ctrl.addSlice({distribution: 0, startDistribution: 0, duration: $ctrl.duration, startOffset: 0, durationOffset: 0, developmentPeriods: 0})">Add Slice</button>
+      <button class="btn btn-pond" ng-click="$ctrl.addSlice({distribution: 0, startDistribution: 0, duration: $ctrl.duration, startOffset: 0, durationOffset: 0, developmentPeriods: 0})">Add Slice</button>
     </div>
   `
 });

@@ -1,7 +1,8 @@
 angular.module('app').component('sliceSelector', {
   bindings: {
     maxSlice: '<',
-    selectedSlice: '='
+    selectedSlice: '=',
+    onSliceChange: '&'
   },
   controller: function() {
     var ctrl = this;
@@ -13,7 +14,7 @@ angular.module('app').component('sliceSelector', {
     };
 
     ctrl.onSliderChange = function() {
-      // Handle slider change if needed
+      ctrl.onSliceChange({ selectedSlice: ctrl.selectedSlice });
     };
   },
   template: `

@@ -243,14 +243,6 @@ class PatternEvaluator:
     def get_pattern_blocks_between(self, start_point, end_point):
         return [block for block in self.pattern_blocks if start_point <= block.start_point < end_point]
 
-    def evaluate_lic_blocks(self, latest_written_slice):
-        # Input expected to be 1 based internal we use zero based
-        latest_written_slice = latest_written_slice - 1
-        if not self.pattern_blocks:
-            return []
-        end_point_of_latest_slice = min(block.end_point for block in self.pattern_blocks if block.slice_number == latest_written_slice)
-        return [block for block in self.pattern_blocks if block.slice_number <= latest_written_slice and block.end_point <= end_point_of_latest_slice]
-
     def evaluate_written_blocks(self, latest_written_slice):
         # Input expected to be 1 based internal we use zero based
         latest_written_slice = latest_written_slice - 1
@@ -264,6 +256,14 @@ class PatternEvaluator:
         if not self.pattern_blocks:
             return []
         return [block for block in self.pattern_blocks if block.slice_number > latest_written_slice]
+
+    def evaluate_lic_blocks(self, latest_written_slice):
+        # Input expected to be 1 based internal we use zero based
+        latest_written_slice = latest_written_slice - 1
+        if not self.pattern_blocks:
+            return []
+        end_point_of_latest_slice = min(block.end_point for block in self.pattern_blocks if block.slice_number == latest_written_slice)
+        return [block for block in self.pattern_blocks if block.slice_number <= latest_written_slice and block.end_point <= end_point_of_latest_slice]
 
     def evaluate_lrc_blocks(self, latest_written_slice):
         # Input expected to be 1 based internal we use zero based

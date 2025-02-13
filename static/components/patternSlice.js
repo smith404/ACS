@@ -29,35 +29,6 @@ angular.module('app').component('patternSlice', {
     ctrl.setDevelopmentPeriods = function(developmentPeriods) {
       ctrl.developmentPeriods = developmentPeriods;
     };
-
-    ctrl.iterateDevelopmentPeriods = function() {
-      var result = [];
-      for (var index = 0; index <= ctrl.developmentPeriods; index++) {
-        var factor = ctrl.developmentPeriods;
-        if (index === 0 || index === ctrl.developmentPeriods) {
-          factor = factor * 2;
-        }
-        result.push({
-          start: ctrl.startOffset + (index * ctrl.durationOffset),
-          end: (ctrl.startOffset + ((index + 1) * ctrl.durationOffset)) - 1,
-          value: ctrl.distribution / factor
-        });
-      }
-      return result;
-    };
-
-    ctrl.iterateStartPeriods = function() {
-      var result = [];
-      var factor = ctrl.developmentPeriods;
-      for (var index = 0; index < ctrl.developmentPeriods; index++) {
-        result.push({
-          start: ctrl.startOffset + (index * ctrl.durationOffset),
-          end: (ctrl.startOffset + ((index + 1) * ctrl.durationOffset)) - 1,
-          value: ctrl.startDistribution / factor
-        });
-      }
-      return result;
-    };
   },
   template: `
     <div>

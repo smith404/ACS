@@ -15,7 +15,7 @@ body {
     padding: 0;
 }
 header, footer {
-    background-color: #333;
+    background-color: #627D77;
     color: #fff;
     text-align: center;
     padding: 10px 0;
@@ -23,17 +23,15 @@ header, footer {
 main {
     padding: 20px;
 }
-.sidebar {
-    height: 100vh;
-    position: fixed;
-    top: 0;
-    left: 0;
-    overflow-x: hidden;
-    padding-top: 20px;
+
+.btn-pond {
+    border-radius: 0px 0px 0px 0px;
+    color: whitesmoke;
+    background-color: #627D77;
+    border-color: #627D77;
 }
-.sidebar .nav-link {
-    color: #333;
-}
-.sidebar .nav-link.active {
-    color: #007bff;
-}
+
+.btn-pond:hover {
+    color: white;
+    background-color: #627D77;
+    border-color: #627D77;
