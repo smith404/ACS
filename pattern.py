@@ -105,7 +105,7 @@ class Pattern:
         with open(filename, 'r') as file:
             data = json.load(file)
             pattern = cls(duration=data['duration'])
-            pattern.identifier = uuid.UUID(data['identifier'])
+            pattern.identifier = data['identifier']
             pattern.slices = [PatternSlice(**slice_data) for slice_data in data['slices']]
             return pattern
 
@@ -325,7 +325,7 @@ def main():
     print("Distribution check:", pattern.check_distribution())
     print("Duration check:", pattern.check_durations())
 
-    pattern.save_to_file("scratch/pattern.json")
+    pattern.save_to_file("scratch/my_test_pattern.json")
 
     evaluator = PatternEvaluator(pattern.get_all_pattern_blocks())
     for block in pattern.get_all_pattern_blocks():

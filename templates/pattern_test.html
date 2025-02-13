@@ -2,7 +2,8 @@
 <title>Pattern Display</title>
 {% if pattern %}
   <h1>Pattern {{ pattern }}!</h1>
-  <img src="{{ url_for('static', filename = '../scratch/' + pattern + '.svg')}}" alt="Pattern {{ pattern }}">
+  <img src="/pattern/svg/{{ pattern }}?type=written&lw=2" alt="Pattern {{ pattern }}">
+  <img src="/pattern/svg/{{ pattern }}?type=unwritten&lw=2" alt="Pattern {{ pattern }}">
 {% else %}
   <h1>Default Pattern</h1>
 {% endif %}
