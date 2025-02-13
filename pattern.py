@@ -1,3 +1,24 @@
+# Copyright (c) 2023 [Your Name]
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
+
 from enum import Enum
 import json
 import uuid
@@ -284,7 +305,7 @@ class PatternEvaluator:
                 block_colour = pre_colour
             element = block.generate_polygon(block_colour, y_axis=height*block.display_level, height=height)
             svg_elements.append(element)
-        return f'<svg width="100%" height="auto" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">{"".join(svg_elements)}</svg>'
+        return f'<svg width="100%" height="auto" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">{"".join(svg_elements)}</svg>'
 
     @staticmethod
     def find_min_max_points(pattern_blocks):
@@ -336,18 +357,6 @@ def main():
 
     lowest_start_point_heights = evaluator.find_lowest_start_point_heights(evaluator.pattern_blocks)
     print(f"Lowest start point heights by display level: {lowest_start_point_heights}")
-
-    store_string_to_file("scratch/lic.svg",evaluator.create_svg(evaluator.evaluate_lic_blocks(2)))
-
-    store_string_to_file("scratch/lrc.svg",evaluator.create_svg(evaluator.evaluate_lrc_blocks(2)))
-
-    store_string_to_file("scratch/upr.svg",evaluator.create_svg(evaluator.evaluate_upr_blocks(2)))
-
-    store_string_to_file("scratch/written.svg",evaluator.create_svg(evaluator.evaluate_written_blocks(2)))
-
-    store_string_to_file("scratch/unwritten.svg",evaluator.create_svg(evaluator.evaluate_unwritten_blocks(2)))
-
-    store_string_to_file("scratch/pattern.svg",evaluator.create_svg(evaluator.pattern_blocks, latest_written_slice=2, pre_colour="yellow", colour="red"))
 
 if __name__ == "__main__":
     main()
