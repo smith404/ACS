@@ -5,30 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Desktop Template</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css')}}">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f0f0f0;
-        }
-        .container {
-            width: 80%;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        header, footer {
-            background-color: #333;
-            color: #fff;
-            text-align: center;
-            padding: 10px 0;
-        }
-        main {
-            padding: 20px;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/site.css')}}">
+
     <script src="{{ url_for('static', filename='vendor/angular/angular.min.js')}}"></script>
     <script>
         angular.module('app', []);
@@ -36,75 +14,100 @@
     <script src="{{ url_for('static', filename='components/patternSlice.js')}}"></script>
     <script src="{{ url_for('static', filename='components/sliceSelector.js')}}"></script>
     <script src="{{ url_for('static', filename='components/pattern.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/desktop.js')}}"></script>
 </head>
 <body>
-    <div class="container" ng-controller="MainController as ctrl">
-        <header>
-            <h1>Welcome to the Desktop Template</h1>
-        </header>
-        <main>
-            <p>This is a simple HTML template for a desktop layout.</p>
-            <pattern 
-                pattern-data="ctrl.patternData">
-            </pattern>
-            <slice-selector 
-                max-slice="ctrl.maxSlice" 
-                selected-slice="ctrl.selectedSlice">
-            </slice-selector>
-            <ul class="nav nav-tabs" id="myTab" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="tab1-tab" data-bs-toggle="tab" data-bs-target="#tab1" type="button" role="tab" aria-controls="tab1" aria-selected="true">Tab 1</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="tab2-tab" data-bs-toggle="tab" data-bs-target="#tab2" type="button" role="tab" aria-controls="tab2" aria-selected="false">Tab 2</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="tab3-tab" data-bs-toggle="tab" data-bs-target="#tab3" type="button" role="tab" aria-controls="tab3" aria-selected="false">Tab 3</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="tab4-tab" data-bs-toggle="tab" data-bs-target="#tab4" type="button" role="tab" aria-controls="tab4" aria-selected="false">Tab 4</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="tab5-tab" data-bs-toggle="tab" data-bs-target="#tab5" type="button" role="tab" aria-controls="tab5" aria-selected="false">Tab 5</button>
-                </li>
-            </ul>
-            <div class="tab-content" id="myTabContent">
-                <div class="tab-pane fade show active" id="tab1" role="tabpanel" aria-labelledby="tab1-tab">
-                    <p>Content for Tab 1</p>
+    <div class="container-fluid" ng-controller="MainController as ctrl">
+        <div class="row">
+            <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+                <div class="sidebar-sticky">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#">
+                                Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                Orders
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                Products
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                Customers
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                Reports
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                Integrations
+                            </a>
+                        </li>
+                    </ul>
                 </div>
-                <div class="tab-pane fade" id="tab2" role="tabpanel" aria-labelledby="tab2-tab">
-                    <p>Content for Tab 2</p>
+            </nav>
+            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+                <header>
+                    <h1>Welcome to the Desktop Template</h1>
+                </header>
+                <p>This is a simple HTML template for a desktop layout.</p>
+                <pattern 
+                    pattern-data="ctrl.patternData">
+                </pattern>
+                <slice-selector 
+                    max-slice="ctrl.maxSlice" 
+                    selected-slice="ctrl.selectedSlice">
+                </slice-selector>
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="tab1-tab" data-bs-toggle="tab" data-bs-target="#tab1" type="button" role="tab" aria-controls="tab1" aria-selected="true">Tab 1</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tab2-tab" data-bs-toggle="tab" data-bs-target="#tab2" type="button" role="tab" aria-controls="tab2" aria-selected="false">Tab 2</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tab3-tab" data-bs-toggle="tab" data-bs-target="#tab3" type="button" role="tab" aria-controls="tab3" aria-selected="false">Tab 3</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tab4-tab" data-bs-toggle="tab" data-bs-target="#tab4" type="button" role="tab" aria-controls="tab4" aria-selected="false">Tab 4</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tab5-tab" data-bs-toggle="tab" data-bs-target="#tab5" type="button" role="tab" aria-controls="tab5" aria-selected="false">Tab 5</button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="myTabContent">
+                    <div class="tab-pane fade show active" id="tab1" role="tabpanel" aria-labelledby="tab1-tab">
+                        <p>Content for Tab 1</p>
+                    </div>
+                    <div class="tab-pane fade" id="tab2" role="tabpanel" aria-labelledby="tab2-tab">
+                        <p>Content for Tab 2</p>
+                    </div>
+                    <div class="tab-pane fade" id="tab3" role="tabpanel" aria-labelledby="tab3-tab">
+                        <p>Content for Tab 3</p>
+                    </div>
+                    <div class="tab-pane fade" id="tab4" role="tabpanel" aria-labelledby="tab4-tab">
+                        <p>Content for Tab 4</p>
+                    </div>
+                    <div class="tab-pane fade" id="tab5" role="tabpanel" aria-labelledby="tab5-tab">
+                        <p>Content for Tab 5</p>
+                    </div>
                 </div>
-                <div class="tab-pane fade" id="tab3" role="tabpanel" aria-labelledby="tab3-tab">
-                    <p>Content for Tab 3</p>
-                </div>
-                <div class="tab-pane fade" id="tab4" role="tabpanel" aria-labelledby="tab4-tab">
-                    <p>Content for Tab 4</p>
-                </div>
-                <div class="tab-pane fade" id="tab5" role="tabpanel" aria-labelledby="tab5-tab">
-                    <p>Content for Tab 5</p>
-                </div>
-            </div>
-        </main>
-        <footer>
-            <p>&copy; 2023 Your Company</p>
-        </footer>
+                <footer>
+                    <p>&copy; 2023 Your Company</p>
+                </footer>
+            </main>
+        </div>
     </div>
     <script src="{{ url_for('static', filename='vendor/jquery/jquery.js')}}"></script>
     <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js')}}"></script>
-    <script>
-        angular.module('app').controller('MainController', function() {
-            this.patternData = {
-                identifier: 'Pattern-1',
-                slices: [
-                    { distribution: 0.5, startDistribution: 0.2, duration: 100, startOffset: 10, durationOffset: 20, developmentPeriods: 5 },
-                    { distribution: 0.3, startDistribution: 0.1, duration: 100, startOffset: 30, durationOffset: 20, developmentPeriods: 5 }
-                ],
-                duration: 100
-            };
-            this.maxSlice = this.patternData.slices.length;
-            this.selectedSlice = 0;
-        });
-    </script>
 </body>
 </html>
