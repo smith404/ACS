@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Desktop Template</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor//bootstrap/css/bootstrap.min.css')}}">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -50,11 +51,47 @@
                 max-slice="ctrl.maxSlice" 
                 selected-slice="ctrl.selectedSlice">
             </slice-selector>
+            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="tab1-tab" data-toggle="tab" href="#tab1" role="tab" aria-controls="tab1" aria-selected="true">Tab 1</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="tab2-tab" data-toggle="tab" href="#tab2" role="tab" aria-controls="tab2" aria-selected="false">Tab 2</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="tab3-tab" data-toggle="tab" href="#tab3" role="tab" aria-controls="tab3" aria-selected="false">Tab 3</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="tab4-tab" data-toggle="tab" href="#tab4" role="tab" aria-controls="tab4" aria-selected="false">Tab 4</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="tab5-tab" data-toggle="tab" href="#tab5" role="tab" aria-controls="tab5" aria-selected="false">Tab 5</a>
+                </li>
+            </ul>
+            <div class="tab-content" id="myTabContent">
+                <div class="tab-pane fade show active" id="tab1" role="tabpanel" aria-labelledby="tab1-tab">
+                    <p>Content for Tab 1</p>
+                </div>
+                <div class="tab-pane fade" id="tab2" role="tabpanel" aria-labelledby="tab2-tab">
+                    <p>Content for Tab 2</p>
+                </div>
+                <div class="tab-pane fade" id="tab3" role="tabpanel" aria-labelledby="tab3-tab">
+                    <p>Content for Tab 3</p>
+                </div>
+                <div class="tab-pane fade" id="tab4" role="tabpanel" aria-labelledby="tab4-tab">
+                    <p>Content for Tab 4</p>
+                </div>
+                <div class="tab-pane fade" id="tab5" role="tabpanel" aria-labelledby="tab5-tab">
+                    <p>Content for Tab 5</p>
+                </div>
+            </div>
         </main>
         <footer>
             <p>&copy; 2023 Your Company</p>
         </footer>
     </div>
+    <script src="{{ url_for('static', filename='vendor/jquery/jquery.js')}}"></script>
+    <script src="{{ url_for('static', filename='vendor//bootstrap/js/bootstrap.min.js')}}"></script>
     <script>
         angular.module('app').controller('MainController', function() {
             this.patternData = {
