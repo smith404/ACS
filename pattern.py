@@ -197,11 +197,11 @@ class PatternBlock:
 
     def generate_polygon(self, colour="blue", stroke="black", y_axis=0, height=50):
         if self.shape == BlockShape.RECTANGLE:
-            points = f"{self.start_point},{y_axis} {self.end_point},{y_axis} {self.end_point},{y_axis + height} {self.start_point},{y_axis + height}"
+            points = f"{self.start_point},{y_axis} {self.end_point + 1},{y_axis} {self.end_point + 1},{y_axis + height} {self.start_point},{y_axis + height}"
         elif self.shape == BlockShape.LTRIANGLE:
-            points = f"{self.start_point},{y_axis} {self.end_point},{y_axis} {self.end_point},{y_axis + height}"
+            points = f"{self.start_point},{y_axis} {self.end_point + 1},{y_axis} {self.end_point + 1},{y_axis + height}"
         elif self.shape == BlockShape.RTRIANGLE:
-            points = f"{self.start_point},{y_axis} {self.start_point},{y_axis + height} {self.end_point},{y_axis + height} "
+            points = f"{self.start_point},{y_axis} {self.start_point},{y_axis + height} {self.end_point + 1},{y_axis + height} "
         return f'<polygon vector-effect="non-scaling-stroke" stroke-width="1" points="{points}" fill="{colour}" stroke="{stroke}" />'
 
     def __str__(self):
@@ -284,7 +284,7 @@ class PatternEvaluator:
                 block_colour = pre_colour
             element = block.generate_polygon(block_colour, y_axis=height*block.display_level, height=height)
             svg_elements.append(element)
-        return f'<svg viewBox="0 0 900 900" xmlns="http://www.w3.org/2000/svg">{"".join(svg_elements)}</svg>'
+        return f'<svg width="100%" height="auto" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">{"".join(svg_elements)}</svg>'
 
     @staticmethod
     def find_min_max_points(pattern_blocks):
