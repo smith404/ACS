@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" ng-app="app">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -28,18 +28,43 @@
             padding: 20px;
         }
     </style>
+    <script src="{{ url_for('static', filename='vendor/angular/angular.min.js')}}"></script>
+    <script>
+        angular.module('app', []);
+    </script>
+    <script src="{{ url_for('static', filename='components/pattern_slice.js')}}")></script>
+    <script src="{{ url_for('static', filename='components/slice_selector.js')}}")></script>
 </head>
 <body>
-    <div class="container">
+    <div class="container" ng-controller="MainController as ctrl">
         <header>
             <h1>Welcome to the Desktop Template</h1>
         </header>
         <main>
             <p>This is a simple HTML template for a desktop layout.</p>
+            <pattern-slice 
+                distribution="ctrl.distribution" 
+                start-distribution="ctrl.startDistribution" 
+                duration="ctrl.duration" 
+                start-offset="ctrl.startOffset" 
+                duration-offset="ctrl.durationOffset" 
+                development-periods="ctrl.developmentPeriods">
+            </pattern-slice>
+            <slice-selector></slice-selector>
         </main>
         <footer>
             <p>&copy; 2023 Your Company</p>
         </footer>
     </div>
+    <script>
+        angular.module('app').controller('MainController', function() {
+            this.distribution = 0.5;
+            this.startDistribution = 0.2;
+            this.duration = 100;
+            this.startOffset = 10;
+            this.durationOffset = 20;
+            this.developmentPeriods = 5;
+        });
+    </script>
 </body>
 </html>
