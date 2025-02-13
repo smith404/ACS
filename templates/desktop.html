@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Desktop Template</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='vendor//bootstrap/css/bootstrap.min.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css')}}">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -33,8 +33,8 @@
     <script>
         angular.module('app', []);
     </script>
-    <script src="{{ url_for('static', filename='components/pattern_slice.js')}}"></script>
-    <script src="{{ url_for('static', filename='components/slice_selector.js')}}"></script>
+    <script src="{{ url_for('static', filename='components/patternSlice.js')}}"></script>
+    <script src="{{ url_for('static', filename='components/sliceSelector.js')}}"></script>
     <script src="{{ url_for('static', filename='components/pattern.js')}}"></script>
 </head>
 <body>
@@ -52,20 +52,20 @@
                 selected-slice="ctrl.selectedSlice">
             </slice-selector>
             <ul class="nav nav-tabs" id="myTab" role="tablist">
-                <li class="nav-item">
-                    <a class="nav-link active" id="tab1-tab" data-toggle="tab" href="#tab1" role="tab" aria-controls="tab1" aria-selected="true">Tab 1</a>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="tab1-tab" data-bs-toggle="tab" data-bs-target="#tab1" type="button" role="tab" aria-controls="tab1" aria-selected="true">Tab 1</button>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" id="tab2-tab" data-toggle="tab" href="#tab2" role="tab" aria-controls="tab2" aria-selected="false">Tab 2</a>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="tab2-tab" data-bs-toggle="tab" data-bs-target="#tab2" type="button" role="tab" aria-controls="tab2" aria-selected="false">Tab 2</button>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" id="tab3-tab" data-toggle="tab" href="#tab3" role="tab" aria-controls="tab3" aria-selected="false">Tab 3</a>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="tab3-tab" data-bs-toggle="tab" data-bs-target="#tab3" type="button" role="tab" aria-controls="tab3" aria-selected="false">Tab 3</button>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" id="tab4-tab" data-toggle="tab" href="#tab4" role="tab" aria-controls="tab4" aria-selected="false">Tab 4</a>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="tab4-tab" data-bs-toggle="tab" data-bs-target="#tab4" type="button" role="tab" aria-controls="tab4" aria-selected="false">Tab 4</button>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" id="tab5-tab" data-toggle="tab" href="#tab5" role="tab" aria-controls="tab5" aria-selected="false">Tab 5</a>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="tab5-tab" data-bs-toggle="tab" data-bs-target="#tab5" type="button" role="tab" aria-controls="tab5" aria-selected="false">Tab 5</button>
                 </li>
             </ul>
             <div class="tab-content" id="myTabContent">
@@ -91,7 +91,7 @@
         </footer>
     </div>
     <script src="{{ url_for('static', filename='vendor/jquery/jquery.js')}}"></script>
-    <script src="{{ url_for('static', filename='vendor//bootstrap/js/bootstrap.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js')}}"></script>
     <script>
         angular.module('app').controller('MainController', function() {
             this.patternData = {
