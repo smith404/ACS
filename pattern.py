@@ -272,6 +272,30 @@ class PatternEvaluator:
         end_point_of_latest_slice = min(block.end_point for block in self.pattern_blocks if block.slice_number == latest_written_slice)
         return [block for block in self.pattern_blocks if block.end_point > end_point_of_latest_slice]
 
+    def get_earliest_end_point_of_slice(self, slice_number):
+        slice_blocks = [block for block in self.pattern_blocks if block.slice_number == slice_number]
+        if not slice_blocks:
+            return None
+        return min(block.end_point for block in slice_blocks)
+
+    def get_earliest_start_point_of_slice(self, slice_number):
+        slice_blocks = [block for block in self.pattern_blocks if block.slice_number == slice_number]
+        if not slice_blocks:
+            return None
+        return min(block.start_point for block in slice_blocks)
+
+    def get_latest_end_point_of_slice(self, slice_number):
+        slice_blocks = [block for block in self.pattern_blocks if block.slice_number == slice_number]
+        if not slice_blocks:
+            return None
+        return max(block.end_point for block in slice_blocks)
+
+    def get_latest_start_point_of_slice(self, slice_number):
+        slice_blocks = [block for block in self.pattern_blocks if block.slice_number == slice_number]
+        if not slice_blocks:
+            return None
+        return max(block.start_point for block in slice_blocks)
+
     def save_to_file(self, filename):
         with open(filename, 'w') as file:
             json.dump([block.__dict__ for block in self.pattern_blocks], file)
@@ -286,8 +310,8 @@ class PatternEvaluator:
     @staticmethod
     def create_svg(pattern_blocks, latest_written_slice = 1, day_cut = 0, slice_height = 50, pre_colour = "white", colour = "blue"):
         latest_written_slice = latest_written_slice - 1
-        min, max = PatternEvaluator.find_min_max_points(pattern_blocks)
-        width = max - min
+        min_point, max_point = PatternEvaluator.find_min_max_points(pattern_blocks)
+        width = max_point - min_point
         height = 0
         svg_elements = []
         for block in pattern_blocks:
@@ -338,7 +362,7 @@ def main():
     pattern.set_identifier("Test Pattern")
     pattern.add_slice(PatternSlice(0, 0.1))
     pattern.add_slice(PatternSlice())
-    pattern.add_slice(PatternSlice(0, 0.5))
+    pattern.add_slice(PatternSlice(0, 0.1))
     pattern.add_slice(PatternSlice())
 
     pattern.distribute_remaining()
@@ -351,7 +375,7 @@ def main():
     pattern.save_to_file("scratch/my_test_pattern.json")
 
     evaluator = PatternEvaluator(pattern.get_all_pattern_blocks())
-    evaluator.apply_ultimate_value(136.45)
+    evaluator.apply_ultimate_value(136.5)
 
     print(f"LIC: {evaluator.sum_ultimate_values(evaluator.evaluate_lic_blocks(2))}")
     print(f"LRC: {evaluator.sum_ultimate_values(evaluator.evaluate_lrc_blocks(2))}")
