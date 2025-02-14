@@ -85,11 +85,9 @@ class Pattern:
 
     def get_all_pattern_blocks(self):
         blocks = []
-        slice_number = 0
         display_level = 0
-        for slice in self.slices:
-            blocks.extend(slice.get_pattern_blocks(pattern_id=self.identifier, slice_number=slice_number, display_level=display_level))
-            slice_number = slice_number + 1
+        for index, slice in enumerate(self.slices, start=0):
+            blocks.extend(slice.get_pattern_blocks(pattern_id=self.identifier, slice_number=index, display_level=display_level))
             if slice.start_distribution != 0:
                 display_level = display_level + 2
             else:
