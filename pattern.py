@@ -103,6 +103,13 @@ class Pattern:
                 'slices': [slice.__dict__ for slice in self.slices]
             }, file)
 
+    def to_json(self) -> str:
+        return json.dumps({
+            'identifier': str(self.identifier),
+            'duration': self.duration,
+            'slices': [slice.__dict__ for slice in self.slices]
+        })
+
     @classmethod
     def load_from_file(cls, filename: str) -> 'Pattern':
         with open(filename, 'r') as file:
@@ -173,6 +180,16 @@ class PatternSlice:
                 block = PatternBlock(pattern_id, slice_number=slice_number, display_level=display_level, start_point=start_point, end_point=end_point, height=self.distribution / factor, shape=shape)
                 blocks.append(block)
         return sorted(blocks, key=lambda block: block.start_point)
+
+    def to_json(self) -> str:
+        return json.dumps({
+            'distribution': self.distribution,
+            'start_distribution': self.start_distribution,
+            'duration': self.duration,
+            'start_offset': self.start_offset,
+            'duration_offset': self.duration_offset,
+            'development_periods': self.development_periods
+        })
 
     def __str__(self) -> str:
         return f"PatternSlice: (Distribution: {self.distribution}, Start Distribution: {self.start_distribution}, Duration: {self.duration}, Start Offset: {self.start_offset}, Duration Offset: {self.duration_offset}, Development Periods: {self.development_periods})"
@@ -274,12 +291,12 @@ class PatternEvaluator:
             return cls(pattern_blocks)
 
     @staticmethod
-    def create_svg(pattern_blocks: List[PatternBlock], latest_written_slice: Optional[int] = None, day_cut: Optional[int] = None, slice_heights: dict[int, int] = None, pre_colour: str = "white", colour: str = "blue", condition: str = "or") -> str:
+    def create_svg(pattern_blocks: List[PatternBlock], latest_written_slice: Optional[int] = None, day_cut: Optional[int] = None, slice_heights: dict[int, int] = None, height_scale: float = 0.7, pre_colour: str = "white", colour: str = "blue", condition: str = "or") -> str:
         min_point, max_point = PatternEvaluator.find_min_max_points(pattern_blocks)
         width = max_point - min_point
         if slice_heights is None:
             largest_height_per_display_level = PatternEvaluator.find_largest_height_per_display_level(pattern_blocks)
-            slice_heights = cumulative_sum(scale_vector_to_sum(largest_height_per_display_level, (max_point - min_point)/2))
+            slice_heights = cumulative_sum(scale_vector_to_sum(largest_height_per_display_level, (max_point - min_point)*height_scale))
         height, svg_elements = PatternEvaluator.generate_svg_elements(pattern_blocks, latest_written_slice, day_cut, slice_heights, pre_colour, colour, condition)
         return f'<svg width="100%" height="auto" viewBox="0 0 {width} {height}" xmlns="http://www.w3.org/2000/svg">{"".join(svg_elements)}</svg>'
 
@@ -347,10 +364,11 @@ class PatternEvaluator:
 def main():
     pattern = Pattern(360)
     pattern.set_identifier("Test Pattern")
+    pattern.add_slice(PatternSlice(0, 0.05))
     pattern.add_slice(PatternSlice(0, 0.1))
-    pattern.add_slice(PatternSlice())
     pattern.add_slice(PatternSlice(0, 0.1))
-    pattern.add_slice(PatternSlice())
+    pattern.add_slice(PatternSlice(0, 0.1))
+    pattern.add_slice(PatternSlice(0, 0.05))
 
     pattern.distribute_remaining()
     pattern.align_slice_periods()

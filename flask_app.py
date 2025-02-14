@@ -9,7 +9,7 @@
 
 from flask import Flask, send_from_directory, render_template, Response, request
 from flask_wtf.csrf import CSRFProtect
-from pattern import Pattern, PatternEvaluator
+from pattern import Pattern, PatternEvaluator, PatternSlice
 
 app = Flask(__name__)
 csrf = CSRFProtect(app)
@@ -35,6 +35,21 @@ def pattern_svg(name: str) -> Response:
     latest_written_slice = int(request.args.get('lw', 0))
     svg_content = generate_svg_content(evaluator, svg_type, latest_written_slice)
     return Response(svg_content, mimetype='image/svg+xml')
+
+@app.route('/pattern/load/<name>')
+def pattern_object(name: str) -> Response:
+    pattern = Pattern.load_from_file(f'scratch/{name}.json')
+    return Response(pattern.to_json(), mimetype='application/json')
+
+@app.route('/pattern/save', methods=['POST'])
+def save_pattern() -> Response:
+    data = request.json
+    if not data:
+        return Response("Invalid data", status=400)
+    
+    pattern = Pattern.from_json(data)
+    pattern.save_to_file(f'scratch/{pattern.identifier}.json')
+    return Response("Pattern saved successfully", status=200)
 
 def generate_svg_content(evaluator: PatternEvaluator, svg_type: str, latest_written_slice: int) -> str:
     if svg_type == 'written':
