@@ -33,20 +33,19 @@ def pattern_svg(name):
     evaluator = PatternEvaluator(pattern.get_all_pattern_blocks())
     svg_type = request.args.get('type', 'full')
     latest_written_slice = int(request.args.get('lw', 0))
-    print(latest_written_slice)
-    if svg_type == 'lic':
-        time_point = evaluator.get_earliest_end_point_of_slice(latest_written_slice)
-        svg_content = evaluator.create_svg(evaluator.pattern_blocks, latest_written_slice = latest_written_slice, day_cut = time_point)
-    elif svg_type == 'lrc':
-        time_point = evaluator.get_earliest_end_point_of_slice(latest_written_slice)
-        svg_content = evaluator.create_svg(evaluator.pattern_blocks, latest_written_slice = latest_written_slice, day_cut = time_point, pre_colour='blue', colour='white')
-    elif svg_type == 'upr':
-        time_point = evaluator.get_earliest_end_point_of_slice(latest_written_slice)
-        svg_content = evaluator.create_svg(evaluator.pattern_blocks, day_cut = time_point)
-    elif svg_type == 'written':
+    if svg_type == 'written':
         svg_content = evaluator.create_svg(evaluator.pattern_blocks, latest_written_slice=latest_written_slice, pre_colour='blue', colour='white')
     elif svg_type == 'unwritten':
         svg_content = evaluator.create_svg(evaluator.pattern_blocks, latest_written_slice=latest_written_slice)
+    elif svg_type == 'lic':
+        time_point = evaluator.get_earliest_end_point_of_slice(latest_written_slice)
+        svg_content = evaluator.create_svg(evaluator.pattern_blocks, latest_written_slice=latest_written_slice, day_cut=time_point, pre_colour='blue', colour='white')
+    elif svg_type == 'lrc':
+        time_point = evaluator.get_earliest_end_point_of_slice(latest_written_slice)
+        svg_content = evaluator.create_svg(evaluator.pattern_blocks, latest_written_slice=latest_written_slice, day_cut=time_point, pre_colour='white', colour='blue')
+    elif svg_type == 'upr':
+        time_point = evaluator.get_earliest_end_point_of_slice(latest_written_slice)
+        svg_content = evaluator.create_svg(evaluator.pattern_blocks, day_cut = time_point)
     else:
         svg_content = evaluator.create_svg(evaluator.pattern_blocks)
     return Response(svg_content, mimetype='image/svg+xml')

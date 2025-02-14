@@ -146,14 +146,14 @@ class PatternSlice:
             # Check for the first and last index as these are half the value of the other indexes
             if index == 0 or index == self.development_periods:
                 factor = factor * 2
-            print(f"({self.start_offset+(index * self.duration_offset)} , {(self.start_offset+((index + 1) * self.duration_offset))-1} , {self.distribution/factor})", end='\t')
+            print(f"({self.start_offset+(index * self.duration_offset)} , {(self.start_offset+((index + 1) * self.duration_offset)) - 1} , {self.distribution/factor})", end='\t')
         # For a new line after the loop
         print()
 
     def iterate_start_periods(self):
         factor = self.development_periods
         for index in range(self.development_periods):
-            print(f"({self.start_offset+(index * self.duration_offset)} , {(self.start_offset+((index + 1) * self.duration_offset))-1} , {self.start_distribution/factor})", end='\t')
+            print(f"({self.start_offset+(index * self.duration_offset)} , {(self.start_offset+((index + 1) * self.duration_offset)) - 1} , {self.start_distribution/factor})", end='\t')
         # For a new line after the loop
         print()
 
@@ -179,7 +179,7 @@ class PatternSlice:
                     else:
                         shape = BlockShape.RTRIANGLE
                 start_point = self.start_offset+(index * self.duration_offset)
-                end_point = (self.start_offset+((index + 1) * self.duration_offset))-1
+                end_point = (self.start_offset+((index + 1) * self.duration_offset)) - 1
                 block = PatternBlock(pattern_id, slice_number=slice_number, display_level=display_level, start_point=start_point, end_point=end_point, height=self.distribution / factor, shape=shape)
                 blocks.append(block)
         return sorted(blocks, key=lambda block: block.start_point)
@@ -235,38 +235,28 @@ class PatternEvaluator:
         return [block for block in self.pattern_blocks if start_point <= block.start_point < end_point]
 
     def evaluate_written_blocks(self, latest_written_slice):
-        # Input expected to be 1 based internal we use zero based
-        latest_written_slice = latest_written_slice - 1
         if not self.pattern_blocks:
             return []
         return [block for block in self.pattern_blocks if block.slice_number <= latest_written_slice]
 
     def evaluate_unwritten_blocks(self, latest_written_slice):
-        # Input expected to be 1 based internal we use zero based
-        latest_written_slice = latest_written_slice - 1
         if not self.pattern_blocks:
             return []
         return [block for block in self.pattern_blocks if block.slice_number > latest_written_slice]
 
     def evaluate_lic_blocks(self, latest_written_slice):
-        # Input expected to be 1 based internal we use zero based
-        latest_written_slice = latest_written_slice - 1
         if not self.pattern_blocks:
             return []
         end_point_of_latest_slice = min(block.end_point for block in self.pattern_blocks if block.slice_number == latest_written_slice)
         return [block for block in self.pattern_blocks if block.slice_number <= latest_written_slice and block.end_point <= end_point_of_latest_slice]
 
     def evaluate_lrc_blocks(self, latest_written_slice):
-        # Input expected to be 1 based internal we use zero based
-        latest_written_slice = latest_written_slice - 1
         if not self.pattern_blocks:
             return []
         end_point_of_latest_slice = min(block.end_point for block in self.pattern_blocks if block.slice_number == latest_written_slice)
         return [block for block in self.pattern_blocks if block.slice_number <= latest_written_slice and block.end_point > end_point_of_latest_slice]
 
     def evaluate_upr_blocks(self, latest_written_slice):
-        # Input expected to be 1 based internal we use zero based
-        latest_written_slice = latest_written_slice - 1
         if not self.pattern_blocks:
             return []
         end_point_of_latest_slice = min(block.end_point for block in self.pattern_blocks if block.slice_number == latest_written_slice)
@@ -308,17 +298,16 @@ class PatternEvaluator:
             return cls(pattern_blocks)
 
     @staticmethod
-    def create_svg(pattern_blocks, latest_written_slice = 1, day_cut = 0, slice_height = 50, pre_colour = "white", colour = "blue"):
-        latest_written_slice = latest_written_slice - 1
+    def create_svg(pattern_blocks, latest_written_slice = 0, day_cut = 0, slice_height = 50, pre_colour = "white", colour = "blue"):
         min_point, max_point = PatternEvaluator.find_min_max_points(pattern_blocks)
         width = max_point - min_point
         height = 0
         svg_elements = []
         for block in pattern_blocks:
             block_colour = colour
-            if block.start_point < day_cut:
+            if block.slice_number <= latest_written_slice:
                 block_colour = pre_colour
-            if block.slice_number < latest_written_slice:
+            if block.start_point <= day_cut:
                 block_colour = pre_colour
             element = block.generate_polygon(block_colour, y_axis=slice_height*block.display_level, height=slice_height)
             svg_elements.append(element)
@@ -377,15 +366,12 @@ def main():
     evaluator = PatternEvaluator(pattern.get_all_pattern_blocks())
     evaluator.apply_ultimate_value(136.5)
 
-    print(f"LIC: {evaluator.sum_ultimate_values(evaluator.evaluate_lic_blocks(2))}")
-    print(f"LRC: {evaluator.sum_ultimate_values(evaluator.evaluate_lrc_blocks(2))}")
-    print(f"UPR: {evaluator.sum_ultimate_values(evaluator.evaluate_upr_blocks(2))}")
-    print(f"Written: {evaluator.sum_ultimate_values(evaluator.evaluate_written_blocks(2))}")
-    print(f"Unwritten: {evaluator.sum_ultimate_values(evaluator.evaluate_unwritten_blocks(2))}")
+    print(f"LIC: {evaluator.sum_ultimate_values(evaluator.evaluate_lic_blocks(1))}")
+    print(f"LRC: {evaluator.sum_ultimate_values(evaluator.evaluate_lrc_blocks(1))}")
+    print(f"UPR: {evaluator.sum_ultimate_values(evaluator.evaluate_upr_blocks(1))}")
+    print(f"Written: {evaluator.sum_ultimate_values(evaluator.evaluate_written_blocks(1))}")
+    print(f"Unwritten: {evaluator.sum_ultimate_values(evaluator.evaluate_unwritten_blocks(1))}")
     print(f"Total: {evaluator.sum_ultimate_values(evaluator.pattern_blocks)}")
-
-    #for block in evaluator.pattern_blocks:
-    #    print(block)
 
     min_start, max_end = evaluator.find_min_max_points(evaluator.pattern_blocks)
     print(f"Min start point: {min_start}, Max end point: {max_end}")
