@@ -12,7 +12,7 @@ import json
 import uuid
 from typing import List, Optional, Tuple
 
-from utils import save_string_to_file
+from utils import cumulative_sum, save_string_to_file, scale_vector_to_sum
 
 class Pattern:
     def __init__(self, duration: int = 0):
@@ -274,22 +274,36 @@ class PatternEvaluator:
             return cls(pattern_blocks)
 
     @staticmethod
-    def create_svg(pattern_blocks: List[PatternBlock], latest_written_slice: Optional[int] = None, day_cut: Optional[int] = None, slice_height: int = 50, pre_colour: str = "white", colour: str = "blue", condition: str = "or") -> str:
+    def create_svg(pattern_blocks: List[PatternBlock], latest_written_slice: Optional[int] = None, day_cut: Optional[int] = None, slice_heights: dict[int, int] = None, pre_colour: str = "white", colour: str = "blue", condition: str = "or") -> str:
         min_point, max_point = PatternEvaluator.find_min_max_points(pattern_blocks)
         width = max_point - min_point
-        height, svg_elements = PatternEvaluator.generate_svg_elements(pattern_blocks, latest_written_slice, day_cut, slice_height, pre_colour, colour, condition)
+        if slice_heights is None:
+            largest_height_per_display_level = PatternEvaluator.find_largest_height_per_display_level(pattern_blocks)
+            slice_heights = cumulative_sum(scale_vector_to_sum(largest_height_per_display_level, (max_point - min_point)/2))
+        height, svg_elements = PatternEvaluator.generate_svg_elements(pattern_blocks, latest_written_slice, day_cut, slice_heights, pre_colour, colour, condition)
         return f'<svg width="100%" height="auto" viewBox="0 0 {width} {height}" xmlns="http://www.w3.org/2000/svg">{"".join(svg_elements)}</svg>'
 
     @staticmethod
-    def generate_svg_elements(pattern_blocks: List[PatternBlock], latest_written_slice: Optional[int], day_cut: Optional[int], slice_height: int, pre_colour: str, colour: str, condition: str) -> Tuple[int, List[str]]:
-        height = 0
+    def generate_svg_elements(pattern_blocks: List[PatternBlock], latest_written_slice: Optional[int], day_cut: Optional[int], slice_heights: dict[int, int], pre_colour: str, colour: str, condition: str) -> Tuple[int, List[str]]:
         svg_elements = []
+        slice_height = 0
+        y_axis = 0
+        height = 0
         for block in pattern_blocks:
             block_colour = PatternEvaluator.determine_block_colour(block, latest_written_slice, day_cut, pre_colour, colour, condition)
-            element = block.generate_polygon(block_colour, y_axis=slice_height * block.display_level, height=slice_height)
+            if block.display_level == 0:
+                slice_height = slice_heights[block.display_level]
+                y_axis = 0
+                if slice_heights[block.display_level] > height:
+                    height = slice_heights[block.display_level]
+            else:
+                slice_height = slice_heights[block.display_level]-slice_heights[block.display_level-1]
+                y_axis = slice_heights[block.display_level-1]
+                if slice_heights[block.display_level] > height:
+                    height = slice_heights[block.display_level]
+            element = block.generate_polygon(block_colour, y_axis=y_axis, height=slice_height)
+            print(element)
             svg_elements.append(element)
-            if height < slice_height * block.display_level:
-                height = slice_height * block.display_level
         return height, svg_elements
 
     @staticmethod
@@ -312,25 +326,20 @@ class PatternEvaluator:
         return min_start_point, max_end_point
 
     @staticmethod
-    def find_lowest_start_point_heights(pattern_blocks: List[PatternBlock]) -> dict:
-        if not pattern_blocks:
-            return {}
-        lowest_start_point_heights = {}
-        for block in pattern_blocks:
-            if block.display_level not in lowest_start_point_heights or block.start_point < lowest_start_point_heights[block.display_level]['start_point']:
-                lowest_start_point_heights[block.display_level] = {
-                    'start_point': block.start_point,
-                    'height': block.height
-                }
-        return {level: data['height'] for level, data in lowest_start_point_heights.items()}
-
-    @staticmethod
     def sum_ultimate_values(pattern_blocks: List[PatternBlock]) -> float:
         return sum(block.ultimate_value for block in pattern_blocks)
 
     @staticmethod
     def sum_block_heights(pattern_blocks: List['PatternBlock']) -> float:
         return sum(block.height for block in pattern_blocks)
+
+    @staticmethod
+    def find_largest_height_per_display_level(pattern_blocks: List[PatternBlock]) -> dict:
+        largest_heights = {}
+        for block in pattern_blocks:
+            if block.display_level not in largest_heights or block.height > largest_heights[block.display_level]:
+                largest_heights[block.display_level] = block.height
+        return largest_heights
 
     def __str__(self) -> str:
         return f"PatternEvaluator with {len(self.pattern_blocks)} blocks"
@@ -340,7 +349,7 @@ def main():
     pattern.set_identifier("Test Pattern")
     pattern.add_slice(PatternSlice(0, 0.1))
     pattern.add_slice(PatternSlice())
-    pattern.add_slice(PatternSlice())
+    pattern.add_slice(PatternSlice(0, 0.1))
     pattern.add_slice(PatternSlice())
 
     pattern.distribute_remaining()
@@ -362,11 +371,10 @@ def main():
     print(f"Unwritten: {evaluator.sum_ultimate_values(evaluator.evaluate_unwritten_blocks(1))}")
     print(f"Total: {evaluator.sum_ultimate_values(evaluator.pattern_blocks)}")
 
-    min_start, max_end = evaluator.find_min_max_points(evaluator.pattern_blocks)
-    print(f"Min start point: {min_start}, Max end point: {max_end}")
-
-    lowest_start_point_heights = evaluator.find_lowest_start_point_heights(evaluator.pattern_blocks)
-    print(f"Lowest start point heights by display level: {lowest_start_point_heights}")
+    largest_height_per_display_level = evaluator.find_largest_height_per_display_level(evaluator.pattern_blocks)
+    print(f"Largest heights per display level: {largest_height_per_display_level}")
+    min_point, max_point = PatternEvaluator.find_min_max_points(evaluator.pattern_blocks)
+    print(cumulative_sum(scale_vector_to_sum(largest_height_per_display_level, max_point - min_point))) 
 
 if __name__ == "__main__":
     main()
