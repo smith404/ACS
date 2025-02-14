@@ -39,10 +39,10 @@ def pattern_svg(name):
         svg_content = evaluator.create_svg(evaluator.pattern_blocks, latest_written_slice=latest_written_slice)
     elif svg_type == 'lic':
         time_point = evaluator.get_earliest_end_point_of_slice(latest_written_slice)
-        svg_content = evaluator.create_svg(evaluator.pattern_blocks, latest_written_slice=latest_written_slice, day_cut=time_point, pre_colour='blue', colour='white')
+        svg_content = evaluator.create_svg(evaluator.pattern_blocks, latest_written_slice=latest_written_slice, day_cut=time_point, pre_colour='blue', colour='white', condition="and")
     elif svg_type == 'lrc':
         time_point = evaluator.get_earliest_end_point_of_slice(latest_written_slice)
-        svg_content = evaluator.create_svg(evaluator.pattern_blocks, latest_written_slice=latest_written_slice, day_cut=time_point, pre_colour='white', colour='blue')
+        svg_content = evaluator.create_svg(evaluator.pattern_blocks, latest_written_slice=latest_written_slice, day_cut=time_point, pre_colour='white', colour='blue', condition="and")
     elif svg_type == 'upr':
         time_point = evaluator.get_earliest_end_point_of_slice(latest_written_slice)
         svg_content = evaluator.create_svg(evaluator.pattern_blocks, day_cut = time_point)

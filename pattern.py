@@ -298,22 +298,34 @@ class PatternEvaluator:
             return cls(pattern_blocks)
 
     @staticmethod
-    def create_svg(pattern_blocks, latest_written_slice=None, day_cut=None, slice_height=50, pre_colour="white", colour="blue"):
+    def create_svg(pattern_blocks, latest_written_slice=None, day_cut=None, slice_height=50, pre_colour="white", colour="blue", condition="or"):
         min_point, max_point = PatternEvaluator.find_min_max_points(pattern_blocks)
         width = max_point - min_point
+        height, svg_elements = PatternEvaluator.generate_svg_elements(pattern_blocks, latest_written_slice, day_cut, slice_height, pre_colour, colour, condition)
+        return f'<svg width="100%" height="auto" viewBox="0 0 {width} {height}" xmlns="http://www.w3.org/2000/svg">{"".join(svg_elements)}</svg>'
+
+    @staticmethod
+    def generate_svg_elements(pattern_blocks, latest_written_slice, day_cut, slice_height, pre_colour, colour, condition):
         height = 0
         svg_elements = []
         for block in pattern_blocks:
-            block_colour = colour
-            if latest_written_slice is not None and block.slice_number <= latest_written_slice:
-                block_colour = pre_colour
-            if day_cut is not None and block.start_point <= day_cut:
-                block_colour = pre_colour
+            block_colour = PatternEvaluator.determine_block_colour(block, latest_written_slice, day_cut, pre_colour, colour, condition)
             element = block.generate_polygon(block_colour, y_axis=slice_height * block.display_level, height=slice_height)
             svg_elements.append(element)
             if height < slice_height * block.display_level:
                 height = slice_height * block.display_level
-        return f'<svg width="100%" height="auto" viewBox="0 0 {width} {height}" xmlns="http://www.w3.org/2000/svg">{"".join(svg_elements)}</svg>'
+        return height, svg_elements
+
+    @staticmethod
+    def determine_block_colour(block, latest_written_slice, day_cut, pre_colour, colour, condition):
+        block_colour = colour
+        if condition == "and":
+            if (latest_written_slice is not None and block.slice_number <= latest_written_slice) and (day_cut is not None and block.start_point <= day_cut):
+                block_colour = pre_colour
+        elif condition == "or":
+            if (latest_written_slice is not None and block.slice_number <= latest_written_slice) or (day_cut is not None and block.start_point <= day_cut):
+                block_colour = pre_colour
+        return block_colour
 
     @staticmethod
     def find_min_max_points(pattern_blocks):
@@ -351,7 +363,7 @@ def main():
     pattern.set_identifier("Test Pattern")
     pattern.add_slice(PatternSlice(0, 0.1))
     pattern.add_slice(PatternSlice())
-    pattern.add_slice(PatternSlice(0, 0.1))
+    pattern.add_slice(PatternSlice())
     pattern.add_slice(PatternSlice())
 
     pattern.distribute_remaining()
