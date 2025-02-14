@@ -1,23 +1,11 @@
-# Copyright (c) 2023 [Your Name]
+# Copyright (c) 2025 K2-Software GmbH
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-# 
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-# 
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-# 
+# furnished to do so, subject to the licence conditions.
 
 from enum import Enum
 import json
@@ -214,6 +202,7 @@ class PatternBlock:
         self.start_point = start_point
         self.end_point = end_point
         self.height = height
+        self.ultimate_value = height
         self.shape = shape
 
     def generate_polygon(self, colour="blue", stroke="black", y_axis=0, height=50):
@@ -226,13 +215,17 @@ class PatternBlock:
         return f'<polygon vector-effect="non-scaling-stroke" stroke-width="1" points="{points}" fill="{colour}" stroke="{stroke}" />'
 
     def __str__(self):
-        return f"PatternBlock with Pattern: {self.pattern}, Slice Number: {self.slice_number}, Display Level: {self.display_level}, Start Point: {self.start_point}, End Point: {self.end_point}, Height: {self.height}, Shape: {self.shape.name}"
+        return f"PatternBlock with Pattern: {self.pattern}, Slice Number: {self.slice_number}, Display Level: {self.display_level}, Start Point: {self.start_point}, End Point: {self.end_point}, Height: {self.height}, Ultimate Value: {self.ultimate_value}, Shape: {self.shape.name}"
 
 class PatternEvaluator:
     def __init__(self, pattern_blocks):
         if not all(isinstance(block, PatternBlock) for block in pattern_blocks):
             raise TypeError("All elements must be instances of PatternBlock")
         self.pattern_blocks = pattern_blocks
+
+    def apply_ultimate_value(self, ultimate_value):
+       for block in self.pattern_blocks:
+            block.ultimate_value = block.height * ultimate_value
 
     def get_pattern_blocks_less_than(self, point):
         return [block for block in self.pattern_blocks if block.start_point < point]
@@ -279,7 +272,6 @@ class PatternEvaluator:
         if not self.pattern_blocks:
             return []
         end_point_of_latest_slice = min(block.end_point for block in self.pattern_blocks if block.slice_number == latest_written_slice)
-        print(end_point_of_latest_slice)
         return [block for block in self.pattern_blocks if block.end_point > end_point_of_latest_slice]
 
     def save_to_file(self, filename):
@@ -333,6 +325,13 @@ class PatternEvaluator:
                 }
         return {level: data['height'] for level, data in lowest_start_point_heights.items()}
 
+    @staticmethod
+    def sum_ultimate_values(pattern_blocks):
+        return sum(block.ultimate_value for block in pattern_blocks)
+
+    def __str__(self):
+        return f"PatternEvaluator with {len(self.pattern_blocks)} blocks"
+
     def __str__(self):
         return f"PatternEvaluator with {len(self.pattern_blocks)} blocks"
 
@@ -354,8 +353,17 @@ def main():
     pattern.save_to_file("scratch/my_test_pattern.json")
 
     evaluator = PatternEvaluator(pattern.get_all_pattern_blocks())
-    for block in pattern.get_all_pattern_blocks():
-        print(block)
+    evaluator.apply_ultimate_value(136.45)
+
+    print(f"LIC: {evaluator.sum_ultimate_values(evaluator.evaluate_lic_blocks(2))}")
+    print(f"LRC: {evaluator.sum_ultimate_values(evaluator.evaluate_lrc_blocks(2))}")
+    print(f"UPR: {evaluator.sum_ultimate_values(evaluator.evaluate_upr_blocks(2))}")
+    print(f"Written: {evaluator.sum_ultimate_values(evaluator.evaluate_written_blocks(2))}")
+    print(f"Unwritten: {evaluator.sum_ultimate_values(evaluator.evaluate_unwritten_blocks(2))}")
+    print(f"Total: {evaluator.sum_ultimate_values(evaluator.pattern_blocks)}")
+
+    #for block in evaluator.pattern_blocks:
+    #    print(block)
 
     min_start, max_end = evaluator.find_min_max_points(evaluator.pattern_blocks)
     print(f"Min start point: {min_start}, Max end point: {max_end}")
