@@ -366,8 +366,9 @@ def main():
     pattern.set_identifier("Test Pattern")
     pattern.add_slice(PatternSlice(0, 0.05))
     pattern.add_slice(PatternSlice(0, 0.1))
-    pattern.add_slice(PatternSlice(0, 0.1))
-    pattern.add_slice(PatternSlice(0, 0.1))
+    pattern.add_slice(PatternSlice(0, 0.05))
+    pattern.add_slice(PatternSlice())
+    pattern.add_slice(PatternSlice(0, 0.05))
     pattern.add_slice(PatternSlice(0, 0.05))
 
     pattern.distribute_remaining()

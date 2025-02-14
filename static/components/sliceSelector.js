@@ -1,6 +1,6 @@
 angular.module('app').component('sliceSelector', {
   bindings: {
-    maxSlice: '<',
+    maxSlice: '=',
     selectedSlice: '=',
     onSliceChange: '&'
   },

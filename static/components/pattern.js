@@ -1,6 +1,6 @@
 angular.module('app').component('pattern', {
   bindings: {
-    patternData: '<',
+    patternData: '=',
     onSliceChange: '&'
   },
   controller: function() {
@@ -14,16 +14,19 @@ angular.module('app').component('pattern', {
 
     ctrl.addSlice = function(slice) {
       ctrl.slices.push(slice);
+      ctrl.patternData.slices = ctrl.slices;
       ctrl.onSliceChange();
     };
 
     ctrl.removeSlice = function(index) {
       ctrl.slices.splice(index, 1);
+      ctrl.patternData.slices = ctrl.slices;
       ctrl.onSliceChange();
     };
 
     ctrl.setDuration = function(duration) {
       ctrl.duration = duration;
+      ctrl.patternData.duration = duration;
       ctrl.slices.forEach(function(slice) {
         slice.duration = duration;
       });

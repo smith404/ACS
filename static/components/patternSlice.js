@@ -1,11 +1,11 @@
 angular.module('app').component('patternSlice', {
   bindings: {
-    distribution: '<',
-    startDistribution: '<',
-    duration: '<',
-    startOffset: '<',
-    durationOffset: '<',
-    developmentPeriods: '<'
+    distribution: '=',
+    startDistribution: '=',
+    duration: '=',
+    startOffset: '=',
+    durationOffset: '=',
+    developmentPeriods: '='
   },
   controller: function() {
     var ctrl = this;
