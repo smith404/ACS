@@ -7,6 +7,6 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the licence conditions.
 
-def store_string_to_file(filename, content):
+def save_string_to_file(filename: str, content: str) -> None:
     with open(filename, 'w') as file:
         file.write(content)
