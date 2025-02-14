@@ -298,18 +298,18 @@ class PatternEvaluator:
             return cls(pattern_blocks)
 
     @staticmethod
-    def create_svg(pattern_blocks, latest_written_slice = 0, day_cut = 0, slice_height = 50, pre_colour = "white", colour = "blue"):
+    def create_svg(pattern_blocks, latest_written_slice=None, day_cut=None, slice_height=50, pre_colour="white", colour="blue"):
         min_point, max_point = PatternEvaluator.find_min_max_points(pattern_blocks)
         width = max_point - min_point
         height = 0
         svg_elements = []
         for block in pattern_blocks:
             block_colour = colour
-            if block.slice_number <= latest_written_slice:
+            if latest_written_slice is not None and block.slice_number <= latest_written_slice:
                 block_colour = pre_colour
-            if block.start_point <= day_cut:
+            if day_cut is not None and block.start_point <= day_cut:
                 block_colour = pre_colour
-            element = block.generate_polygon(block_colour, y_axis=slice_height*block.display_level, height=slice_height)
+            element = block.generate_polygon(block_colour, y_axis=slice_height * block.display_level, height=slice_height)
             svg_elements.append(element)
             if height < slice_height * block.display_level:
                 height = slice_height * block.display_level
