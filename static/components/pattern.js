@@ -34,6 +34,79 @@ angular.module('app').component('pattern', {
         slice.patternData.duration = duration;
       });
     };
+
+    ctrl.distributeRemaining = function() {
+      let totalDistribution = ctrl.patternData.slices.reduce((sum, slice) => sum + slice.distribution + slice.start_distribution, 0);
+      if (totalDistribution < 1) {
+        let remaining = 1 - totalDistribution;
+        ctrl.patternData.slices.forEach(slice => {
+          slice.distribution += remaining / ctrl.patternData.slices.length;
+        });
+      }
+    };
+
+    ctrl.checkDistribution = function() {
+      let totalDistribution = ctrl.patternData.slices.reduce((sum, slice) => sum + slice.distribution + slice.start_distribution, 0);
+      console.log(totalDistribution);
+      let result = totalDistribution === 1;
+      alert("Distribution check: " + (result ? "Valid" : "Invalid"));
+    };
+
+    ctrl.getPatternBlocks = function() {
+      let blocks = [];
+      let displayLevel = 0;
+      ctrl.patternData.slices.forEach((slice, index) => {
+        blocks = blocks.concat(ctrl.getSliceBlocks(slice, ctrl.patternData.identifier, index, displayLevel));
+        displayLevel += slice.start_distribution !== 0 ? 2 : 1;
+      });
+      return blocks;
+    };
+
+    ctrl.getSliceBlocks = function(slice, patternId, sliceNumber, displayLevel) {
+      let blocks = [];
+      if (slice.start_distribution !== 0) {
+        for (let index = 0; index < slice.development_periods; index++) {
+          let shape = 'RECTANGLE';
+          let startPoint = slice.start_offset + (index * slice.duration_offset);
+          let endPoint = slice.start_offset + ((index + 1) * slice.duration_offset) - 1;
+          let block = {
+            pattern: patternId,
+            sliceNumber: sliceNumber,
+            displayLevel: displayLevel,
+            startPoint: startPoint,
+            endPoint: endPoint,
+            height: slice.start_distribution / slice.development_periods,
+            shape: shape
+          };
+          //console.log(block);
+          blocks.push(block);
+        }
+        displayLevel += 1;
+      }
+      if (slice.distribution !== 0) {
+        for (let index = 0; index <= slice.development_periods; index++) {
+          let shape = 'RECTANGLE';
+          let factor = slice.development_periods;
+          if (index === 0 || index === slice.development_periods) {
+            factor *= 2;
+            shape = index === 0 ? 'LTRIANGLE' : 'RTRIANGLE';
+          }
+          let startPoint = slice.start_offset + (slice * slice.duration_offset);
+          let endPoint = slice.start_offset + ((slice + 1) * slice.duration_offset) - 1;
+          let block = {
+            pattern: patternId,
+            sliceNumber: sliceNumber,
+            displayLevel: displayLevel,
+            startPoint: startPoint,
+            endPoint: endPoint,
+            height: slice.distribution / factor,
+            shape: shape
+          };
+          blocks.push(block);
+        }
+      }
+      return blocks;
+    };
   },
   template: `
     <div class="card">
@@ -47,7 +120,7 @@ angular.module('app').component('pattern', {
           <div class="col-sm-1">
             <input type="number" ng-model="$ctrl.patternData.duration" class="form-control" />
           </div>
-          <label class="col-sm-2 col-form-label">Last Written Slice: {{$ctrl.selectedSlice}}</label>
+          <label class="col-sm-2 col-form-label">Latest Written Slice: {{$ctrl.selectedSlice}}</label>
           <div class="col-sm-2">
             <input type="range" id="sliceRange" min="0" max="{{$ctrl.patternData.slices.length}}" ng-model="$ctrl.selectedSlice" ng-change="$ctrl.onSliderChange()">
           </div>
@@ -85,11 +158,14 @@ angular.module('app').component('pattern', {
         <button class="btn btn-pond" ng-click="$ctrl.addSlice({distribution: 0, start_distribution: 0, duration: $ctrl.patternData.duration, startOffset: 0, duration_offset: 0, development_periods: 0})" title="Add Slice">
           <i class="fas fa-plus-square"></i>
         </button>
-        <button class="btn btn-pond" title="Distributr Remaining">
+        <button class="btn btn-pond" ng-click="$ctrl.distributeRemaining()" title="Distribute Remaining">
           <i class="fas fa-chart-bar"></i>
         </button>
-        <button class="btn btn-pond" title="Check Pattern">
+        <button class="btn btn-pond" ng-click="$ctrl.checkDistribution()" title="Check Pattern">
           <i class="fas fa-check-square"></i>
+        </button>
+        <button class="btn btn-pond" ng-click="$ctrl.getPatternBlocks()" title="Check Pattern">
+          <i class="fas fa-cubes"></i>
         </button>
       </div>
     </div>
