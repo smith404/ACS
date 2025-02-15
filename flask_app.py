@@ -27,7 +27,7 @@ def pattern(name: str = None) -> str:
 def desktop() -> str:
     return render_template('desktop.html')
 
-@app.route('/pattern/svg/<name>')
+@app.route('/svg/pattern/<name>')
 def pattern_svg(name: str) -> Response:
     pattern = Pattern.load_from_file(f'scratch/{name}.json')
     evaluator = PatternEvaluator(pattern.get_all_pattern_blocks())
@@ -36,10 +36,27 @@ def pattern_svg(name: str) -> Response:
     svgContent = generate_svg_content(evaluator, svgType, latestWrittenSlice)
     return Response(svgContent, mimetype='image/svg+xml')
 
+@app.route('/svg/generate', methods=['POST'])
+def generate_svg() -> Response:
+    data = request.json
+    if not data or 'patternBlocks' not in data:
+        return Response("Invalid data", status=400)
+    
+    patternBlocks = data['patternBlocks']
+    evaluator = PatternEvaluator(patternBlocks)
+    svgContent = evaluator.create_svg(patternBlocks)
+    return Response(svgContent, mimetype='image/svg+xml')
+
 @app.route('/pattern/new')
 def pattern_new() -> Response:
     pattern = Pattern()
+    pattern.add_slice(PatternSlice())
     return Response(pattern.to_json(), mimetype='application/json')
+
+@app.route('/patternslice/new')
+def pattern_slice__new() -> Response:
+    patternSlice = PatternSlice()
+    return Response(patternSlice.to_json(), mimetype='application/json')
 
 @app.route('/pattern/load/<name>')
 def pattern_object(name: str) -> Response:
