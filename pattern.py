@@ -15,7 +15,7 @@ from typing import List, Optional, Tuple
 from utils import cumulative_sum, save_string_to_file, scale_vector_to_sum
 
 class Pattern:
-    def __init__(self, duration: int = 0):
+    def __init__(self, duration: int = 360):
         self.identifier = uuid.uuid4()
         self.slices: List[PatternSlice] = []
         self.duration = duration
@@ -364,11 +364,9 @@ def main():
     pattern = Pattern(360)
     pattern.set_identifier("Test Pattern")
     pattern.add_slice(PatternSlice(0, 0.05))
-    pattern.add_slice(PatternSlice(0, 0.1))
-    pattern.add_slice(PatternSlice(0, 0.05))
     pattern.add_slice(PatternSlice())
     pattern.add_slice(PatternSlice(0, 0.05))
-    pattern.add_slice(PatternSlice(0, 0.05))
+    pattern.add_slice(PatternSlice())
 
     pattern.distribute_remaining()
     pattern.align_slice_periods()
@@ -380,6 +378,9 @@ def main():
     pattern.save_to_file("scratch/my_test_pattern.json")
 
     evaluator = PatternEvaluator(pattern.get_all_pattern_blocks())
+    for block in evaluator.pattern_blocks:
+        print(block)
+        
     evaluator.apply_ultimate_value(136.5)
 
     print(f"LIC: {evaluator.sum_ultimate_values(evaluator.evaluate_lic_blocks(1))}")

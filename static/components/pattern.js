@@ -17,7 +17,6 @@ angular.module('app').component('pattern', {
     };
 
     ctrl.addSlice = function(slice) {
-      console.log(slice);
       ctrl.patternData.slices.push(slice);
       ctrl.onSliceChange();
     };
@@ -55,10 +54,12 @@ angular.module('app').component('pattern', {
     ctrl.getPatternBlocks = function() {
       let blocks = [];
       let displayLevel = 0;
+      ctrl.alignSlicePeriods();
       ctrl.patternData.slices.forEach((slice, index) => {
         blocks = blocks.concat(ctrl.getSliceBlocks(slice, ctrl.patternData.identifier, index, displayLevel));
         displayLevel += slice.start_distribution !== 0 ? 2 : 1;
       });
+      console.log(blocks);
       return blocks;
     };
 
@@ -78,7 +79,6 @@ angular.module('app').component('pattern', {
             height: slice.start_distribution / slice.development_periods,
             shape: shape
           };
-          //console.log(block);
           blocks.push(block);
         }
         displayLevel += 1;
@@ -106,6 +106,17 @@ angular.module('app').component('pattern', {
         }
       }
       return blocks;
+    };
+
+    ctrl.alignSlicePeriods = function(developmentPeriods = null) {
+      if (developmentPeriods === null || developmentPeriods === 0) {
+        developmentPeriods = ctrl.patternData.slices.length;
+      }
+      ctrl.patternData.slices.forEach((slice, index) => {
+        slice.development_periods = developmentPeriods;
+        slice.duration_offset = ctrl.patternData.duration / developmentPeriods;
+        slice.start_offset = index * (ctrl.patternData.duration / developmentPeriods);
+      });
     };
   },
   template: `
@@ -164,7 +175,7 @@ angular.module('app').component('pattern', {
         <button class="btn btn-pond" ng-click="$ctrl.checkDistribution()" title="Check Pattern">
           <i class="fas fa-check-square"></i>
         </button>
-        <button class="btn btn-pond" ng-click="$ctrl.getPatternBlocks()" title="Check Pattern">
+        <button class="btn btn-pond" ng-click="$ctrl.getPatternBlocks()" title="Generate Blocks">
           <i class="fas fa-cubes"></i>
         </button>
       </div>

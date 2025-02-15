@@ -12,7 +12,18 @@ angular.module('app').controller('MainController', ['$http', function($http) {
             });
     };
 
-    ctrl.loadPatternData();
+    ctrl.initPatternData = function() {
+        $http.get('/pattern/new')
+            .then(function(response) {
+                ctrl.patternData = response.data;
+                ctrl.maxSlice = ctrl.patternData.slices.length;
+                console.log('Loaded :', response.data);
+            }, function(error) {
+                console.error('Error loading pattern data:', error);
+            });
+    };
+
+    ctrl.initPatternData();
 
     ctrl.selectedSlice = 0;
 

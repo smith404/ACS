@@ -36,6 +36,11 @@ def pattern_svg(name: str) -> Response:
     svg_content = generate_svg_content(evaluator, svg_type, latest_written_slice)
     return Response(svg_content, mimetype='image/svg+xml')
 
+@app.route('/pattern/new')
+def pattern_new() -> Response:
+    pattern = Pattern()
+    return Response(pattern.to_json(), mimetype='application/json')
+
 @app.route('/pattern/load/<name>')
 def pattern_object(name: str) -> Response:
     pattern = Pattern.load_from_file(f'scratch/{name}.json')
