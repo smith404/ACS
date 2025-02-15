@@ -31,14 +31,23 @@ angular.module('app').component('patternSlice', {
     };
   },
   template: `
-    <div>
-      <h3>Pattern Slice</h3>
-      <p>Distribution: {{$ctrl.distribution}}</p>
-      <p>Start Distribution: {{$ctrl.startDistribution}}</p>
-      <p>Duration: {{$ctrl.duration}}</p>
-      <p>Start Offset: {{$ctrl.startOffset}}</p>
-      <p>Duration Offset: {{$ctrl.durationOffset}}</p>
-      <p>Development Periods: {{$ctrl.developmentPeriods}}</p>
+    <div class="card">
+      <div class="card-body">
+        <div class="form-group row">
+          <label class="col-sm-1 col-form-label">Start Distribution</label>
+          <div class="col-sm-3">
+            <input type="number" ng-model="$ctrl.startDistribution" class="form-control" />
+          </div>
+          <label class="col-sm-1 col-form-label">Distribution</label>
+          <div class="col-sm-3">
+            <input type="number" ng-model="$ctrl.distribution" class="form-control" />
+          </div>
+          <label class="col-sm-1 col-form-label">Duration</label>
+          <div class="col-sm-3">
+            <input type="number" ng-model="$ctrl.duration" class="form-control" />
+          </div>
+        </div>
+      </div>
     </div>
   `
 });
