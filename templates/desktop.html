@@ -13,9 +13,7 @@
         angular.module('app', []);
     </script>
     <script src="{{ url_for('static', filename='components/patternSlice.js')}}"></script>
-    <script src="{{ url_for('static', filename='components/sliceSelector.js')}}"></script>
     <script src="{{ url_for('static', filename='components/pattern.js')}}"></script>
-    <script src="{{ url_for('static', filename='js/desktop.js')}}"></script>
 </head>
 <body>
     <div class="container-fluid" ng-controller="MainController as ctrl">
@@ -71,6 +69,7 @@
             </main>
         </div>
     </div>
+    <script src="{{ url_for('static', filename='js/desktop.js')}}"></script>
     <script src="{{ url_for('static', filename='vendor/jquery/jquery.js')}}"></script>
     <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js')}}"></script>
 </body>
