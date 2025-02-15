@@ -38,7 +38,7 @@ angular.module('app').component('pattern', {
   template: `
     <div class="card">
       <div class="card-header">
-        <div class="form-group row">
+        <div class="form-group row align-items-center">
           <label class="col-sm-1 col-form-label">Pattern</label>
           <div class="col-sm-4">
             <input type="text" ng-model="$ctrl.patternData.identifier" class="form-control" />
@@ -47,7 +47,7 @@ angular.module('app').component('pattern', {
           <div class="col-sm-2">
             <input type="number" ng-model="$ctrl.patternData.duration" class="form-control" />
           </div>
-          <label class="col-sm-2 col-form-label">Written Slice {{$ctrl.selectedSlice}}</label>
+          <label class="col-sm-2 col-form-label">Last Written Slice: {{$ctrl.selectedSlice}}</label>
           <div class="col-sm-2">
             <input type="range" id="sliceRange" min="0" max="{{$ctrl.patternData.slices.length}}" ng-model="$ctrl.selectedSlice" ng-change="$ctrl.onSliderChange()">
           </div>
