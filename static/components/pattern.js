@@ -41,10 +41,12 @@ angular.module('app').component('pattern', {
             duration-offset="slice.durationOffset" 
             development-periods="slice.developmentPeriods">
           </pattern-slice>
-          <button class="btn btn-pond" ng-click="$ctrl.removeSlice($index)">Remove Slice</button>
+          <button class="btn btn-sm btn-pond" ng-click="$ctrl.removeSlice($index)"><i class="fas fa-bread-slice"></i><i class="fas fa-minus-square" style="margin-left: 15px;"></i></button>
         </li>
       </ul>
-      <button class="btn btn-pond" ng-click="$ctrl.addSlice({distribution: 0, startDistribution: 0, duration: $ctrl.duration, startOffset: 0, durationOffset: 0, developmentPeriods: 0})">Add Slice</button>
+      <button class="btn btn-sm btn-pond" ng-click="$ctrl.addSlice({distribution: 0, startDistribution: 0, duration: $ctrl.duration, startOffset: 0, durationOffset: 0, developmentPeriods: 0})">
+        <i class="fas fa-bread-slice"></i><i class="fas fa-plus-square" style="margin-left: 15px;"></i>
+      </button>
     </div>
   `
 });
