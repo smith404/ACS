@@ -26,13 +26,9 @@
                 </header>
                 <pattern 
                     pattern-data="ctrl.patternData"
-                    on-slice-change="ctrl.onSliceChange()">
+                    on-slice-change="ctrl.onSliceChange()"
+                    on-selected-slice-change="ctrl.onSelectedSliceChange(selectedSlice)">
                 </pattern>
-                <slice-selector 
-                    max-slice="ctrl.maxSlice" 
-                    selected-slice="ctrl.selectedSlice"
-                    on-slice-change="ctrl.onSelectedSliceChange(selectedSlice)">
-                </slice-selector>
                 <ul class="nav nav-tabs" id="myTab" role="tablist">
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active" id="tab1-tab" data-bs-toggle="tab" data-bs-target="#tab1" type="button" role="tab" aria-controls="tab1" aria-selected="true">Written</button>
