@@ -9,7 +9,9 @@
 
 from flask import Flask, send_from_directory, render_template, Response, request
 from flask_wtf.csrf import CSRFProtect
-from pattern import Pattern, PatternEvaluator, PatternSlice
+from pattern import Pattern
+from pattern_evaluator import PatternEvaluator
+from pattern_slice import PatternSlice
 
 app = Flask(__name__)
 csrf = CSRFProtect(app)
