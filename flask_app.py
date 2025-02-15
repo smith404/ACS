@@ -37,7 +37,6 @@ def pattern_svg(name: str) -> Response:
 @app.route('/svg/generate', methods=['POST'])
 def generate_svg() -> Response:
     data = request.json
-    print(data)
     if not data or 'patternBlocks' not in data:
         return Response("Invalid data", status=400)
     

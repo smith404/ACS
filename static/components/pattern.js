@@ -62,6 +62,18 @@ angular.module('app').component('pattern', {
       alert("Distribution check: " + (result ? "Valid" : "Invalid"));
     };
 
+    ctrl.clearStartDistributions = function() {
+      ctrl.patternData.slices.forEach(slice => {
+        slice.startDistribution = 0;
+      });
+  };
+
+    ctrl.clearDistributions = function() {
+      ctrl.patternData.slices.forEach(slice => {
+        slice.distribution = 0;
+      });
+    };
+
     ctrl.getPatternBlocks = function() {
       let blocks = [];
       let displayLevel = 0;
@@ -184,6 +196,12 @@ angular.module('app').component('pattern', {
         </button>
         <button class="btn btn-pond" ng-click="$ctrl.generateSvg()" title="Generate Blocks">
           <i class="fas fa-cubes"></i>
+        </button>
+        <button class="btn btn-pond" ng-click="$ctrl.clearStartDistributions()" title="Clear Start Distributions">
+          <i class="fas fa-broom"></i>
+        </button>
+        <button class="btn btn-pond" ng-click="$ctrl.clearDistributions()" title="Clear Distributions">
+          <i class="fas fa-broom"></i>
         </button>
         <button class="btn btn-pond" ng-click="$ctrl.checkDistribution()" title="Check Pattern">
           <i class="fas fa-check-square"></i>
