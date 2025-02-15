@@ -4,7 +4,7 @@ angular.module('app').component('pattern', {
     onSliceChange: '&',
     onSelectedSliceChange: '&'
   },
-  controller: function() {
+  controller: function($http) {
     let ctrl = this;
     
     ctrl.onSliderChange = function() {
@@ -117,6 +117,16 @@ angular.module('app').component('pattern', {
       }
       return blocks;
     };
+
+    ctrl.generateSvg = function() {
+      let patternBlocks = ctrl.getPatternBlocks();
+      $http.post('/svg/generate', { patternBlocks: patternBlocks }).then(function(response) {
+        ctrl.svgContent = response.data;
+        document.getElementById('svgContainer').innerHTML = ctrl.svgContent;
+      }).catch(function(error) {
+        console.error('Error generating SVG:', error);
+      });
+    };
   },
   template: `
     <div class="card">
@@ -163,6 +173,7 @@ angular.module('app').component('pattern', {
             </div>
           </div>
         </div>
+        <div id="svgContainer"></div>
       </div>
       <div class="card-footer">
         <button class="btn btn-pond" ng-click="$ctrl.addSlice({distribution: 0, startDistribution: 0, duration: $ctrl.patternData.duration, startOffset: 0, durationOffset: 0, developmentPeriods: 0})" title="Add Slice">
@@ -171,7 +182,7 @@ angular.module('app').component('pattern', {
         <button class="btn btn-pond" ng-click="$ctrl.distributeRemaining()" title="Distribute Remaining">
           <i class="fas fa-chart-bar"></i>
         </button>
-        <button class="btn btn-pond" ng-click="$ctrl.getPatternBlocks()" title="Generate Blocks">
+        <button class="btn btn-pond" ng-click="$ctrl.generateSvg()" title="Generate Blocks">
           <i class="fas fa-cubes"></i>
         </button>
         <button class="btn btn-pond" ng-click="$ctrl.checkDistribution()" title="Check Pattern">

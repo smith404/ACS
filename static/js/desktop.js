@@ -17,14 +17,9 @@ angular.module('app').controller('MainController', ['$http', function($http) {
                 ctrl.patternData = response.data;
                 ctrl.maxSlice = ctrl.patternData.slices.length;
             }, function(error) {
-                console.error('Error loading pattern data:', error);
+                console.error('Error creating pattern:', error);
             });
     };
-
-    ctrl.initPatternData();
-
-    ctrl.selectedSlice = 0;
-
     ctrl.onSliceChange = function() {
         ctrl.maxSlice = ctrl.patternData.slices.length;
         console.log('Slice changed. New maxSlice:', ctrl.maxSlice);
@@ -34,4 +29,9 @@ angular.module('app').controller('MainController', ['$http', function($http) {
         ctrl.selectedSlice = selectedSlice;
         console.log('Selected slice changed:', ctrl.selectedSlice);
     };
+
+    ctrl.selectedSlice = 0;
+    ctrl.initPatternData();
+
+    
 }]);

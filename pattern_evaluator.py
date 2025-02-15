@@ -30,6 +30,19 @@ class PatternBlock:
         self.ultimateValue = height
         self.shape = shape
 
+    @classmethod
+    def from_json(cls, json_str: str) -> 'PatternBlock':
+        data = json.loads(json_str)
+        return cls(
+            pattern=data['pattern'],
+            sliceNumber=data['sliceNumber'],
+            displayLevel=data['displayLevel'],
+            startPoint=data['startPoint'],
+            endPoint=data['endPoint'],
+            height=data['height'],
+            shape=BlockShape(data['shape'])
+        )
+
     def generate_polygon(self, colour: str = "blue", stroke: str = "black", yAxis: int = 0, height: int = 50) -> str:
         points = self._generate_points(yAxis, height)
         return f'<polygon vector-effect="non-scaling-stroke" stroke-width="1" points="{points}" fill="{colour}" stroke="{stroke}" />'
@@ -42,6 +55,18 @@ class PatternBlock:
         elif self.shape == BlockShape.RTRIANGLE:
             return f"{self.startPoint},{yAxis} {self.startPoint},{yAxis + height} {self.endPoint + 1},{yAxis + height}"
         return ""
+
+    def to_json(self) -> str:
+        return json.dumps({
+            "pattern": self.pattern,
+            "sliceNumber": self.sliceNumber,
+            "displayLevel": self.displayLevel,
+            "startPoint": self.startPoint,
+            "endPoint": self.endPoint,
+            "height": self.height,
+            "ultimateValue": self.ultimateValue,
+            "shape": self.shape.value
+        })
 
     def __str__(self) -> str:
         return f"PatternBlock with Pattern: {self.pattern}, Slice Number: {self.sliceNumber}, Display Level: {self.displayLevel}, Start Point: {self.startPoint}, End Point: {self.endPoint}, Height: {self.height}, Ultimate Value: {self.ultimateValue}, Shape: {self.shape.name}"

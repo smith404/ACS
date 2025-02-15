@@ -10,11 +10,11 @@
 from flask import Flask, send_from_directory, render_template, Response, request
 from flask_wtf.csrf import CSRFProtect
 from pattern import Pattern
-from pattern_evaluator import PatternEvaluator
+from pattern_evaluator import PatternBlock, PatternEvaluator
 from pattern_slice import PatternSlice
 
 app = Flask(__name__)
-csrf = CSRFProtect(app)
+#csrf = CSRFProtect(app)
 
 @app.route('/static/<path:filename>')
 def static_files(filename: str) -> Response:
@@ -37,10 +37,11 @@ def pattern_svg(name: str) -> Response:
 @app.route('/svg/generate', methods=['POST'])
 def generate_svg() -> Response:
     data = request.json
+    print(data)
     if not data or 'patternBlocks' not in data:
         return Response("Invalid data", status=400)
     
-    patternBlocks = data['patternBlocks']
+    patternBlocks = [PatternBlock(**block) for block in data['patternBlocks']]
     evaluator = PatternEvaluator(patternBlocks)
     svgContent = evaluator.create_svg(patternBlocks)
     return Response(svgContent, mimetype='image/svg+xml')
@@ -55,6 +56,11 @@ def pattern_new() -> Response:
 def pattern_slice__new() -> Response:
     patternSlice = PatternSlice()
     return Response(patternSlice.to_json(), mimetype='application/json')
+
+@app.route('/patternblock/new')
+def pattern_block_new() -> Response:
+    patternBlock = PatternBlock("New Pattern")
+    return Response(patternBlock.to_json(), mimetype='application/json')
 
 @app.route('/pattern/load/<name>')
 def pattern_object(name: str) -> Response:
