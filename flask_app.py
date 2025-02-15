@@ -16,15 +16,11 @@ from pattern_slice import PatternSlice
 app = Flask(__name__)
 csrf = CSRFProtect(app)
 
+@app.route('/static/<path:filename>')
+def static_files(filename: str) -> Response:
+    return send_from_directory('static', filename)
+
 @app.route('/')
-def home() -> str:
-    return "Index Page"
-
-@app.route('/pattern/')
-@app.route('/pattern/<name>')
-def pattern(name: str = None) -> str:
-    return render_template('pattern_test.html', pattern=name)
-
 @app.route('/desktop/')
 def desktop() -> str:
     return render_template('desktop.html')
@@ -91,10 +87,6 @@ def generate_svg_content(evaluator: PatternEvaluator, svgType: str, latestWritte
         return evaluator.create_svg(evaluator.patternBlocks, dayCut=timePoint)
     else:
         return evaluator.create_svg(evaluator.patternBlocks)
-
-@app.route('/static/<path:filename>')
-def static_files(filename: str) -> Response:
-    return send_from_directory('static', filename)
 
 if __name__ == '__main__':
     app.run(debug=True)

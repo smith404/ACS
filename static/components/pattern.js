@@ -67,11 +67,9 @@ angular.module('app').component('pattern', {
       let displayLevel = 0;
       ctrl.alignSlicePeriods();
       ctrl.patternData.slices.forEach((slice, index) => {
-        //console.log(slice);
         blocks = blocks.concat(ctrl.getSliceBlocks(slice, ctrl.patternData.identifier, index, displayLevel));
         displayLevel += slice.startDistribution !== 0 ? 2 : 1;
       });
-      //console.log(blocks);
       return blocks;
     };
 
@@ -173,11 +171,11 @@ angular.module('app').component('pattern', {
         <button class="btn btn-pond" ng-click="$ctrl.distributeRemaining()" title="Distribute Remaining">
           <i class="fas fa-chart-bar"></i>
         </button>
-        <button class="btn btn-pond" ng-click="$ctrl.checkDistribution()" title="Check Pattern">
-          <i class="fas fa-check-square"></i>
-        </button>
         <button class="btn btn-pond" ng-click="$ctrl.getPatternBlocks()" title="Generate Blocks">
           <i class="fas fa-cubes"></i>
+        </button>
+        <button class="btn btn-pond" ng-click="$ctrl.checkDistribution()" title="Check Pattern">
+          <i class="fas fa-check-square"></i>
         </button>
       </div>
     </div>

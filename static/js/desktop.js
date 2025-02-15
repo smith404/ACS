@@ -6,7 +6,6 @@ angular.module('app').controller('MainController', ['$http', function($http) {
             .then(function(response) {
                 ctrl.patternData = response.data;
                 ctrl.maxSlice = ctrl.patternData.slices.length;
-                console.log('Loaded :', response.data);
             }, function(error) {
                 console.error('Error loading pattern data:', error);
             });
@@ -17,7 +16,6 @@ angular.module('app').controller('MainController', ['$http', function($http) {
             .then(function(response) {
                 ctrl.patternData = response.data;
                 ctrl.maxSlice = ctrl.patternData.slices.length;
-                console.log('Loaded :', response.data);
             }, function(error) {
                 console.error('Error loading pattern data:', error);
             });
