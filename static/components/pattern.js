@@ -43,8 +43,8 @@ angular.module('app').component('pattern', {
           <div class="col-sm-4">
             <input type="text" ng-model="$ctrl.patternData.identifier" class="form-control" />
           </div>
-          <label class="col-sm-1 col-form-label">Duration</label>
-          <div class="col-sm-2">
+          <label class="col-sm-2 col-form-label">Default Duration</label>
+          <div class="col-sm-1">
             <input type="number" ng-model="$ctrl.patternData.duration" class="form-control" />
           </div>
           <label class="col-sm-2 col-form-label">Last Written Slice: {{$ctrl.selectedSlice}}</label>
@@ -84,6 +84,12 @@ angular.module('app').component('pattern', {
       <div class="card-footer">
         <button class="btn btn-pond" ng-click="$ctrl.addSlice({distribution: 0, start_distribution: 0, duration: $ctrl.patternData.duration, startOffset: 0, duration_offset: 0, development_periods: 0})" title="Add Slice">
           <i class="fas fa-plus-square"></i>
+        </button>
+        <button class="btn btn-pond" title="Distributr Remaining">
+          <i class="fas fa-chart-bar"></i>
+        </button>
+        <button class="btn btn-pond" title="Check Pattern">
+          <i class="fas fa-check-square"></i>
         </button>
       </div>
     </div>
