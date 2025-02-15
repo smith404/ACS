@@ -17,6 +17,7 @@ angular.module('app').component('pattern', {
     };
 
     ctrl.addSlice = function(slice) {
+      console.log(slice);
       ctrl.patternData.slices.push(slice);
       ctrl.onSliceChange();
     };
@@ -72,7 +73,7 @@ angular.module('app').component('pattern', {
                 </pattern-slice>
               </div>
               <div class="col-sm-1 d-flex align-items-center">
-                <button class="btn btn-pond" ng-click="$ctrl.removeSlice($index)" title="Remove Slice">
+                <button class="btn btn-pond" ng-click="$ctrl.removeSlice($index)" title="Remove Slice" ng-disabled="$ctrl.patternData.slices.length === 1">
                   <i class="fas fa-minus-square"></i>
                 </button>
               </div>
@@ -81,9 +82,8 @@ angular.module('app').component('pattern', {
         </div>
       </div>
       <div class="card-footer">
-        <button class="btn btn-sm btn-pond" ng-click="$ctrl.addSlice({distribution: 0, startDistribution: 0, duration: $ctrl.duration, startOffset: 0, durationOffset: 0, developmentPeriods: 0})" title="Add Slice">
-          <i class="fas fa-bread-slice"></i>
-          <i class="fas fa-plus-square" style="margin-left: 15px;"></i>
+        <button class="btn btn-pond" ng-click="$ctrl.addSlice({distribution: 0, start_distribution: 0, duration: $ctrl.patternData.duration, startOffset: 0, duration_offset: 0, development_periods: 0})" title="Add Slice">
+          <i class="fas fa-plus-square"></i>
         </button>
       </div>
     </div>
