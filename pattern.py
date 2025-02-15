@@ -319,7 +319,6 @@ class PatternEvaluator:
                 if slice_heights[block.display_level] > height:
                     height = slice_heights[block.display_level]
             element = block.generate_polygon(block_colour, y_axis=y_axis, height=slice_height)
-            print(element)
             svg_elements.append(element)
         return height, svg_elements
 

@@ -1,6 +1,5 @@
 angular.module('app').controller('MainController', ['$http', function($http) {
     let ctrl = this;
-    ctrl.patternData = {};
 
     ctrl.loadPatternData = function() {
         $http.get('/pattern/load/my_test_pattern')

@@ -4,40 +4,35 @@ angular.module('app').component('pattern', {
     onSliceChange: '&'
   },
   controller: function() {
-    var ctrl = this;
+    let ctrl = this;
 
     ctrl.$onInit = function() {
-      ctrl.identifier = ctrl.patternData.identifier;
-      ctrl.slices = ctrl.patternData.slices;
-      ctrl.duration = ctrl.patternData.duration;
     };
 
     ctrl.addSlice = function(slice) {
-      ctrl.slices.push(slice);
-      ctrl.patternData.slices = ctrl.slices;
+      ctrl.patternData.slices.push(slice);
       ctrl.onSliceChange();
     };
 
     ctrl.removeSlice = function(index) {
-      ctrl.slices.splice(index, 1);
-      ctrl.patternData.slices = ctrl.slices;
+      ctrl.patternData.slices.splice(index, 1);
       ctrl.onSliceChange();
     };
 
     ctrl.setDuration = function(duration) {
-      ctrl.duration = duration;
       ctrl.patternData.duration = duration;
-      ctrl.slices.forEach(function(slice) {
-        slice.duration = duration;
+      ctrl.patternData.patternData.duration = duration;
+      ctrl.patternData.slices.forEach(function(slice) {
+        slice.patternData.duration = duration;
       });
     };
   },
   template: `
     <div>
-      <h3>Pattern: {{$ctrl.identifier}}</h3>
-      <p>Duration: {{$ctrl.duration}}</p>
+      <h3>Pattern: {{$ctrl.patternData.identifier}}</h3>
+      <p>Duration: {{$ctrl.patternData.duration}}</p>
       <ul>
-        <li ng-repeat="slice in $ctrl.slices">
+        <li ng-repeat="slice in $ctrl.patternData.slices">
           <pattern-slice 
             distribution="slice.distribution" 
             start-distribution="slice.startDistribution" 
