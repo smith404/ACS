@@ -108,5 +108,13 @@ class Pattern:
             pattern.slices = [PatternSlice(**sliceData) for sliceData in data['slices']]
             return pattern
 
+    @classmethod
+    def from_json(cls, json_str: str) -> 'Pattern':
+        data = json.loads(json_str)
+        pattern = cls(duration=data['duration'])
+        pattern.identifier = data['identifier']
+        pattern.slices = [PatternSlice.from_json(json.dumps(sliceData)) for sliceData in data['slices']]
+        return pattern
+
     def __str__(self) -> str:
         return f"Pattern with {len(self.slices)} slices and duration {self.duration}"

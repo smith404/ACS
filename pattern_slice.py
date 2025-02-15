@@ -70,5 +70,17 @@ class PatternSlice:
             'developmentPeriods': self.developmentPeriods
         })
 
+    @classmethod
+    def from_json(cls, json_str: str) -> 'PatternSlice':
+        data = json.loads(json_str)
+        return cls(
+            distribution=data.get('distribution', 0),
+            startDistribution=data.get('startDistribution', 0),
+            duration=data.get('duration', 0),
+            startOffset=data.get('startOffset', 0),
+            durationOffset=data.get('durationOffset', 0),
+            developmentPeriods=data.get('developmentPeriods', 0)
+        )
+
     def __str__(self) -> str:
         return f"PatternSlice: (Distribution: {self.distribution}, Start Distribution: {self.startDistribution}, Duration: {self.duration}, Start Offset: {self.startOffset}, Duration Offset: {self.durationOffset}, Development Periods: {self.developmentPeriods})"
