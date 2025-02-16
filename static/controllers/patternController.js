@@ -8,7 +8,6 @@ angular.module('app').controller('PatternController', function($http) {
   ctrl.selectedSlice = 0;
 
   ctrl.$onInit = function() {
-    ctrl.showBase = true;
     ctrl.showWritten = true;
     ctrl.showUnwritten = false;
     ctrl.showLIC = false;
