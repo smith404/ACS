@@ -72,16 +72,16 @@ class PatternEvaluator:
         with open(filename, 'w') as file:
             json.dump([block.__dict__ for block in self.patternBlocks], file)
 
-    def sum_ultimate_values_by_points(self) -> dict[Tuple[int, int], float]:
+    def sum_ultimate_values_by_points(self) -> dict[int, float]:
         value_sums = {}
         for block in self.patternBlocks:
-            key = (block.startPoint, block.endPoint)
+            key = int(block.endPoint)
             if key not in value_sums:
                 value_sums[key] = 0
             value_sums[key] += block.ultimateValue
         return value_sums
 
-    def cumulative_sum_by_points(self, value_sums: dict[Tuple[int, int], float]) -> dict[Tuple[int, int], float]:
+    def cumulative_sum_by_points(self, value_sums: dict[ int, float]) -> dict[int, float]:
         sorted_points = sorted(value_sums.keys())
         cumulative_sum = 0
         cumulative_sums = {}

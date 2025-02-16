@@ -7,6 +7,7 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the licence conditions.
 
+from interpolation_utils import spline_interpolation
 from pattern import Pattern
 from pattern_evaluator import PatternEvaluator
 from pattern_slice import PatternSlice
@@ -37,6 +38,8 @@ def main():
     evaluator.apply_ultimate_value(120)
     print("Sum of values by points:", evaluator.sum_ultimate_values_by_points())
     print("Sum of cumulative values by points:", evaluator.cumulative_sum_by_points(evaluator.sum_ultimate_values_by_points()))
+
+    print(f"Interpolatd value (210) = {spline_interpolation(evaluator.cumulative_sum_by_points(evaluator.sum_ultimate_values_by_points()), 210)}")
  
     print(f"LIC: {evaluator.sum_ultimate_values(evaluator.evaluate_lic_blocks(1))}")
     print(f"LRC: {evaluator.sum_ultimate_values(evaluator.evaluate_lrc_blocks(1))}")
@@ -49,6 +52,7 @@ def main():
     print(f"Largest heights per display level: {largestHeightPerDisplayLevel}")
 
     minPoint, maxPoint = PatternEvaluator.find_min_max_points(evaluator.patternBlocks)
+    
     print(cumulative_sum(scale_vector_to_sum(largestHeightPerDisplayLevel, maxPoint - minPoint))) 
 
 
