@@ -14,6 +14,7 @@ angular.module('app').controller('PatternController', function($http) {
     ctrl.showLIC = false;
     ctrl.showLRC = false;
     ctrl.showUPR = false;
+    ctrl.showText = false;
     ctrl.selectedSlice = 0;
   };
 
@@ -134,7 +135,9 @@ angular.module('app').controller('PatternController', function($http) {
 
   ctrl.generateSvg = function() {
     let patternBlocks = ctrl.getPatternBlocks();
-    $http.post('/svg/generate', { patternBlocks: patternBlocks }).then(function(response) {
+    let url = '/svg/generate'
+    url = ctrl.showText ? url + '?text=true' : url;
+    $http.post(url, { patternBlocks: patternBlocks }).then(function(response) {
       ctrl.svgContent = response.data;
       document.getElementById('svgContainer').innerHTML = ctrl.svgContent;
     }).catch(function(error) {

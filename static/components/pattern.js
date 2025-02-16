@@ -50,7 +50,7 @@ angular.module('app').component('pattern', {
             </div>
           </div>
         </div>
-        <div id="diagrams" class="row justify-content-center" style="max-height: 50vh;">
+        <div id="diagrams" class="row justify-content-center">
           <div class="col" ng-if="$ctrl.showBase">
             <h3>Base</h3>
             <div id="svgContainer"></div>
@@ -96,13 +96,33 @@ angular.module('app').component('pattern', {
         <button class="btn btn-pond" ng-click="$ctrl.savePattern()" title="Save">
           <i class="fas fa-save"></i>
         </button>
-        <label>
-          <input type="checkbox" ng-model="$ctrl.showBase">
+        <label class="form-switch">
+          <input type="checkbox" ng-model="$ctrl.showBase" class="form-check-input">
           Show Base
         </label>
-        <label>
-          <input type="checkbox" ng-model="$ctrl.showWritten">
+        <label class="form-switch">
+          <input type="checkbox" ng-model="$ctrl.showWritten" class="form-check-input">
           Show Written
+        </label>
+        <label class="form-switch">
+          <input type="checkbox" ng-model="$ctrl.showUnwritten" class="form-check-input">
+          Show Unwritten
+        </label>
+        <label class="form-switch">
+          <input type="checkbox" ng-model="$ctrl.showLIC" class="form-check-input">
+          Show LIC
+        </label>
+        <label class="form-switch">
+          <input type="checkbox" ng-model="$ctrl.showLRC" class="form-check-input">
+          Show LRC
+        </label>
+        <label class="form-switch">
+          <input type="checkbox" ng-model="$ctrl.showUPR" class="form-check-input">
+          Show UPR
+        </label>
+        <label class="form-switch">
+          <input type="checkbox" ng-model="$ctrl.showText" class="form-check-input">
+          Show Text
         </label>
       </div>
     </div>
