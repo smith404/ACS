@@ -186,46 +186,32 @@ angular.module('app').component('pattern', {
             </div>
           </div>
         </div>
-      <ul class="nav nav-tabs" id="myTab" role="tablist">
-          <li class="nav-item" role="presentation">
-              <button class="nav-link active" id="tab1-tab" data-bs-toggle="tab" data-bs-target="#tab0" type="button" role="tab" aria-controls="tab1" aria-selected="true">Base</button>
-          </li>
-          <li class="nav-item" role="presentation">
-              <button class="nav-link" id="tab1-tab" data-bs-toggle="tab" data-bs-target="#tab1" type="button" role="tab" aria-controls="tab1" aria-selected="true">Written</button>
-          </li>
-          <li class="nav-item" role="presentation">
-              <button class="nav-link" id="tab2-tab" data-bs-toggle="tab" data-bs-target="#tab2" type="button" role="tab" aria-controls="tab2" aria-selected="false">Unwritten</button>
-          </li>
-          <li class="nav-item" role="presentation">
-              <button class="nav-link" id="tab3-tab" data-bs-toggle="tab" data-bs-target="#tab3" type="button" role="tab" aria-controls="tab3" aria-selected="false">LIC</button>
-          </li>
-          <li class="nav-item" role="presentation">
-              <button class="nav-link" id="tab4-tab" data-bs-toggle="tab" data-bs-target="#tab4" type="button" role="tab" aria-controls="tab4" aria-selected="false">LRC</button>
-          </li>
-          <li class="nav-item" role="presentation">
-              <button class="nav-link" id="tab5-tab" data-bs-toggle="tab" data-bs-target="#tab5" type="button" role="tab" aria-controls="tab5" aria-selected="false">UPR</button>
-          </li>
-      </ul>
-      <div class="tab-content" id="myTabContent">
-          <div class="tab-pane fade show active" id="tab0" role="tabpanel" aria-labelledby="tab1-tab">
-            <div id="svgContainer" style="width: 20%;"></div>
+        <div class="row justify-content-center">
+          <div class="col-sm-2">
+            <h3>Base</h3>
+            <div id="svgContainer"></div>
           </div>
-          <div class="tab-pane fade" id="tab1" role="tabpanel" aria-labelledby="tab1-tab">
-              <img width="400" height="400" src="/svg/pattern/my_test_pattern?type=written&lw=1" alt="Pattern {{ pattern }}">
+          <div class="col-sm-2">
+            <h3>Written</h3>
+            <img src="/svg/pattern/my_test_pattern?type=written&lw=1&text=true" alt="Pattern {{ pattern }}">
           </div>
-          <div class="tab-pane fade" id="tab2" role="tabpanel" aria-labelledby="tab2-tab">
-              <img width="400" height="400" src="/svg/pattern/my_test_pattern?type=unwritten&lw=1" alt="Pattern {{ pattern }}">
+          <div class="col-sm-2">
+            <h3>Unwritten</h3>
+            <img src="/svg/pattern/my_test_pattern?type=unwritten&lw=1" alt="Pattern {{ pattern }}">
           </div>
-          <div class="tab-pane fade" id="tab3" role="tabpanel" aria-labelledby="tab3-tab">
-              <img width="400" height="400" src="/svg/pattern/my_test_pattern?type=lic&lw=1" alt="Pattern {{ pattern }}">
+          <div class="col-sm-2">
+            <h3>LIC</h3>
+            <img src="/svg/pattern/my_test_pattern?type=lic&lw=1" alt="Pattern {{ pattern }}">
           </div>
-          <div class="tab-pane fade" id="tab4" role="tabpanel" aria-labelledby="tab4-tab">
-              <img width="400" height="400" src="/svg/pattern/my_test_pattern?type=lrc&lw=1" alt="Pattern {{ pattern }}">
+          <div class="col-sm-2">
+            <h3>LRC</h3>
+            <img src="/svg/pattern/my_test_pattern?type=lrc&lw=1" alt="Pattern {{ pattern }}">
           </div>
-          <div class="tab-pane fade" id="tab5" role="tabpanel" aria-labelledby="tab5-tab">
-              <img width="400" height="400" src="/svg/pattern/my_test_pattern?type=upr&lw=1" alt="Pattern {{ pattern }}">
+          <div class="col-sm-2">
+            <h3>UPR</h3>
+            <img src="/svg/pattern/my_test_pattern?type=upr&lw=1" alt="Pattern {{ pattern }}">
           </div>
-      </div>
+        </div>
       </div>
       <div class="card-footer">
         <button class="btn btn-pond" ng-click="$ctrl.addSlice({distribution: 0, startDistribution: 0, duration: $ctrl.patternData.duration, startOffset: 0, durationOffset: 0, developmentPeriods: 0})" title="Add Slice">

@@ -33,25 +33,26 @@ def generate_svg() -> Response:
     
     svgType = request.args.get('type', 'full')
     latestWrittenSlice = int(request.args.get('lw', 0))
+    showText = request.args.get('text', 'false').lower() == 'true'
 
     patternBlocks = [PatternBlock(**block) for block in data['patternBlocks']]
     evaluator = PatternEvaluator(patternBlocks)
 
     if svgType == 'written':
-        svgContent = evaluator.create_svg(evaluator.patternBlocks, latestWrittenSlice=latestWrittenSlice, preColour='blue', colour='white')
+        svgContent = evaluator.create_svg(evaluator.patternBlocks, latestWrittenSlice=latestWrittenSlice, preColour='blue', colour='white', showText=showText)
     elif svgType == 'unwritten':
-        svgContent = evaluator.create_svg(evaluator.patternBlocks, latestWrittenSlice=latestWrittenSlice)
+        svgContent = evaluator.create_svg(evaluator.patternBlocks, latestWrittenSlice=latestWrittenSlice, showText=showText)
     elif svgType == 'lic':
         timePoint = evaluator.get_earliest_end_point_of_slice(latestWrittenSlice)
-        svgContent = evaluator.create_svg(evaluator.patternBlocks, latestWrittenSlice=latestWrittenSlice, dayCut=timePoint, preColour='blue', colour='white', condition="and")
+        svgContent = evaluator.create_svg(evaluator.patternBlocks, latestWrittenSlice=latestWrittenSlice, dayCut=timePoint, preColour='blue', colour='white', condition="and", showText=showText)
     elif svgType == 'lrc':
         timePoint = evaluator.get_earliest_end_point_of_slice(latestWrittenSlice)
-        svgContent = evaluator.create_svg(evaluator.patternBlocks, latestWrittenSlice=latestWrittenSlice, dayCut=timePoint, preColour='white', colour='blue', condition="and")
+        svgContent = evaluator.create_svg(evaluator.patternBlocks, latestWrittenSlice=latestWrittenSlice, dayCut=timePoint, preColour='white', colour='blue', condition="and", showText=showText)
     elif svgType == 'upr':
         timePoint = evaluator.get_earliest_end_point_of_slice(latestWrittenSlice)
-        svgContent = evaluator.create_svg(evaluator.patternBlocks, dayCut=timePoint)
+        svgContent = evaluator.create_svg(evaluator.patternBlocks, dayCut=timePoint, showText=showText)
     else:
-        svgContent = evaluator.create_svg(evaluator.patternBlocks, colour='white')
+        svgContent = evaluator.create_svg(evaluator.patternBlocks, colour='white', showText=showText)
 
     return Response(svgContent, mimetype='image/svg+xml')
 
@@ -92,25 +93,27 @@ def pattern_svg(name: str) -> Response:
     evaluator = PatternEvaluator(pattern.get_all_pattern_blocks())
     svgType = request.args.get('type', 'full')
     latestWrittenSlice = int(request.args.get('lw', 0))
-    svgContent = generate_svg_content(evaluator, svgType, latestWrittenSlice)
+    showText = request.args.get('text', 'false').lower() == 'true'
+
+    svgContent = generate_svg_content(evaluator, svgType, latestWrittenSlice, showText=showText)
     return Response(svgContent, mimetype='image/svg+xml')
 
-def generate_svg_content(evaluator: PatternEvaluator, svgType: str, latestWrittenSlice: int) -> str:
+def generate_svg_content(evaluator: PatternEvaluator, svgType: str, latestWrittenSlice: int, showText: bool = True) -> str:
     if svgType == 'written':
-        return evaluator.create_svg(evaluator.patternBlocks, latestWrittenSlice=latestWrittenSlice, preColour='blue', colour='white')
+        return evaluator.create_svg(evaluator.patternBlocks, latestWrittenSlice=latestWrittenSlice, preColour='blue', colour='white', showText=showText)
     elif svgType == 'unwritten':
-        return evaluator.create_svg(evaluator.patternBlocks, latestWrittenSlice=latestWrittenSlice)
+        return evaluator.create_svg(evaluator.patternBlocks, latestWrittenSlice=latestWrittenSlice, showText=showText)
     elif svgType == 'lic':
         timePoint = evaluator.get_earliest_end_point_of_slice(latestWrittenSlice)
-        return evaluator.create_svg(evaluator.patternBlocks, latestWrittenSlice=latestWrittenSlice, dayCut=timePoint, preColour='blue', colour='white', condition="and")
+        return evaluator.create_svg(evaluator.patternBlocks, latestWrittenSlice=latestWrittenSlice, dayCut=timePoint, preColour='blue', colour='white', condition="and", showText=showText)
     elif svgType == 'lrc':
         timePoint = evaluator.get_earliest_end_point_of_slice(latestWrittenSlice)
-        return evaluator.create_svg(evaluator.patternBlocks, latestWrittenSlice=latestWrittenSlice, dayCut=timePoint, preColour='white', colour='blue', condition="and")
+        return evaluator.create_svg(evaluator.patternBlocks, latestWrittenSlice=latestWrittenSlice, dayCut=timePoint, preColour='white', colour='blue', condition="and", showText=showText)
     elif svgType == 'upr':
         timePoint = evaluator.get_earliest_end_point_of_slice(latestWrittenSlice)
-        return evaluator.create_svg(evaluator.patternBlocks, dayCut=timePoint)
+        return evaluator.create_svg(evaluator.patternBlocks, dayCut=timePoint, showText=showText)
     else:
-        return evaluator.create_svg(evaluator.patternBlocks)
+        return evaluator.create_svg(evaluator.patternBlocks, showText=showText)
 
 if __name__ == '__main__':
     app.run(debug=True)

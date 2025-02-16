@@ -11,65 +11,9 @@ from enum import Enum
 import json
 import uuid
 from typing import List, Optional, Tuple
+from pattern_block import PatternBlock, BlockShape
 
 from utils import cumulative_sum, scale_vector_to_sum
-
-class BlockShape(str, Enum):
-    LTRIANGLE = "LTRIANGLE"
-    RTRIANGLE = "RTRIANGLE"
-    RECTANGLE = "RECTANGLE"
-
-class PatternBlock:
-    def __init__(self, pattern: str, sliceNumber: int = 0, displayLevel: int = 0, startPoint: int = 0, endPoint: int = 0, height: float = 0, shape: BlockShape = BlockShape.RECTANGLE):
-        self.pattern = pattern
-        self.sliceNumber = sliceNumber
-        self.displayLevel = displayLevel
-        self.startPoint = startPoint
-        self.endPoint = endPoint
-        self.height = height
-        self.ultimateValue = height
-        self.shape = shape
-
-    def generate_polygon(self, colour: str = "blue", stroke: str = "black", yAxis: int = 0, height: int = 50) -> str:
-        points = self._generate_points(yAxis, height)
-        return f'<polygon vector-effect="non-scaling-stroke" stroke-width="1" points="{points}" fill="{colour}" stroke="{stroke}" />'
-
-    def _generate_points(self, yAxis: int, height: int) -> str:
-        if self.shape == BlockShape.RECTANGLE:
-            return f"{self.startPoint},{yAxis} {self.endPoint + 1},{yAxis} {self.endPoint + 1},{yAxis + height} {self.startPoint},{yAxis + height}"
-        elif self.shape == BlockShape.LTRIANGLE:
-            return f"{self.startPoint},{yAxis} {self.endPoint + 1},{yAxis} {self.endPoint + 1},{yAxis + height}"
-        elif self.shape == BlockShape.RTRIANGLE:
-            return f"{self.startPoint},{yAxis} {self.startPoint},{yAxis + height} {self.endPoint + 1},{yAxis + height}"
-        return ""
-
-    def to_json(self) -> str:
-        return json.dumps({
-            "pattern": self.pattern,
-            "sliceNumber": self.sliceNumber,
-            "displayLevel": self.displayLevel,
-            "startPoint": self.startPoint,
-            "endPoint": self.endPoint,
-            "height": self.height,
-            "ultimateValue": self.ultimateValue,
-            "shape": self.shape.value
-        })
-
-    @classmethod
-    def from_json(cls, json_str: str) -> 'PatternBlock':
-        data = json.loads(json_str)
-        return cls(
-            pattern=data['pattern'],
-            sliceNumber=data['sliceNumber'],
-            displayLevel=data['displayLevel'],
-            startPoint=data['startPoint'],
-            endPoint=data['endPoint'],
-            height=data['height'],
-            shape=BlockShape(data['shape'])
-        )
-
-    def __str__(self) -> str:
-        return f"PatternBlock with Pattern: {self.pattern}, Slice Number: {self.sliceNumber}, Display Level: {self.displayLevel}, Start Point: {self.startPoint}, End Point: {self.endPoint}, Height: {self.height}, Ultimate Value: {self.ultimateValue}, Shape: {self.shape.name}"
 
 class PatternEvaluator:
     def __init__(self, patternBlocks: List[PatternBlock]):
@@ -136,17 +80,18 @@ class PatternEvaluator:
             return cls(patternBlocks)
 
     @staticmethod
-    def create_svg(patternBlocks: List[PatternBlock], latestWrittenSlice: Optional[int] = None, dayCut: Optional[int] = None, sliceHeights: dict[int, int] = None, heightScale: float = 0.7, preColour: str = "white", colour: str = "blue", condition: str = "or") -> str:
+    def create_svg(patternBlocks: List[PatternBlock], latestWrittenSlice: Optional[int] = None, dayCut: Optional[int] = None, sliceHeights: dict[int, int] = None, heightScale: float = 0.7, preColour: str = "white", colour: str = "blue", condition: str = "or", showText: bool = True) -> str:
         minPoint, maxPoint = PatternEvaluator.find_min_max_points(patternBlocks)
         width = maxPoint - minPoint
         if sliceHeights is None:
             largestHeightPerDisplayLevel = PatternEvaluator.find_largest_height_per_display_level(patternBlocks)
             sliceHeights = cumulative_sum(scale_vector_to_sum(largestHeightPerDisplayLevel, (maxPoint - minPoint)*heightScale))
-        height, svgElements = PatternEvaluator.generate_svg_elements(patternBlocks, latestWrittenSlice, dayCut, sliceHeights, preColour, colour, condition)
+        print(f"ShowText: {showText}")
+        height, svgElements = PatternEvaluator.generate_svg_elements(patternBlocks, latestWrittenSlice, dayCut, sliceHeights, preColour, colour, condition, showText)
         return f'<svg width="100%" height="auto" viewBox="0 0 {width} {height}" xmlns="http://www.w3.org/2000/svg">{"".join(svgElements)}</svg>'
 
     @staticmethod
-    def generate_svg_elements(patternBlocks: List[PatternBlock], latestWrittenSlice: Optional[int], dayCut: Optional[int], sliceHeights: dict[int, int], preColour: str, colour: str, condition: str) -> Tuple[int, List[str]]:
+    def generate_svg_elements(patternBlocks: List[PatternBlock], latestWrittenSlice: Optional[int], dayCut: Optional[int], sliceHeights: dict[int, int], preColour: str, colour: str, condition: str, showText: bool) -> Tuple[int, List[str]]:
         svgElements = []
         sliceHeight = 0
         yAxis = 0
@@ -163,7 +108,7 @@ class PatternEvaluator:
                 yAxis = sliceHeights[block.displayLevel-1]
                 if sliceHeights[block.displayLevel] > height:
                     height = sliceHeights[block.displayLevel]
-            element = block.generate_polygon(blockColour, yAxis=yAxis, height=sliceHeight)
+            element = block.generate_polygon(blockColour, yAxis=yAxis, height=sliceHeight, showText=showText)
             svgElements.append(element)
         return height, svgElements
 
