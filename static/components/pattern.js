@@ -4,143 +4,7 @@ angular.module('app').component('pattern', {
     onSliceChange: '&',
     onSelectedSliceChange: '&'
   },
-  controller: function($http) {
-    let ctrl = this;
-    
-    ctrl.onSliderChange = function() {
-      ctrl.onSelectedSliceChange({ selectedSlice: ctrl.selectedSlice });
-    };
-
-    ctrl.selectedSlice = 0;
-
-    ctrl.$onInit = function() {
-    };
-
-    ctrl.addSlice = function(slice) {
-      ctrl.patternData.slices.push(slice);
-      ctrl.onSliceChange();
-    };
-
-    ctrl.removeSlice = function(index) {
-      ctrl.patternData.slices.splice(index, 1);
-      ctrl.onSliceChange();
-    };
-
-    ctrl.setDuration = function(duration) {
-      ctrl.patternData.duration = duration;
-      ctrl.patternData.patternData.duration = duration;
-      ctrl.patternData.slices.forEach(function(slice) {
-        slice.patternData.duration = duration;
-      });
-    };
-
-    ctrl.alignSlicePeriods = function(developmentPeriods = null) {
-      if (developmentPeriods === null || developmentPeriods === 0) {
-        developmentPeriods = ctrl.patternData.slices.length;
-      }
-      ctrl.patternData.slices.forEach((slice, index) => {
-        slice.developmentPeriods = developmentPeriods;
-        slice.durationOffset = ctrl.patternData.duration / developmentPeriods;
-        slice.startOffset = index * (ctrl.patternData.duration / developmentPeriods);
-      });
-    };
-
-    ctrl.distributeRemaining = function() {
-      let totalDistribution = ctrl.patternData.slices.reduce((sum, slice) => sum + slice.distribution + slice.startDistribution, 0);
-      if (totalDistribution < 1) {
-        let remaining = 1 - totalDistribution;
-        ctrl.patternData.slices.forEach(slice => {
-          slice.distribution += remaining / ctrl.patternData.slices.length;
-        });
-      }
-    };
-
-    ctrl.checkDistribution = function() {
-      let totalDistribution = ctrl.patternData.slices.reduce((sum, slice) => sum + slice.distribution + slice.startDistribution, 0);
-      console.log(totalDistribution);
-      let result = totalDistribution === 1;
-      alert("Distribution check: " + (result ? "Valid" : "Invalid"));
-    };
-
-    ctrl.clearStartDistributions = function() {
-      ctrl.patternData.slices.forEach(slice => {
-        slice.startDistribution = 0;
-      });
-  };
-
-    ctrl.clearDistributions = function() {
-      ctrl.patternData.slices.forEach(slice => {
-        slice.startDistribution = 0;
-        slice.distribution = 0;
-      });
-    };
-
-    ctrl.getPatternBlocks = function() {
-      let blocks = [];
-      let displayLevel = 0;
-      ctrl.alignSlicePeriods();
-      ctrl.patternData.slices.forEach((slice, index) => {
-        blocks = blocks.concat(ctrl.getSliceBlocks(slice, ctrl.patternData.identifier, index, displayLevel));
-        displayLevel += slice.startDistribution !== 0 ? 2 : 1;
-      });
-      return blocks;
-    };
-
-    ctrl.getSliceBlocks = function(slice, patternId, sliceNumber, displayLevel) {
-      let blocks = [];
-      if (slice.startDistribution !== 0) {
-        for (let index = 0; index < slice.developmentPeriods; index++) {
-          let shape = 'RECTANGLE';
-          let startPoint = slice.startOffset + (index * slice.durationOffset);
-          let endPoint = slice.startOffset + ((index + 1) * slice.durationOffset) - 1;
-          let block = {
-            pattern: patternId,
-            sliceNumber: sliceNumber,
-            displayLevel: displayLevel,
-            startPoint: startPoint,
-            endPoint: endPoint,
-            height: slice.startDistribution / slice.developmentPeriods,
-            shape: shape
-          };
-          blocks.push(block);
-        }
-        displayLevel += 1;
-      }
-      if (slice.distribution !== 0) {
-        for (let index = 0; index <= slice.developmentPeriods; index++) {
-          let shape = 'RECTANGLE';
-          let factor = slice.developmentPeriods;
-          if (index === 0 || index === slice.developmentPeriods) {
-            factor *= 2;
-            shape = index === 0 ? 'LTRIANGLE' : 'RTRIANGLE';
-          }
-          let startPoint = slice.startOffset + (index * slice.durationOffset);
-          let endPoint = slice.startOffset + ((index + 1) * slice.durationOffset) - 1;
-          let block = {
-            pattern: patternId,
-            sliceNumber: sliceNumber,
-            displayLevel: displayLevel,
-            startPoint: startPoint,
-            endPoint: endPoint,
-            height: slice.distribution / factor,
-            shape: shape
-          };
-          blocks.push(block);
-        }
-      }
-      return blocks;
-    };
-
-    ctrl.generateSvg = function() {
-      let patternBlocks = ctrl.getPatternBlocks();
-      $http.post('/svg/generate', { patternBlocks: patternBlocks }).then(function(response) {
-        ctrl.svgContent = response.data;
-        document.getElementById('svgContainer').innerHTML = ctrl.svgContent;
-      }).catch(function(error) {
-        console.error('Error generating SVG:', error);
-      });
-    };
-  },
+  controller: 'PatternController',
   template: `
     <div class="card">
       <div class="card-header">
@@ -186,28 +50,28 @@ angular.module('app').component('pattern', {
             </div>
           </div>
         </div>
-        <div class="row justify-content-center">
-          <div class="col-sm-2">
+        <div id="diagrams" class="row justify-content-center" style="max-height: 50vh;">
+          <div class="col" ng-if="$ctrl.showBase">
             <h3>Base</h3>
             <div id="svgContainer"></div>
           </div>
-          <div class="col-sm-2">
+          <div class="col" ng-if="$ctrl.showWritten">
             <h3>Written</h3>
             <img src="/svg/pattern/my_test_pattern?type=written&lw=1&text=true" alt="Pattern {{ pattern }}">
           </div>
-          <div class="col-sm-2">
+          <div class="col" ng-if="$ctrl.showUnwritten">
             <h3>Unwritten</h3>
             <img src="/svg/pattern/my_test_pattern?type=unwritten&lw=1" alt="Pattern {{ pattern }}">
           </div>
-          <div class="col-sm-2">
+          <div class="col" ng-if="$ctrl.showLIC">
             <h3>LIC</h3>
             <img src="/svg/pattern/my_test_pattern?type=lic&lw=1" alt="Pattern {{ pattern }}">
           </div>
-          <div class="col-sm-2">
+          <div class="col" ng-if="$ctrl.showLRC">
             <h3>LRC</h3>
             <img src="/svg/pattern/my_test_pattern?type=lrc&lw=1" alt="Pattern {{ pattern }}">
           </div>
-          <div class="col-sm-2">
+          <div class="col" ng-if="$ctrl.showUPR">
             <h3>UPR</h3>
             <img src="/svg/pattern/my_test_pattern?type=upr&lw=1" alt="Pattern {{ pattern }}">
           </div>
@@ -232,6 +96,14 @@ angular.module('app').component('pattern', {
         <button class="btn btn-pond" ng-click="$ctrl.savePattern()" title="Save">
           <i class="fas fa-save"></i>
         </button>
+        <label>
+          <input type="checkbox" ng-model="$ctrl.showBase">
+          Show Base
+        </label>
+        <label>
+          <input type="checkbox" ng-model="$ctrl.showWritten">
+          Show Written
+        </label>
       </div>
     </div>
   `
