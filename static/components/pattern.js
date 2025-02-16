@@ -24,7 +24,49 @@ angular.module('app').component('pattern', {
         </div>
       </div>
       <div class="card-body">
-        <ul class="nav nav-tabs" id="patternTabs" role="tablist">
+        <button class="btn btn-pond" ng-click="$ctrl.addSlice({distribution: 0, startDistribution: 0, duration: $ctrl.patternData.duration, startOffset: 0, durationOffset: 0, developmentPeriods: 0})" title="Add Slice">
+          <i class="fas fa-plus-square"></i>
+        </button>
+        <button class="btn btn-pond" ng-click="$ctrl.distributeRemaining()" title="Distribute Remaining">
+          <i class="fas fa-chart-bar"></i>
+        </button>
+        <button class="btn btn-pond" ng-click="$ctrl.generateSvg()" title="Generate Blocks">
+          <i class="fas fa-cubes"></i>
+        </button>
+        <button class="btn btn-pond" ng-click="$ctrl.clearDistributions()" title="Clear Distributions">
+          <i class="fas fa-broom"></i>
+        </button>
+        <button class="btn btn-pond" ng-click="$ctrl.checkDistribution()" title="Check Pattern">
+          <i class="fas fa-check-square"></i>
+        </button>
+        <button class="btn btn-pond" ng-click="$ctrl.savePattern()" title="Save">
+          <i class="fas fa-save"></i>
+        </button>
+        <label class="form-switch ms-3">
+          <input type="radio" ng-model="$ctrl.viewMode" value="written" class="form-check-input">
+          Show Written
+        </label>
+        <label class="form-switch ms-3">
+          <input type="radio" ng-model="$ctrl.viewMode" value="unwritten" class="form-check-input">
+          Show Unwritten
+        </label>
+        <label class="form-switch ms-3">
+          <input type="radio" ng-model="$ctrl.viewMode" value="lic" class="form-check-input">
+          Show LIC
+        </label>
+        <label class="form-switch ms-3">
+          <input type="radio" ng-model="$ctrl.viewMode" value="lrc" class="form-check-input">
+          Show LRC
+        </label>
+        <label class="form-switch ms-3">
+          <input type="radio" ng-model="$ctrl.viewMode" value="upr" class="form-check-input">
+          Show UPR
+        </label>
+        <label class="form-switch ms-3">
+          <input type="checkbox" ng-model="$ctrl.showText" class="form-check-input">
+          Show Text
+        </label>
+        <ul class="nav nav-tabs mt-3" id="patternTabs" role="tablist">
           <li class="nav-item" role="presentation" ng-repeat="slice in $ctrl.patternData.slices">
             <a class="nav-link" id="slice-tab-{{$index}}" data-bs-toggle="tab" href="#slice{{$index}}" role="tab" aria-controls="slice{{$index}}" aria-selected="{{$index === 0}}">Slice: {{$index + 1}}</a>
           </li>
@@ -55,71 +97,29 @@ angular.module('app').component('pattern', {
             <h3>Base</h3>
             <div id="svgContainer"></div>
           </div>
-          <div class="col" ng-if="$ctrl.showWritten">
+          <div class="col" ng-if="$ctrl.viewMode === 'written'">
             <h3>Written</h3>
-            <img src="/svg/pattern/my_test_pattern?type=written&lw=1&text=true" alt="Pattern {{ pattern }}">
+            <img ng-src="/svg/pattern/my_test_pattern?type=written&lw=1&text={{showText ? 'true' : 'false'}}" alt="Pattern {{ pattern }}">
           </div>
-          <div class="col" ng-if="$ctrl.showUnwritten">
+          <div class="col" ng-if="$ctrl.viewMode === 'unwritten'">
             <h3>Unwritten</h3>
-            <img src="/svg/pattern/my_test_pattern?type=unwritten&lw=1" alt="Pattern {{ pattern }}">
+            <img ng-src="/svg/pattern/my_test_pattern?type=unwritten&lw=1&text={{showText ? 'true' : 'false'}}" alt="Pattern {{ pattern }}">
           </div>
-          <div class="col" ng-if="$ctrl.showLIC">
+          <div class="col" ng-if="$ctrl.viewMode === 'lic'">
             <h3>LIC</h3>
-            <img src="/svg/pattern/my_test_pattern?type=lic&lw=1" alt="Pattern {{ pattern }}">
+            <img ng-src="/svg/pattern/my_test_pattern?type=lic&lw=1&text={{showText ? 'true' : 'false'}}" alt="Pattern {{ pattern }}">
           </div>
-          <div class="col" ng-if="$ctrl.showLRC">
+          <div class="col" ng-if="$ctrl.viewMode === 'lrc'">
             <h3>LRC</h3>
-            <img src="/svg/pattern/my_test_pattern?type=lrc&lw=1" alt="Pattern {{ pattern }}">
+            <img ng-src="/svg/pattern/my_test_pattern?type=lrc&lw=1&text={{showText ? 'true' : 'false'}}" alt="Pattern {{ pattern }}">
           </div>
-          <div class="col" ng-if="$ctrl.showUPR">
+          <div class="col" ng-if="$ctrl.viewMode === 'upr'">
             <h3>UPR</h3>
-            <img src="/svg/pattern/my_test_pattern?type=upr&lw=1" alt="Pattern {{ pattern }}">
+            <img ng-src="/svg/pattern/my_test_pattern?type=upr&lw=1&text={{showText ? 'true' : 'false'}}" alt="Pattern {{ pattern }}">
           </div>
         </div>
       </div>
       <div class="card-footer">
-        <button class="btn btn-pond" ng-click="$ctrl.addSlice({distribution: 0, startDistribution: 0, duration: $ctrl.patternData.duration, startOffset: 0, durationOffset: 0, developmentPeriods: 0})" title="Add Slice">
-          <i class="fas fa-plus-square"></i>
-        </button>
-        <button class="btn btn-pond" ng-click="$ctrl.distributeRemaining()" title="Distribute Remaining">
-          <i class="fas fa-chart-bar"></i>
-        </button>
-        <button class="btn btn-pond" ng-click="$ctrl.generateSvg()" title="Generate Blocks">
-          <i class="fas fa-cubes"></i>
-        </button>
-        <button class="btn btn-pond" ng-click="$ctrl.clearDistributions()" title="Clear Distributions">
-          <i class="fas fa-broom"></i>
-        </button>
-        <button class="btn btn-pond" ng-click="$ctrl.checkDistribution()" title="Check Pattern">
-          <i class="fas fa-check-square"></i>
-        </button>
-        <button class="btn btn-pond" ng-click="$ctrl.savePattern()" title="Save">
-          <i class="fas fa-save"></i>
-        </button>
-        <label class="form-switch ms-3">
-          <input type="checkbox" ng-model="$ctrl.showWritten" class="form-check-input">
-          Show Written
-        </label>
-        <label class="form-switch ms-3">
-          <input type="checkbox" ng-model="$ctrl.showUnwritten" class="form-check-input">
-          Show Unwritten
-        </label>
-        <label class="form-switch ms-3">
-          <input type="checkbox" ng-model="$ctrl.showLIC" class="form-check-input">
-          Show LIC
-        </label>
-        <label class="form-switch ms-3">
-          <input type="checkbox" ng-model="$ctrl.showLRC" class="form-check-input">
-          Show LRC
-        </label>
-        <label class="form-switch ms-3">
-          <input type="checkbox" ng-model="$ctrl.showUPR" class="form-check-input">
-          Show UPR
-        </label>
-        <label class="form-switch ms-3">
-          <input type="checkbox" ng-model="$ctrl.showText" class="form-check-input">
-          Show Text
-        </label>
       </div>
     </div>
   `
