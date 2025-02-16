@@ -80,7 +80,7 @@ class PatternEvaluator:
             return cls(patternBlocks)
 
     @staticmethod
-    def create_svg(patternBlocks: List[PatternBlock], latestWrittenSlice: Optional[int] = None, dayCut: Optional[int] = None, sliceHeights: dict[int, int] = None, heightScale: float = 0.7, preColour: str = "white", colour: str = "blue", condition: str = "or", showText: bool = True) -> str:
+    def create_svg(patternBlocks: List[PatternBlock], latestWrittenSlice: Optional[int] = None, dayCut: Optional[int] = None, sliceHeights: dict[int, int] = None, heightScale: float = 0.7, preColour: str = "white", colour: str = "lightblue", condition: str = "or", showText: bool = True) -> str:
         minPoint, maxPoint = PatternEvaluator.find_min_max_points(patternBlocks)
         width = maxPoint - minPoint
         if sliceHeights is None:
@@ -88,7 +88,6 @@ class PatternEvaluator:
             sliceHeights = cumulative_sum(scale_vector_to_sum(largestHeightPerDisplayLevel, (maxPoint - minPoint)*heightScale))
         print(f"ShowText: {showText}")
         height, svgElements = PatternEvaluator.generate_svg_elements(patternBlocks, latestWrittenSlice, dayCut, sliceHeights, preColour, colour, condition, showText)
-        height = min(height, 300)  # Ensure the maximum height is 300 pixels
         return f'<svg height="auto" width="auto" viewBox="0 0 {width} {height}" xmlns="http://www.w3.org/2000/svg">{"".join(svgElements)}</svg>'
 
     @staticmethod
