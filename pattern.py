@@ -1,3 +1,12 @@
+# Copyright (c) 2025 K2-Software GmbH
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the licence conditions.
+
 from typing import List, Optional
 import json
 import uuid
@@ -92,13 +101,6 @@ class Pattern:
                 'slices': [slice.__dict__ for slice in self.slices]
             }, file)
 
-    def to_json(self) -> str:
-        return json.dumps({
-            'identifier': str(self.identifier),
-            'duration': self.duration,
-            'slices': [slice.__dict__ for slice in self.slices]
-        })
-
     @classmethod
     def load_from_file(cls, filename: str) -> 'Pattern':
         with open(filename, 'r') as file:
@@ -107,6 +109,13 @@ class Pattern:
             pattern.identifier = data['identifier']
             pattern.slices = [PatternSlice(**sliceData) for sliceData in data['slices']]
             return pattern
+
+    def to_json(self) -> str:
+        return json.dumps({
+            'identifier': str(self.identifier),
+            'duration': self.duration,
+            'slices': [slice.__dict__ for slice in self.slices]
+        })
 
     @classmethod
     def from_json(cls, json_str: str) -> 'Pattern':

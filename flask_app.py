@@ -25,24 +25,34 @@ def static_files(filename: str) -> Response:
 def desktop() -> str:
     return render_template('desktop.html')
 
-@app.route('/svg/pattern/<name>')
-def pattern_svg(name: str) -> Response:
-    pattern = Pattern.load_from_file(f'scratch/{name}.json')
-    evaluator = PatternEvaluator(pattern.get_all_pattern_blocks())
-    svgType = request.args.get('type', 'full')
-    latestWrittenSlice = int(request.args.get('lw', 0))
-    svgContent = generate_svg_content(evaluator, svgType, latestWrittenSlice)
-    return Response(svgContent, mimetype='image/svg+xml')
-
 @app.route('/svg/generate', methods=['POST'])
 def generate_svg() -> Response:
     data = request.json
     if not data or 'patternBlocks' not in data:
         return Response("Invalid data", status=400)
     
+    svgType = request.args.get('type', 'full')
+    latestWrittenSlice = int(request.args.get('lw', 0))
+
     patternBlocks = [PatternBlock(**block) for block in data['patternBlocks']]
     evaluator = PatternEvaluator(patternBlocks)
-    svgContent = evaluator.create_svg(patternBlocks)
+
+    if svgType == 'written':
+        svgContent = evaluator.create_svg(evaluator.patternBlocks, latestWrittenSlice=latestWrittenSlice, preColour='blue', colour='white')
+    elif svgType == 'unwritten':
+        svgContent = evaluator.create_svg(evaluator.patternBlocks, latestWrittenSlice=latestWrittenSlice)
+    elif svgType == 'lic':
+        timePoint = evaluator.get_earliest_end_point_of_slice(latestWrittenSlice)
+        svgContent = evaluator.create_svg(evaluator.patternBlocks, latestWrittenSlice=latestWrittenSlice, dayCut=timePoint, preColour='blue', colour='white', condition="and")
+    elif svgType == 'lrc':
+        timePoint = evaluator.get_earliest_end_point_of_slice(latestWrittenSlice)
+        svgContent = evaluator.create_svg(evaluator.patternBlocks, latestWrittenSlice=latestWrittenSlice, dayCut=timePoint, preColour='white', colour='blue', condition="and")
+    elif svgType == 'upr':
+        timePoint = evaluator.get_earliest_end_point_of_slice(latestWrittenSlice)
+        svgContent = evaluator.create_svg(evaluator.patternBlocks, dayCut=timePoint)
+    else:
+        svgContent = evaluator.create_svg(evaluator.patternBlocks, colour='white')
+
     return Response(svgContent, mimetype='image/svg+xml')
 
 @app.route('/pattern/new')
@@ -75,6 +85,15 @@ def save_pattern() -> Response:
     pattern = Pattern.from_json(data)
     pattern.save_to_file(f'scratch/{pattern.identifier}.json')
     return Response("Pattern saved successfully", status=200)
+
+@app.route('/svg/pattern/<name>')
+def pattern_svg(name: str) -> Response:
+    pattern = Pattern.load_from_file(f'scratch/{name}.json')
+    evaluator = PatternEvaluator(pattern.get_all_pattern_blocks())
+    svgType = request.args.get('type', 'full')
+    latestWrittenSlice = int(request.args.get('lw', 0))
+    svgContent = generate_svg_content(evaluator, svgType, latestWrittenSlice)
+    return Response(svgContent, mimetype='image/svg+xml')
 
 def generate_svg_content(evaluator: PatternEvaluator, svgType: str, latestWrittenSlice: int) -> str:
     if svgType == 'written':
