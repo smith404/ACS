@@ -57,6 +57,10 @@ class PatternEvaluator:
         return min((block.endPoint for block in sliceBlocks), default=None)
 
     def get_earliest_start_point_of_slice(self, sliceNumber: int) -> Optional[int]:
+        if sliceNumber > max((block.sliceNumber for block in self.patternBlocks)):
+            # Special case that we can call this beyond the last slice for LIC, LRC and UPR
+            sliceNumber = max((block.sliceNumber for block in self.patternBlocks))
+            return self.get_earliest_end_point_of_slice(sliceNumber) + 1
         sliceBlocks = [block for block in self.patternBlocks if block.sliceNumber == sliceNumber]
         return min((block.startPoint for block in sliceBlocks), default=None)
 
