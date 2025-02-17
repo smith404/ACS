@@ -2,6 +2,7 @@ angular.module('app').controller('PatternController', function($http) {
   let ctrl = this;
 
   ctrl.onSliderChange = function() {
+    ctrl.generateSvgs();
     ctrl.onSelectedSliceChange({ selectedSlice: ctrl.selectedSlice });
   };
 
