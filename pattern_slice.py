@@ -50,7 +50,7 @@ class PatternSlice:
                 shape = BlockShape.RECTANGLE
                 startPoint = self.startOffset + (index * self.durationOffset)
                 endPoint = self.startOffset + ((index + 1) * self.durationOffset) - 1
-                block = PatternBlock(patternId, sliceNumber=sliceNumber, displayLevel=displayLevel, startPoint=startPoint, endPoint=endPoint, height=self.startDistribution / self.developmentPeriods, shape=shape)
+                block = PatternBlock(patternId, sliceNumber=sliceNumber, displayLevel=displayLevel, startPoint=startPoint, endPoint=endPoint, height=self.startDistribution / self.developmentPeriods, value=0, shape=shape)
                 blocks.append(block)
             displayLevel = displayLevel + 1
         if self.distribution != 0:
@@ -65,7 +65,7 @@ class PatternSlice:
                         shape = BlockShape.RTRIANGLE
                 startPoint = self.startOffset+(index * self.durationOffset)
                 endPoint = (self.startOffset+((index + 1) * self.durationOffset)) - 1
-                block = PatternBlock(patternId, sliceNumber=sliceNumber, displayLevel=displayLevel, startPoint=startPoint, endPoint=endPoint, height=self.distribution / factor, shape=shape)
+                block = PatternBlock(patternId, sliceNumber=sliceNumber, displayLevel=displayLevel, startPoint=startPoint, endPoint=endPoint, height=self.distribution / factor, value=0, shape=shape)
                 blocks.append(block)
         return sorted(blocks, key=lambda block: block.startPoint)
 

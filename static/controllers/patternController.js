@@ -10,13 +10,9 @@ angular.module('app').controller('PatternController', function($http) {
   };
 
   ctrl.$onInit = function() {
-    ctrl.showWritten = true;
-    ctrl.showUnwritten = false;
-    ctrl.showLIC = false;
-    ctrl.showLRC = false;
-    ctrl.showUPR = false;
-    ctrl.showText = false;
     ctrl.selectedSlice = 0;
+    ctrl.ultimateValue = 0;
+    ctrl.viewMode = 'written';
 
     // Placeholder for SVG images
     ctrl.fullSVG = "";
@@ -111,6 +107,7 @@ angular.module('app').controller('PatternController', function($http) {
           startPoint: startPoint,
           endPoint: endPoint,
           height: slice.startDistribution / slice.developmentPeriods,
+          value: ctrl.ultimateValue * (slice.startDistribution / slice.developmentPeriods),
           shape: shape
         };
         blocks.push(block);
@@ -134,6 +131,7 @@ angular.module('app').controller('PatternController', function($http) {
           startPoint: startPoint,
           endPoint: endPoint,
           height: slice.distribution / factor,
+          value: ctrl.ultimateValue * (slice.distribution / factor),
           shape: shape
         };
         blocks.push(block);
@@ -153,6 +151,9 @@ angular.module('app').controller('PatternController', function($http) {
     let patternBlocks = ctrl.getPatternBlocks();
     let url = '/svg/generate?type=' + patternType + "&lw=" + ctrl.selectedSlice;
     url = ctrl.showText ? url + '&text=true' : url;
+    if (patternType !== 'full') {
+      url = url + '&val=true';
+    }
     $http.post(url, { patternBlocks: patternBlocks }).then(function(response) {
       ctrl[patternType + 'SVG'] = response.data;
       if (patternType === 'full') {

@@ -98,18 +98,17 @@ class PatternEvaluator:
             return cls(patternBlocks)
 
     @staticmethod
-    def create_svg(patternBlocks: List[PatternBlock], latestWrittenSlice: Optional[int] = None, dayCut: Optional[int] = None, sliceHeights: dict[int, int] = None, heightScale: float = 0.7, preColour: str = "white", colour: str = "lightblue", condition: str = "or", showText: bool = True) -> str:
+    def create_svg(patternBlocks: List[PatternBlock], latestWrittenSlice: Optional[int] = None, dayCut: Optional[int] = None, sliceHeights: dict[int, int] = None, heightScale: float = 0.7, preColour: str = "white", colour: str = "lightblue", condition: str = "or", showText: bool = True, showValue: bool = False) -> str:
         minPoint, maxPoint = PatternEvaluator.find_min_max_points(patternBlocks)
         width = maxPoint - minPoint
         if sliceHeights is None:
             largestHeightPerDisplayLevel = PatternEvaluator.find_largest_height_per_display_level(patternBlocks)
             sliceHeights = cumulative_sum(scale_vector_to_sum(largestHeightPerDisplayLevel, (maxPoint - minPoint)*heightScale))
-        print(f"ShowText: {showText}")
-        height, svgElements = PatternEvaluator.generate_svg_elements(patternBlocks, latestWrittenSlice, dayCut, sliceHeights, preColour, colour, condition, showText)
+        height, svgElements = PatternEvaluator.generate_svg_elements(patternBlocks, latestWrittenSlice, dayCut, sliceHeights, preColour, colour, condition, showText, showValue)
         return f'<svg height="100%" width="100%" viewBox="0 0 {width+5} {height+5}" xmlns="http://www.w3.org/2000/svg">{"".join(svgElements)}</svg>'
 
     @staticmethod
-    def generate_svg_elements(patternBlocks: List[PatternBlock], latestWrittenSlice: Optional[int], dayCut: Optional[int], sliceHeights: dict[int, int], preColour: str, colour: str, condition: str, showText: bool) -> Tuple[int, List[str]]:
+    def generate_svg_elements(patternBlocks: List[PatternBlock], latestWrittenSlice: Optional[int], dayCut: Optional[int], sliceHeights: dict[int, int], preColour: str, colour: str, condition: str, showText: bool, showValue: bool) -> Tuple[int, List[str]]:
         svgElements = []
         sliceHeight = 0
         yAxis = 0
@@ -126,7 +125,7 @@ class PatternEvaluator:
                 yAxis = sliceHeights[block.displayLevel-1]
                 if sliceHeights[block.displayLevel] > height:
                     height = sliceHeights[block.displayLevel]
-            element = block.generate_polygon(blockColour, yAxis=yAxis, height=sliceHeight, showText=showText)
+            element = block.generate_polygon(blockColour, yAxis=yAxis, height=sliceHeight, showText=showText, showValue=showValue)
             svgElements.append(element)
         return height, svgElements
 

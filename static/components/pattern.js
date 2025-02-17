@@ -39,9 +39,9 @@ angular.module('app').component('pattern', {
         <button class="btn btn-pond" ng-click="$ctrl.checkDistribution()" title="Check Pattern">
           <i class="fas fa-check-square"></i>
         </button>
-        <button class="btn btn-pond" ng-click="$ctrl.savePattern()" title="Save">
-          <i class="fas fa-save"></i>
-        </button>
+        <label class="form-switch ms-3">
+          <input type="number" ng-model="$ctrl.ultimateValue" class="form-control" placeholder="Ultimate Value">
+        </label>
         <label class="form-switch ms-3">
           <input type="radio" ng-model="$ctrl.viewMode" value="written" class="form-check-input" ng-change="$ctrl.onViewModelChange()">
           Show Written

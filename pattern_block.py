@@ -16,23 +16,26 @@ class BlockShape(str, Enum):
     RECTANGLE = "RECTANGLE"
 
 class PatternBlock:
-    def __init__(self, pattern: str, sliceNumber: int = 0, displayLevel: int = 0, startPoint: int = 0, endPoint: int = 0, height: float = 0, shape: BlockShape = BlockShape.RECTANGLE):
+    def __init__(self, pattern: str, sliceNumber: int = 0, displayLevel: int = 0, startPoint: int = 0, endPoint: int = 0, height: float = 0, value: float = 0, shape: BlockShape = BlockShape.RECTANGLE):
         self.pattern = pattern
         self.sliceNumber = sliceNumber
         self.displayLevel = displayLevel
         self.startPoint = startPoint
         self.endPoint = endPoint
         self.height = height
-        self.ultimateValue = height
+        self.ultimateValue = value
         self.shape = shape
 
-    def generate_polygon(self, colour: str = "blue", stroke: str = "black", yAxis: int = 0, height: int = 50, showText: bool = False) -> str:
+    def generate_polygon(self, colour: str = "blue", stroke: str = "black", yAxis: int = 0, height: int = 50, showText: bool = False, showValue: bool = False) -> str:
         points = self._generate_points(yAxis, height)
         polygon = f'<polygon vector-effect="non-scaling-stroke" stroke-width="1" points="{points}" fill="{colour}" stroke="{stroke}" />'
         if showText:
             text_x = (self.startPoint + self.endPoint + 1) / 2
             text_y = yAxis + height / 2
-            rounded_height = round(self.height, 4)
+            if showValue:
+                rounded_height = round(self.ultimateValue, 4)
+            else:
+                rounded_height = round(self.height, 4)
             text = f'<text x="{text_x}" y="{text_y}" fill="black" font-size="18" text-anchor="middle" alignment-baseline="middle">{rounded_height}</text>'
             return polygon + text
         return polygon
