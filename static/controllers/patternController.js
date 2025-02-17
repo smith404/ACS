@@ -5,7 +5,9 @@ angular.module('app').controller('PatternController', function($http) {
     ctrl.onSelectedSliceChange({ selectedSlice: ctrl.selectedSlice });
   };
 
-  ctrl.selectedSlice = 0;
+  ctrl.onViewModelChange = function() {
+    document.getElementById('svgOtherContainer').innerHTML = ctrl[ctrl.viewMode + 'SVG'];
+  };
 
   ctrl.$onInit = function() {
     ctrl.showWritten = true;
@@ -15,6 +17,14 @@ angular.module('app').controller('PatternController', function($http) {
     ctrl.showUPR = false;
     ctrl.showText = false;
     ctrl.selectedSlice = 0;
+
+    // Placeholder for SVG images
+    ctrl.fullSVG = "";
+    ctrl.writtenSVG = "";
+    ctrl.unwrittenSVG = "";
+    ctrl.licSVG = "";
+    ctrl.lrcSVG = "";
+    ctrl.uprSVG = "";
   };
 
   ctrl.addSlice = function(slice) {
@@ -132,13 +142,25 @@ angular.module('app').controller('PatternController', function($http) {
     return blocks;
   };
 
-  ctrl.generateSvg = function() {
+  ctrl.generateSvgs = function() {
+    const patternTypes = ['full', 'written', 'unwritten', 'lic', 'lrc', 'upr'];
+    for (const type of patternTypes) {
+      ctrl.generateSvg(type);
+    }
+  };
+
+  ctrl.generateSvg = function(patternType) {
     let patternBlocks = ctrl.getPatternBlocks();
-    let url = '/svg/generate'
+    let url = '/svg/generate?type=' + patternType + "&lw=" + ctrl.selectedSlice;
     url = ctrl.showText ? url + '?text=true' : url;
     $http.post(url, { patternBlocks: patternBlocks }).then(function(response) {
-      ctrl.svgContent = response.data;
-      document.getElementById('svgContainer').innerHTML = ctrl.svgContent;
+      ctrl[patternType + 'SVG'] = response.data;
+      if (patternType === 'full') {
+        document.getElementById('svgFullContainer').innerHTML = ctrl[patternType + 'SVG'];
+      }
+      if (patternType === ctrl.viewMode) {
+        document.getElementById('svgOtherContainer').innerHTML = ctrl[patternType + 'SVG'];
+      }
     }).catch(function(error) {
       console.error('Error generating SVG:', error);
     });

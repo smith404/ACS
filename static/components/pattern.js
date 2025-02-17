@@ -30,7 +30,7 @@ angular.module('app').component('pattern', {
         <button class="btn btn-pond" ng-click="$ctrl.distributeRemaining()" title="Distribute Remaining">
           <i class="fas fa-chart-bar"></i>
         </button>
-        <button class="btn btn-pond" ng-click="$ctrl.generateSvg()" title="Generate Blocks">
+        <button class="btn btn-pond" ng-click="$ctrl.generateSvgs()" title="Generate Blocks">
           <i class="fas fa-cubes"></i>
         </button>
         <button class="btn btn-pond" ng-click="$ctrl.clearDistributions()" title="Clear Distributions">
@@ -43,23 +43,23 @@ angular.module('app').component('pattern', {
           <i class="fas fa-save"></i>
         </button>
         <label class="form-switch ms-3">
-          <input type="radio" ng-model="$ctrl.viewMode" value="written" class="form-check-input">
+          <input type="radio" ng-model="$ctrl.viewMode" value="written" class="form-check-input" ng-change="$ctrl.onViewModelChange()">
           Show Written
         </label>
         <label class="form-switch ms-3">
-          <input type="radio" ng-model="$ctrl.viewMode" value="unwritten" class="form-check-input">
+          <input type="radio" ng-model="$ctrl.viewMode" value="unwritten" class="form-check-input" ng-change="$ctrl.onViewModelChange()">
           Show Unwritten
         </label>
         <label class="form-switch ms-3">
-          <input type="radio" ng-model="$ctrl.viewMode" value="lic" class="form-check-input">
+          <input type="radio" ng-model="$ctrl.viewMode" value="lic" class="form-check-input" ng-change="$ctrl.onViewModelChange()">
           Show LIC
         </label>
         <label class="form-switch ms-3">
-          <input type="radio" ng-model="$ctrl.viewMode" value="lrc" class="form-check-input">
+          <input type="radio" ng-model="$ctrl.viewMode" value="lrc" class="form-check-input" ng-change="$ctrl.onViewModelChange()">
           Show LRC
         </label>
         <label class="form-switch ms-3">
-          <input type="radio" ng-model="$ctrl.viewMode" value="upr" class="form-check-input">
+          <input type="radio" ng-model="$ctrl.viewMode" value="upr" class="form-check-input" ng-change="$ctrl.onViewModelChange()">
           Show UPR
         </label>
         <label class="form-switch ms-3">
@@ -95,27 +95,11 @@ angular.module('app').component('pattern', {
         <div id="diagrams" class="row justify-content-center">
           <div class="col">
             <h3>Base</h3>
-            <div id="svgContainer"></div>
+            <div id="svgFullContainer"></div>
           </div>
-          <div class="col" ng-if="$ctrl.viewMode === 'written'">
-            <h3>Written</h3>
-            <img ng-src="/svg/pattern/my_test_pattern?type=written&lw=1&text={{showText ? 'true' : 'false'}}" alt="Pattern {{ pattern }}">
-          </div>
-          <div class="col" ng-if="$ctrl.viewMode === 'unwritten'">
-            <h3>Unwritten</h3>
-            <img ng-src="/svg/pattern/my_test_pattern?type=unwritten&lw=1&text={{showText ? 'true' : 'false'}}" alt="Pattern {{ pattern }}">
-          </div>
-          <div class="col" ng-if="$ctrl.viewMode === 'lic'">
-            <h3>LIC</h3>
-            <img ng-src="/svg/pattern/my_test_pattern?type=lic&lw=1&text={{showText ? 'true' : 'false'}}" alt="Pattern {{ pattern }}">
-          </div>
-          <div class="col" ng-if="$ctrl.viewMode === 'lrc'">
-            <h3>LRC</h3>
-            <img ng-src="/svg/pattern/my_test_pattern?type=lrc&lw=1&text={{showText ? 'true' : 'false'}}" alt="Pattern {{ pattern }}">
-          </div>
-          <div class="col" ng-if="$ctrl.viewMode === 'upr'">
-            <h3>UPR</h3>
-            <img ng-src="/svg/pattern/my_test_pattern?type=upr&lw=1&text={{showText ? 'true' : 'false'}}" alt="Pattern {{ pattern }}">
+          <div class="col">
+            <h3>Base</h3>
+            <div id="svgOtherContainer"></div>
           </div>
         </div>
       </div>

@@ -106,7 +106,7 @@ class PatternEvaluator:
             sliceHeights = cumulative_sum(scale_vector_to_sum(largestHeightPerDisplayLevel, (maxPoint - minPoint)*heightScale))
         print(f"ShowText: {showText}")
         height, svgElements = PatternEvaluator.generate_svg_elements(patternBlocks, latestWrittenSlice, dayCut, sliceHeights, preColour, colour, condition, showText)
-        return f'<svg height="100%" width="auto" viewBox="0 0 {width+5} {height+5}" xmlns="http://www.w3.org/2000/svg">{"".join(svgElements)}</svg>'
+        return f'<svg height="100%" width="100%" viewBox="0 0 {width+5} {height+5}" xmlns="http://www.w3.org/2000/svg">{"".join(svgElements)}</svg>'
 
     @staticmethod
     def generate_svg_elements(patternBlocks: List[PatternBlock], latestWrittenSlice: Optional[int], dayCut: Optional[int], sliceHeights: dict[int, int], preColour: str, colour: str, condition: str, showText: bool) -> Tuple[int, List[str]]:
@@ -134,10 +134,10 @@ class PatternEvaluator:
     def determine_block_colour(block: PatternBlock, latestWrittenSlice: Optional[int], dayCut: Optional[int], preColour: str, colour: str, condition: str) -> str:
         blockColour = colour
         if condition == "and":
-            if (latestWrittenSlice is not None and block.sliceNumber <= latestWrittenSlice) and (dayCut is not None and block.startPoint <= dayCut):
+            if (latestWrittenSlice is not None and block.sliceNumber < latestWrittenSlice) and (dayCut is not None and block.startPoint <= dayCut):
                 blockColour = preColour
         elif condition == "or":
-            if (latestWrittenSlice is not None and block.sliceNumber <= latestWrittenSlice) or (dayCut is not None and block.startPoint <= dayCut):
+            if (latestWrittenSlice is not None and block.sliceNumber < latestWrittenSlice) or (dayCut is not None and block.startPoint <= dayCut):
                 blockColour = preColour
         return blockColour
 
