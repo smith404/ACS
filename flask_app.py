@@ -43,13 +43,13 @@ def generate_svg() -> Response:
     elif svgType == 'unwritten':
         svgContent = evaluator.create_svg(evaluator.patternBlocks, latestWrittenSlice=latestWrittenSlice, showText=showText)
     elif svgType == 'lic':
-        timePoint = evaluator.get_earliest_end_point_of_slice(latestWrittenSlice)
+        timePoint = evaluator.get_earliest_start_point_of_slice(latestWrittenSlice)
         svgContent = evaluator.create_svg(evaluator.patternBlocks, latestWrittenSlice=latestWrittenSlice, dayCut=timePoint, preColour='lightblue', colour='white', condition="and", showText=showText)
     elif svgType == 'lrc':
-        timePoint = evaluator.get_earliest_end_point_of_slice(latestWrittenSlice)
+        timePoint = evaluator.get_earliest_start_point_of_slice(latestWrittenSlice)
         svgContent = evaluator.create_svg(evaluator.patternBlocks, latestWrittenSlice=latestWrittenSlice, dayCut=timePoint, preColour='white', colour='lightblue', condition="and", showText=showText)
     elif svgType == 'upr':
-        timePoint = evaluator.get_earliest_end_point_of_slice(latestWrittenSlice)
+        timePoint = evaluator.get_earliest_start_point_of_slice(latestWrittenSlice)
         svgContent = evaluator.create_svg(evaluator.patternBlocks, dayCut=timePoint, showText=showText)
     else:
         svgContent = evaluator.create_svg(evaluator.patternBlocks, colour='white', showText=showText)

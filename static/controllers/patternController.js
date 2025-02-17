@@ -152,7 +152,7 @@ angular.module('app').controller('PatternController', function($http) {
   ctrl.generateSvg = function(patternType) {
     let patternBlocks = ctrl.getPatternBlocks();
     let url = '/svg/generate?type=' + patternType + "&lw=" + ctrl.selectedSlice;
-    url = ctrl.showText ? url + '?text=true' : url;
+    url = ctrl.showText ? url + '&text=true' : url;
     $http.post(url, { patternBlocks: patternBlocks }).then(function(response) {
       ctrl[patternType + 'SVG'] = response.data;
       if (patternType === 'full') {

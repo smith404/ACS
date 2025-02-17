@@ -98,7 +98,7 @@ angular.module('app').component('pattern', {
             <div id="svgFullContainer"></div>
           </div>
           <div class="col">
-            <h3>Base</h3>
+            <h3>Comparison</h3>
             <div id="svgOtherContainer"></div>
           </div>
         </div>

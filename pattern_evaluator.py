@@ -134,10 +134,10 @@ class PatternEvaluator:
     def determine_block_colour(block: PatternBlock, latestWrittenSlice: Optional[int], dayCut: Optional[int], preColour: str, colour: str, condition: str) -> str:
         blockColour = colour
         if condition == "and":
-            if (latestWrittenSlice is not None and block.sliceNumber < latestWrittenSlice) and (dayCut is not None and block.startPoint <= dayCut):
+            if (latestWrittenSlice is not None and block.sliceNumber < latestWrittenSlice) and (dayCut is not None and block.startPoint < dayCut):
                 blockColour = preColour
         elif condition == "or":
-            if (latestWrittenSlice is not None and block.sliceNumber < latestWrittenSlice) or (dayCut is not None and block.startPoint <= dayCut):
+            if (latestWrittenSlice is not None and block.sliceNumber < latestWrittenSlice) or (dayCut is not None and block.startPoint < dayCut):
                 blockColour = preColour
         return blockColour
 
