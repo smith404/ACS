@@ -22,12 +22,10 @@ angular.module('app').controller('MainController', ['$http', function($http) {
     };
     ctrl.onSliceChange = function() {
         ctrl.maxSlice = ctrl.patternData.slices.length;
-        console.log('Slice changed. New maxSlice:', ctrl.maxSlice);
     };
 
     ctrl.onSelectedSliceChange = function(selectedSlice) {
         ctrl.selectedSlice = selectedSlice;
-        console.log('Selected slice changed:', ctrl.selectedSlice);
     };
 
     ctrl.selectedSlice = 0;
