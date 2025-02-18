@@ -2,7 +2,6 @@ angular.module('app').controller('PatternController', function($http) {
   let ctrl = this;
 
   ctrl.onSliderChange = function() {
-    ctrl.dump()
     ctrl.generateSvgs();
     ctrl.onSelectedSliceChange({ selectedSlice: ctrl.selectedSlice });
   };
@@ -147,6 +146,7 @@ angular.module('app').controller('PatternController', function($http) {
     for (const type of patternTypes) {
       ctrl.generateSvg(type);
     }
+    ctrl.calculate() 
   };
 
   ctrl.generateSvg = function(patternType) {
@@ -169,19 +169,17 @@ angular.module('app').controller('PatternController', function($http) {
     });
   };
 
-  ctrl.dump = function()
+  ctrl.calculate = function()
   {
     let blocks = ctrl.getPatternBlocks();
     let selectedSlice = ctrl.selectedSlice;
     let esp = ctrl.getEarliestStartPointOfSlice(blocks, selectedSlice);
 
-    console.log("SS: " + selectedSlice);
-    console.log("ESP: " + ctrl.getEarliestStartPointOfSlice(blocks, selectedSlice));
-    console.log("Written: " + ctrl.evaluateWrittenBlocks(blocks, selectedSlice));
-    console.log("Unwritten: " + ctrl.evaluateUnwrittenBlocks(blocks, selectedSlice));
-    console.log("LIC: " + ctrl.evaluateLICBlocks(blocks, selectedSlice, esp));
-    console.log("LRC: " + ctrl.evaluateLRCBlocks(blocks, selectedSlice, esp));
-    console.log("UPR: " + ctrl.evaluateUPRBlocks(blocks, esp));
+    ctrl.writtenValue = ctrl.evaluateWrittenBlocks(blocks, selectedSlice).toFixed(4);
+    ctrl.unwrittenValue = ctrl.evaluateUnwrittenBlocks(blocks, selectedSlice).toFixed(4);
+    ctrl.lic = ctrl.evaluateLICBlocks(blocks, selectedSlice, esp).toFixed(4);
+    ctrl.lrc = ctrl.evaluateLRCBlocks(blocks, selectedSlice, esp).toFixed(4);
+    ctrl.upr = ctrl.evaluateUPRBlocks(blocks, esp).toFixed(4);
   } 
 
   ctrl.getEarliestStartPointOfSlice = function(blocks, sliceNumber) {

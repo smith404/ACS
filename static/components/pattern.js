@@ -40,9 +40,6 @@ angular.module('app').component('pattern', {
           <i class="fas fa-check-square"></i>
         </button>
         <label class="form-switch ms-3">
-          <input type="number" ng-model="$ctrl.ultimateValue" class="form-control" placeholder="Ultimate Value">
-        </label>
-        <label class="form-switch ms-3">
           <input type="radio" ng-model="$ctrl.viewMode" value="written" class="form-check-input" ng-change="$ctrl.onViewModelChange()">
           Show Written
         </label>
@@ -104,6 +101,24 @@ angular.module('app').component('pattern', {
         </div>
       </div>
       <div class="card-footer">
+        <label class="form-switch ms-3">
+          <input type="number" ng-model="$ctrl.ultimateValue" class="form-control" placeholder="Ultimate Value">
+        </label>
+        <label class="form-switch ms-3">
+          Written Value: {{$ctrl.writtenValue}}
+        </label>
+        <label class="form-switch ms-3">
+          Unwritten Value: {{$ctrl.unwrittenValue}}
+        </label>
+        <label class="form-switch ms-3">
+          LIC: {{$ctrl.lic}}
+        </label>
+        <label class="form-switch ms-3">
+          LRC: {{$ctrl.lrc}}
+        </label>
+        <label class="form-switch ms-3">
+          UPR: {{$ctrl.upr}}
+        </label>
       </div>
     </div>
   `
