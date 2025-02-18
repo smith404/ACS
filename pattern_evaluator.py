@@ -35,26 +35,22 @@ class PatternEvaluator:
         return [block for block in self.patternBlocks if startPoint <= block.startPoint < endPoint]
 
     def evaluate_written_blocks(self, latestWrittenSlice: int) -> List[PatternBlock]:
-        return [block for block in self.patternBlocks if block.sliceNumber <= latestWrittenSlice]
+        return [block for block in self.patternBlocks if block.sliceNumber < latestWrittenSlice]
 
     def evaluate_unwritten_blocks(self, latestWrittenSlice: int) -> List[PatternBlock]:
-        return [block for block in self.patternBlocks if block.sliceNumber > latestWrittenSlice]
+        return [block for block in self.patternBlocks if block.sliceNumber >= latestWrittenSlice]
 
     def evaluate_lic_blocks(self, latestWrittenSlice: int) -> List[PatternBlock]:
-        endPointOfLatestSlice = self.get_earliest_end_point_of_slice(latestWrittenSlice)
-        return [block for block in self.patternBlocks if block.sliceNumber <= latestWrittenSlice and block.endPoint <= endPointOfLatestSlice]
+        endPointOfLatestSlice = self.get_earliest_start_point_of_slice(latestWrittenSlice)
+        return [block for block in self.patternBlocks if block.sliceNumber < latestWrittenSlice and block.endPoint < endPointOfLatestSlice]
 
     def evaluate_lrc_blocks(self, latestWrittenSlice: int) -> List[PatternBlock]:
-        endPointOfLatestSlice = self.get_earliest_end_point_of_slice(latestWrittenSlice)
-        return [block for block in self.patternBlocks if block.sliceNumber <= latestWrittenSlice and block.endPoint > endPointOfLatestSlice]
+        endPointOfLatestSlice = self.get_earliest_start_point_of_slice(latestWrittenSlice)
+        return [block for block in self.patternBlocks if block.sliceNumber >= latestWrittenSlice and block.endPoint >= endPointOfLatestSlice]
 
     def evaluate_upr_blocks(self, latestWrittenSlice: int) -> List[PatternBlock]:
-        endPointOfLatestSlice = self.get_earliest_end_point_of_slice(latestWrittenSlice)
-        return [block for block in self.patternBlocks if block.endPoint > endPointOfLatestSlice]
-
-    def get_earliest_end_point_of_slice(self, sliceNumber: int) -> Optional[int]:
-        sliceBlocks = [block for block in self.patternBlocks if block.sliceNumber == sliceNumber]
-        return min((block.endPoint for block in sliceBlocks), default=None)
+        endPointOfLatestSlice = self.get_earliest_start_point_of_slice(latestWrittenSlice)
+        return [block for block in self.patternBlocks if block.endPoint >= endPointOfLatestSlice]
 
     def get_earliest_start_point_of_slice(self, sliceNumber: int) -> Optional[int]:
         if sliceNumber > max((block.sliceNumber for block in self.patternBlocks)):
@@ -64,13 +60,17 @@ class PatternEvaluator:
         sliceBlocks = [block for block in self.patternBlocks if block.sliceNumber == sliceNumber]
         return min((block.startPoint for block in sliceBlocks), default=None)
 
-    def get_latest_end_point_of_slice(self, sliceNumber: int) -> Optional[int]:
-        sliceBlocks = [block for block in self.patternBlocks if block.sliceNumber == sliceNumber]
-        return max((block.endPoint for block in sliceBlocks), default=None)
-
     def get_latest_start_point_of_slice(self, sliceNumber: int) -> Optional[int]:
         sliceBlocks = [block for block in self.patternBlocks if block.sliceNumber == sliceNumber]
         return max((block.startPoint for block in sliceBlocks), default=None)
+
+    def get_earliest_end_point_of_slice(self, sliceNumber: int) -> Optional[int]:
+        sliceBlocks = [block for block in self.patternBlocks if block.sliceNumber == sliceNumber]
+        return min((block.endPoint for block in sliceBlocks), default=None)
+
+    def get_latest_end_point_of_slice(self, sliceNumber: int) -> Optional[int]:
+        sliceBlocks = [block for block in self.patternBlocks if block.sliceNumber == sliceNumber]
+        return max((block.endPoint for block in sliceBlocks), default=None)
 
     def save_to_file(self, filename: str):
         with open(filename, 'w') as file:
@@ -135,13 +135,31 @@ class PatternEvaluator:
 
     @staticmethod
     def determine_block_colour(block: PatternBlock, latestWrittenSlice: Optional[int], dayCut: Optional[int], preColour: str, colour: str, condition: str) -> str:
-        blockColour = colour
-        if condition == "and":
+        blockColour = preColour
+        if condition == "t":
+            if (latestWrittenSlice is not None and block.sliceNumber < latestWrittenSlice):
+                blockColour = colour
+        if condition == "b":
+            if (latestWrittenSlice is not None and block.sliceNumber >= latestWrittenSlice):
+                blockColour = colour
+        if condition == "l":
+            if (dayCut is not None and block.startPoint < dayCut):
+                blockColour = colour
+        if condition == "r":
+            if (dayCut is not None and block.startPoint >= dayCut):
+                blockColour = colour
+        elif condition == "tl":
             if (latestWrittenSlice is not None and block.sliceNumber < latestWrittenSlice) and (dayCut is not None and block.startPoint < dayCut):
-                blockColour = preColour
-        elif condition == "or":
-            if (latestWrittenSlice is not None and block.sliceNumber < latestWrittenSlice) or (dayCut is not None and block.startPoint < dayCut):
-                blockColour = preColour
+                blockColour = colour
+        elif condition == "tr":
+            if (latestWrittenSlice is not None and block.sliceNumber < latestWrittenSlice) and (dayCut is not None and block.startPoint >= dayCut):
+                blockColour = colour
+        elif condition == "bl":
+            if (latestWrittenSlice is not None and block.sliceNumber >= latestWrittenSlice) and (dayCut is not None and block.startPoint < dayCut):
+                blockColour = colour
+        elif condition == "br":
+            if (latestWrittenSlice is not None and block.sliceNumber >= latestWrittenSlice) and (dayCut is not None and block.startPoint >= dayCut):
+                blockColour = colour
         return blockColour
 
     @staticmethod

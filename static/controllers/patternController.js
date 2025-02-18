@@ -2,6 +2,7 @@ angular.module('app').controller('PatternController', function($http) {
   let ctrl = this;
 
   ctrl.onSliderChange = function() {
+    ctrl.dump()
     ctrl.generateSvgs();
     ctrl.onSelectedSliceChange({ selectedSlice: ctrl.selectedSlice });
   };
@@ -166,5 +167,60 @@ angular.module('app').controller('PatternController', function($http) {
     }).catch(function(error) {
       console.error('Error generating SVG:', error);
     });
+  };
+
+  ctrl.dump = function()
+  {
+    let blocks = ctrl.getPatternBlocks();
+    let selectedSlice = ctrl.selectedSlice;
+    let esp = ctrl.getEarliestStartPointOfSlice(blocks, selectedSlice);
+
+    console.log("SS: " + selectedSlice);
+    console.log("ESP: " + ctrl.getEarliestStartPointOfSlice(blocks, selectedSlice));
+    console.log("Written: " + ctrl.evaluateWrittenBlocks(blocks, selectedSlice));
+    console.log("Unwritten: " + ctrl.evaluateUnwrittenBlocks(blocks, selectedSlice));
+    console.log("LIC: " + ctrl.evaluateLICBlocks(blocks, selectedSlice, esp));
+    console.log("LRC: " + ctrl.evaluateLRCBlocks(blocks, selectedSlice, esp));
+    console.log("UPR: " + ctrl.evaluateUPRBlocks(blocks, esp));
+  } 
+
+  ctrl.getEarliestStartPointOfSlice = function(blocks, sliceNumber) {
+    if (sliceNumber >= ctrl.patternData.slices.length) {
+      return ctrl.getEarliestEndPointOfSlice(blocks, sliceNumber - 1) + 1;
+    }
+    else {
+      let sliceBlocks = blocks.filter(block => block.sliceNumber === sliceNumber);
+      return sliceBlocks.reduce((min, block) => Math.min(min, block.startPoint), Number.MAX_VALUE);
+      }
+  };
+
+  ctrl.getEarliestEndPointOfSlice = function(blocks, sliceNumber) {
+    let sliceBlocks = blocks.filter(block => block.sliceNumber === sliceNumber);
+    return sliceBlocks.reduce((min, block) => Math.min(min, block.endPoint), Number.MAX_VALUE) + 1;
+  };
+
+  ctrl.evaluateWrittenBlocks = function(blocks, sliceNumber) {
+    let filterBlocks = blocks.filter(block => block.sliceNumber < sliceNumber);
+    return filterBlocks.reduce((sum, block) => sum + block.value, 0);
+  };
+
+  ctrl.evaluateUnwrittenBlocks = function(blocks, sliceNumber) {
+    let filterBlocks = blocks.filter(block => block.sliceNumber >= sliceNumber);
+    return filterBlocks.reduce((sum, block) => sum + block.value, 0);
+  };
+
+  ctrl.evaluateLICBlocks = function(blocks, sliceNumber, esp) {
+    let filterBlocks = blocks.filter(block => block.sliceNumber < sliceNumber && block.endPoint < esp);
+    return filterBlocks.reduce((sum, block) => sum + block.value, 0);
+  };
+
+  ctrl.evaluateLRCBlocks = function(blocks, sliceNumber, esp) {
+    let filterBlocks = blocks.filter(block => block.sliceNumber < sliceNumber && block.endPoint >= esp);
+    return filterBlocks.reduce((sum, block) => sum + block.value, 0);
+  };
+
+  ctrl.evaluateUPRBlocks = function(blocks, esp) {
+    let filterBlocks = blocks.filter(block => block.endPoint >= esp);
+    return filterBlocks.reduce((sum, block) => sum + block.value, 0);
   };
 });
