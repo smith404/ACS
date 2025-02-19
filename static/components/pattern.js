@@ -101,24 +101,59 @@ angular.module('app').component('pattern', {
         </div>
       </div>
       <div class="card-footer">
-        <label class="form-switch ms-3">
-          <input type="number" ng-model="$ctrl.ultimateValue" class="form-control" placeholder="Ultimate Value">
-        </label>
-        <label class="form-switch ms-3">
-          Written Value: {{$ctrl.writtenValue}}
-        </label>
-        <label class="form-switch ms-3">
-          Unwritten Value: {{$ctrl.unwrittenValue}}
-        </label>
-        <label class="form-switch ms-3">
-          LIC: {{$ctrl.lic}}
-        </label>
-        <label class="form-switch ms-3">
-          LRC: {{$ctrl.lrc}}
-        </label>
-        <label class="form-switch ms-3">
-          UPR: {{$ctrl.upr}}
-        </label>
+        <div class="row justify-content-md-center">
+          <div class="col">
+            <label class="form-switch ms-3">
+              <input type="number" ng-model="$ctrl.ultimateValue" class="form-control" placeholder="Ultimate Value">
+            </label>
+          </div>
+          <div class="col">
+            <label class="form-switch ms-3">
+              Written Value: {{$ctrl.writtenValue}}
+            </label>
+          </div>
+          <div class="col">
+            <label class="form-switch ms-3">
+              Unwritten Value: {{$ctrl.unwrittenValue}}
+            </label>
+          </div>
+          <div class="col">
+            <label class="form-switch ms-3">
+              LIC: {{$ctrl.lic}}
+            </label>
+          </div>
+          <div class="col">
+            <label class="form-switch ms-3">
+              LRC: {{$ctrl.lrc}}
+            </label>
+          </div>
+          <div class="col">
+            <label class="form-switch ms-3">
+              UPR: {{$ctrl.upr}}
+            </label>
+          </div>
+        </div>
+        <div class="row justify-content-md-center">
+          <div class="col">
+            <table class="table table-striped mt-3">
+              <thead>
+                <tr>
+                  <th>End Point</th>
+                  <th>Value</th>
+                  <th>Cumulative Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr ng-repeat="value in $ctrl.cumulativePatternValuesByTimeSlice">
+                  <td>{{ value.endPoint + 1 }}</td>
+                  <td>{{ value.value }}</td>
+                  <td>{{ value.cumulativeValue }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
     </div>
   `

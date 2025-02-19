@@ -22,10 +22,14 @@ angular.module('app').controller('PatternController', function($http) {
     ctrl.licSVG = "";
     ctrl.lrcSVG = "";
     ctrl.uprSVG = "";
+
+    ctrl.patternValuesByTimeSlice = [];
+    ctrl.cumulativePatternValuesByTimeSlice = [];
   };
 
   ctrl.addSlice = function(slice) {
     ctrl.patternData.slices.push(slice);
+    ctrl.alignSlicePeriods();
     ctrl.onSliceChange();
   };
 
@@ -65,7 +69,6 @@ angular.module('app').controller('PatternController', function($http) {
 
   ctrl.checkDistribution = function() {
     let totalDistribution = ctrl.patternData.slices.reduce((sum, slice) => sum + slice.distribution + slice.startDistribution, 0);
-    console.log(totalDistribution);
     let result = totalDistribution === 1;
     alert("Distribution check: " + (result ? "Valid" : "Invalid"));
   };
@@ -84,9 +87,9 @@ angular.module('app').controller('PatternController', function($http) {
   };
 
   ctrl.getPatternBlocks = function() {
+
     let blocks = [];
     let displayLevel = 0;
-    ctrl.alignSlicePeriods();
     ctrl.patternData.slices.forEach((slice, index) => {
       blocks = blocks.concat(ctrl.getSliceBlocks(slice, ctrl.patternData.identifier, index, displayLevel));
       displayLevel += slice.startDistribution !== 0 ? 2 : 1;
@@ -172,6 +175,10 @@ angular.module('app').controller('PatternController', function($http) {
   ctrl.calculate = function()
   {
     let blocks = ctrl.getPatternBlocks();
+
+    ctrl.patternValuesByTimeSlice = ctrl.sumValuesBySliceEndPoint(blocks);    
+    ctrl.cumulativePatternValuesByTimeSlice = ctrl.getCumulativeValues(ctrl.patternValuesByTimeSlice);
+
     let selectedSlice = ctrl.selectedSlice;
     let esp = ctrl.getEarliestStartPointOfSlice(blocks, selectedSlice);
 
@@ -220,5 +227,35 @@ angular.module('app').controller('PatternController', function($http) {
   ctrl.evaluateUPRBlocks = function(blocks, esp) {
     let filterBlocks = blocks.filter(block => block.endPoint >= esp);
     return filterBlocks.reduce((sum, block) => sum + block.value, 0);
+  };
+
+  ctrl.sumValuesBySliceEndPoint = function(blocks) {
+    let sumByEndPoint = {};
+
+    blocks.forEach(block => {
+      if (!sumByEndPoint[block.endPoint]) {
+        sumByEndPoint[block.endPoint] = 0;
+      }
+      sumByEndPoint[block.endPoint] += block.value;
+    });
+
+    ctrl.getCumulativeValues(sumByEndPoint);
+    return sumByEndPoint;
+  };
+
+  ctrl.getCumulativeValues = function(sumValues) {
+    let cumulativeValues = [];
+    let cumulativeSum = 0;
+
+    Object.keys(sumValues).sort((a, b) => a - b).forEach(endPoint => {
+      cumulativeSum += sumValues[endPoint];
+      cumulativeValues.push({ 
+        endPoint: parseInt(endPoint), 
+        cumulativeValue: parseFloat(cumulativeSum.toFixed(6)),
+        value: parseFloat(sumValues[endPoint].toFixed(6))
+      });
+    });
+
+    return cumulativeValues;
   };
 });
