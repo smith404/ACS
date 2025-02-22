@@ -77,5 +77,5 @@ Represents a block within a pattern slice.
 - `shape`: The shape of the block.
 
 #### Methods
-- `__init__(self, pattern_id, start_point=0, end_point=0, area=0, shape=BlockShape.RECTANGLE)`: Initializes a new block with the given parameters.
+- `__init__(self, pattern_id, start_point=0, end_point=0, area=0, shape=BlockShape.LINEAR)`: Initializes a new block with the given parameters.
 - `__str__(self)`: Returns a string representation of the block.

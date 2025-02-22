@@ -47,7 +47,7 @@ class PatternSlice:
         blocks = []
         if self.startDistribution != None and self.startDistribution != 0:
             for index in range(self.developmentPeriods):
-                shape = BlockShape.RECTANGLE
+                shape = BlockShape.FIRST
                 startPoint = self.startOffset + (index * self.durationOffset)
                 endPoint = self.startOffset + ((index + 1) * self.durationOffset) - 1
                 block = PatternBlock(patternId, sliceNumber=sliceNumber, displayLevel=displayLevel, startPoint=startPoint, endPoint=endPoint, proportion=self.startDistribution / self.developmentPeriods, value=0, shape=shape)
@@ -55,14 +55,14 @@ class PatternSlice:
             displayLevel = displayLevel + 1
         if self.distribution != None and self.distribution != 0:
             for index in range(0, self.developmentPeriods + 1):
-                shape = BlockShape.RECTANGLE
+                shape = BlockShape.LINEAR
                 factor = self.developmentPeriods
                 if index == 0 or index == self.developmentPeriods:
                     factor = factor * 2
                     if index == 0:
-                        shape = BlockShape.LTRIANGLE
+                        shape = BlockShape.INC_PROP
                     else:
-                        shape = BlockShape.RTRIANGLE
+                        shape = BlockShape.DEC_PROP
                 startPoint = self.startOffset+(index * self.durationOffset)
                 endPoint = (self.startOffset+((index + 1) * self.durationOffset)) - 1
                 block = PatternBlock(patternId, sliceNumber=sliceNumber, displayLevel=displayLevel, startPoint=startPoint, endPoint=endPoint, proportion=self.distribution / factor, value=0, shape=shape)

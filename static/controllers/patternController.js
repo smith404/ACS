@@ -106,7 +106,7 @@ angular.module('app').controller('PatternController', function($http) {
     let blocks = [];
     if (slice.startDistribution && slice.startDistribution !== 0) {
       for (let index = 0; index < slice.developmentPeriods; index++) {
-        let shape = 'RECTANGLE';
+        let shape = 'FIRST';
         let startPoint = slice.startOffset + (index * slice.durationOffset);
         let endPoint = slice.startOffset + ((index + 1) * slice.durationOffset) - 1;
         let block = {
@@ -125,11 +125,11 @@ angular.module('app').controller('PatternController', function($http) {
     }
     if (slice.distribution && slice.distribution !== 0) {
       for (let index = 0; index <= slice.developmentPeriods; index++) {
-        let shape = 'RECTANGLE';
+        let shape = 'LINEAR';
         let factor = slice.developmentPeriods;
         if (index === 0 || index === slice.developmentPeriods) {
           factor *= 2;
-          shape = index === 0 ? 'LTRIANGLE' : 'RTRIANGLE';
+          shape = index === 0 ? 'INC_PROP' : 'DEC_PROP';
         }
         let startPoint = slice.startOffset + (index * slice.durationOffset);
         let endPoint = slice.startOffset + ((index + 1) * slice.durationOffset) - 1;
@@ -256,8 +256,8 @@ angular.module('app').controller('PatternController', function($http) {
       cumulativeSum += sumValues[endPoint];
       cumulativeValues.push({ 
         endPoint: parseInt(endPoint), 
-        cumulativeValue: parseFloat(cumulativeSum.toFixed(6)),
-        value: parseFloat(sumValues[endPoint].toFixed(6))
+        cumulativeValue: parseFloat(cumulativeSum.toFixed(4)),
+        value: parseFloat(sumValues[endPoint].toFixed(4))
       });
     });
 

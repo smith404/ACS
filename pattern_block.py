@@ -11,12 +11,14 @@ from enum import Enum
 import json
 
 class BlockShape(str, Enum):
-    LTRIANGLE = "LTRIANGLE"
-    RTRIANGLE = "RTRIANGLE"
-    RECTANGLE = "RECTANGLE"
+    INC_PROP = "INC_PROP"
+    DEC_PROP = "DEC_PROP"
+    LINEAR = "LINEAR"
+    FIRST = "FIRST"
+    LAST = "LAST"
 
 class PatternBlock:
-    def __init__(self, pattern: str, sliceNumber: int = 0, displayLevel: int = 0, startPoint: int = 0, endPoint: int = 0, proportion: float = 0, value: float = 0, shape: BlockShape = BlockShape.RECTANGLE):
+    def __init__(self, pattern: str, sliceNumber: int = 0, displayLevel: int = 0, startPoint: int = 0, endPoint: int = 0, proportion: float = 0, value: float = 0, shape: BlockShape = BlockShape.LINEAR):
         self.pattern = pattern
         self.sliceNumber = sliceNumber
         self.displayLevel = displayLevel
@@ -41,11 +43,11 @@ class PatternBlock:
         return polygon
 
     def _generate_points(self, yAxis: int, height: int) -> str:
-        if self.shape == BlockShape.RECTANGLE:
+        if self.shape == BlockShape.LINEAR or self.shape == BlockShape.FIRST or self.shape == BlockShape.LAST:
             return f"{self.startPoint},{yAxis} {self.endPoint + 1},{yAxis} {self.endPoint + 1},{yAxis + height} {self.startPoint},{yAxis + height}"
-        elif self.shape == BlockShape.LTRIANGLE:
+        elif self.shape == BlockShape.INC_PROP:
             return f"{self.startPoint},{yAxis} {self.endPoint + 1},{yAxis} {self.endPoint + 1},{yAxis + height}"
-        elif self.shape == BlockShape.RTRIANGLE:
+        elif self.shape == BlockShape.DEC_PROP:
             return f"{self.startPoint},{yAxis} {self.startPoint},{yAxis + height} {self.endPoint + 1},{yAxis + height}"
         return ""
 
