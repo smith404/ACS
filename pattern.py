@@ -85,7 +85,10 @@ class Pattern:
         displayLevel = 0
         for index, slice in enumerate(self.slices):
             blocks.extend(slice.get_pattern_blocks(patternId=self.identifier, sliceNumber=index, displayLevel=displayLevel))
-            displayLevel += 2 if slice.startDistribution != 0 else 1
+            if slice.startDistribution is not None and slice.startDistribution != 0:
+                displayLevel += 1
+            if slice.distribution is not None and slice.distribution != 0:
+                displayLevel += 1
         return blocks
 
     def display(self):

@@ -92,14 +92,19 @@ angular.module('app').controller('PatternController', function($http) {
     let displayLevel = 0;
     ctrl.patternData.slices.forEach((slice, index) => {
       blocks = blocks.concat(ctrl.getSliceBlocks(slice, ctrl.patternData.identifier, index, displayLevel));
-      displayLevel += slice.startDistribution !== 0 ? 2 : 1;
+      if (slice.startDistribution && slice.startDistribution !== 0) {
+        displayLevel += 1;
+      }
+      if (slice.distribution && slice.distribution !== 0) {
+        displayLevel += 1;
+      }
     });
     return blocks;
   };
 
   ctrl.getSliceBlocks = function(slice, patternId, sliceNumber, displayLevel) {
     let blocks = [];
-    if (slice.startDistribution !== 0) {
+    if (slice.startDistribution && slice.startDistribution !== 0) {
       for (let index = 0; index < slice.developmentPeriods; index++) {
         let shape = 'RECTANGLE';
         let startPoint = slice.startOffset + (index * slice.durationOffset);
@@ -118,7 +123,7 @@ angular.module('app').controller('PatternController', function($http) {
       }
       displayLevel += 1;
     }
-    if (slice.distribution !== 0) {
+    if (slice.distribution && slice.distribution !== 0) {
       for (let index = 0; index <= slice.developmentPeriods; index++) {
         let shape = 'RECTANGLE';
         let factor = slice.developmentPeriods;
