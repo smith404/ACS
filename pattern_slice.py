@@ -45,7 +45,7 @@ class PatternSlice:
 
     def get_pattern_blocks(self, patternId: str, sliceNumber: int = 0, displayLevel: int = 0) -> List['PatternBlock']:
         blocks = []
-        if self.startDistribution != 0:
+        if self.startDistribution != None and self.startDistribution != 0:
             for index in range(self.developmentPeriods):
                 shape = BlockShape.RECTANGLE
                 startPoint = self.startOffset + (index * self.durationOffset)
@@ -53,7 +53,7 @@ class PatternSlice:
                 block = PatternBlock(patternId, sliceNumber=sliceNumber, displayLevel=displayLevel, startPoint=startPoint, endPoint=endPoint, height=self.startDistribution / self.developmentPeriods, value=0, shape=shape)
                 blocks.append(block)
             displayLevel = displayLevel + 1
-        if self.distribution != 0:
+        if self.distribution != None and self.distribution != 0:
             for index in range(0, self.developmentPeriods + 1):
                 shape = BlockShape.RECTANGLE
                 factor = self.developmentPeriods
