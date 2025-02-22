@@ -23,7 +23,7 @@ class PatternEvaluator:
 
     def apply_ultimate_value(self, ultimateValue: float):
         for block in self.patternBlocks:
-            block.ultimateValue = block.height * ultimateValue
+            block.ultimateValue = block.proportion * ultimateValue
 
     def get_pattern_blocks_less_than(self, point: int) -> List[PatternBlock]:
         return [block for block in self.patternBlocks if block.startPoint < point]
@@ -176,14 +176,14 @@ class PatternEvaluator:
 
     @staticmethod
     def sum_block_heights(patternBlocks: List['PatternBlock']) -> float:
-        return sum(block.height for block in patternBlocks)
+        return sum(block.proportion for block in patternBlocks)
 
     @staticmethod
     def find_largest_height_per_display_level(patternBlocks: List[PatternBlock]) -> dict:
         largestHeights = {}
         for block in patternBlocks:
-            if block.displayLevel not in largestHeights or block.height > largestHeights[block.displayLevel]:
-                largestHeights[block.displayLevel] = block.height
+            if block.displayLevel not in largestHeights or block.proportion > largestHeights[block.displayLevel]:
+                largestHeights[block.displayLevel] = block.proportion
         return largestHeights
 
     def __str__(self) -> str:

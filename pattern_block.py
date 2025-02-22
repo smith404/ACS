@@ -16,13 +16,13 @@ class BlockShape(str, Enum):
     RECTANGLE = "RECTANGLE"
 
 class PatternBlock:
-    def __init__(self, pattern: str, sliceNumber: int = 0, displayLevel: int = 0, startPoint: int = 0, endPoint: int = 0, height: float = 0, value: float = 0, shape: BlockShape = BlockShape.RECTANGLE):
+    def __init__(self, pattern: str, sliceNumber: int = 0, displayLevel: int = 0, startPoint: int = 0, endPoint: int = 0, proportion: float = 0, value: float = 0, shape: BlockShape = BlockShape.RECTANGLE):
         self.pattern = pattern
         self.sliceNumber = sliceNumber
         self.displayLevel = displayLevel
         self.startPoint = startPoint
         self.endPoint = endPoint
-        self.height = height
+        self.proportion = proportion
         self.ultimateValue = value
         self.shape = shape
 
@@ -35,7 +35,7 @@ class PatternBlock:
             if showValue:
                 rounded_height = round(self.ultimateValue, 4)
             else:
-                rounded_height = round(self.height, 4)
+                rounded_height = round(self.proportion, 4)
             text = f'<text x="{text_x}" y="{text_y}" fill="black" font-size="18" text-anchor="middle" alignment-baseline="middle">{rounded_height}</text>'
             return polygon + text
         return polygon
@@ -56,7 +56,7 @@ class PatternBlock:
             "displayLevel": self.displayLevel,
             "startPoint": self.startPoint,
             "endPoint": self.endPoint,
-            "height": self.height,
+            "proportion": self.proportion,
             "ultimateValue": self.ultimateValue,
             "shape": self.shape.value
         })
@@ -70,9 +70,9 @@ class PatternBlock:
             displayLevel=data['displayLevel'],
             startPoint=data['startPoint'],
             endPoint=data['endPoint'],
-            height=data['height'],
+            height=data['proportion'],
             shape=BlockShape(data['shape'])
         )
 
     def __str__(self) -> str:
-        return f"PatternBlock with Pattern: {self.pattern}, Slice Number: {self.sliceNumber}, Display Level: {self.displayLevel}, Start Point: {self.startPoint}, End Point: {self.endPoint}, Height: {self.height}, Ultimate Value: {self.ultimateValue}, Shape: {self.shape.name}"
+        return f"PatternBlock with Pattern: {self.pattern}, Slice Number: {self.sliceNumber}, Display Level: {self.displayLevel}, Start Point: {self.startPoint}, End Point: {self.endPoint}, Proportion: {self.proportion}, Ultimate Value: {self.ultimateValue}, Shape: {self.shape.name}"

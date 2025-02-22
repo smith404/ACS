@@ -115,7 +115,7 @@ angular.module('app').controller('PatternController', function($http) {
           displayLevel: displayLevel,
           startPoint: startPoint,
           endPoint: endPoint,
-          height: slice.startDistribution / slice.developmentPeriods,
+          proportion: slice.startDistribution / slice.developmentPeriods,
           value: ctrl.ultimateValue * (slice.startDistribution / slice.developmentPeriods),
           shape: shape
         };
@@ -139,7 +139,7 @@ angular.module('app').controller('PatternController', function($http) {
           displayLevel: displayLevel,
           startPoint: startPoint,
           endPoint: endPoint,
-          height: slice.distribution / factor,
+          proportion: slice.distribution / factor,
           value: ctrl.ultimateValue * (slice.distribution / factor),
           shape: shape
         };
