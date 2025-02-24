@@ -6,8 +6,8 @@ angular.module('app').component('pattern', {
   },
   controller: 'PatternController',
   template: `
-    <div class="card">
-      <div class="card-header">
+    <div class="row mt-3">
+      <div class="col-12">
         <div class="form-group row align-items-center">
           <label class="col-sm-1 col-form-label">Pattern</label>
           <div class="col-sm-4">
@@ -23,8 +23,10 @@ angular.module('app').component('pattern', {
           </div>
         </div>
       </div>
-      <div class="card-body">
-        <button class="btn btn-pond" ng-click="$ctrl.addSlice({distribution: 0, startDistribution: 0, duration: $ctrl.patternData.duration, startOffset: 0, durationOffset: 0, developmentPeriods: 0})" title="Add Slice">
+    </div>
+    <div class="row mt-3 mb-3">
+      <div class="col-12">
+        <button class="btn btn-pond" ng-click="$ctrl.addSlice({distribution: 0, startDistribution: 0, duration: $ctrl.patternData.duration, startOffset: 0, durationOffset: 0, developmentPeriods: 0, skew: 0})" title="Add Slice">
           <i class="fas fa-plus-square"></i>
         </button>
         <button class="btn btn-pond" ng-click="$ctrl.distributeRemaining()" title="Distribute Remaining">
@@ -63,97 +65,86 @@ angular.module('app').component('pattern', {
           <input type="checkbox" ng-model="$ctrl.showText" class="form-check-input">
           Show Text
         </label>
-        <ul class="nav nav-tabs mt-3" id="patternTabs" role="tablist">
-          <li class="nav-item" role="presentation" ng-repeat="slice in $ctrl.patternData.slices">
-            <a class="nav-link" id="slice-tab-{{$index}}" data-bs-toggle="tab" href="#slice{{$index}}" role="tab" aria-controls="slice{{$index}}" aria-selected="{{$index === 0}}">Slice: {{$index + 1}}</a>
-          </li>
-        </ul>
-        <div class="tab-content" id="patternTabContent">
-          <div class="tab-pane fade" id="slice{{$index}}" role="tabpanel" aria-labelledby="slice-tab-{{$index}}" ng-class="{show: $index === 0, active: $index === 0}" ng-repeat="slice in $ctrl.patternData.slices">
-            <div class="row">
-              <div class="col-sm-11">
-                <pattern-slice 
-                  distribution="slice.distribution" 
-                  start-distribution="slice.startDistribution" 
-                  duration="slice.duration" 
-                  start-offset="slice.startOffset" 
-                  duration-offset="slice.durationOffset" 
-                  development-periods="slice.developmentPeriods">
-                </pattern-slice>
-              </div>
-              <div class="col-sm-1 d-flex align-items-center">
-                <button class="btn btn-pond" ng-click="$ctrl.removeSlice($index)" title="Remove Slice" ng-disabled="$ctrl.patternData.slices.length === 1">
-                  <i class="fas fa-minus-square"></i>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div id="diagrams" class="row justify-content-center">
-          <div class="col">
-            <h3>Base</h3>
-            <div id="svgFullContainer"></div>
-          </div>
-          <div class="col">
-            <h3>Comparison</h3>
-            <div id="svgOtherContainer"></div>
-          </div>
-        </div>
       </div>
-      <div class="card-footer">
-        <div class="row justify-content-md-center">
-          <div class="col">
-            <label class="form-switch ms-3">
-              <input type="number" ng-model="$ctrl.ultimateValue" class="form-control" placeholder="Ultimate Value">
-            </label>
-          </div>
-          <div class="col">
-            <label class="form-switch ms-3">
-              Written Value: {{$ctrl.writtenValue}}
-            </label>
-          </div>
-          <div class="col">
-            <label class="form-switch ms-3">
-              Unwritten Value: {{$ctrl.unwrittenValue}}
-            </label>
-          </div>
-          <div class="col">
-            <label class="form-switch ms-3">
-              LIC: {{$ctrl.lic}}
-            </label>
-          </div>
-          <div class="col">
-            <label class="form-switch ms-3">
-              LRC: {{$ctrl.lrc}}
-            </label>
-          </div>
-          <div class="col">
-            <label class="form-switch ms-3">
-              UPR: {{$ctrl.upr}}
-            </label>
-          </div>
-        </div>
-        <div class="row justify-content-md-center">
-          <div class="col">
-            <table class="table table-striped mt-3">
-              <thead>
-                <tr>
-                  <th>End Point</th>
-                  <th>Value</th>
-                  <th>Cumulative Value</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr ng-repeat="value in $ctrl.cumulativePatternValuesByTimeSlice">
-                  <td>{{ value.endPoint + 1 }}</td>
-                  <td>{{ value.value }}</td>
-                  <td>{{ value.cumulativeValue }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
+    </div>
+    <div id="pattern-slices" class="row mt-1 border border-secondary" ng-repeat="slice in $ctrl.patternData.slices">
+      <div class="col-sm-11">
+        <pattern-slice 
+          distribution="slice.distribution" 
+          start-distribution="slice.startDistribution" 
+          duration="slice.duration" 
+          skew="slice.skew"
+          start-offset="slice.startOffset" 
+          duration-offset="slice.durationOffset" 
+          development-periods="slice.developmentPeriods">
+        </pattern-slice>
+      </div>
+      <div class="col-sm-1 d-flex align-items-center">
+        <button class="btn btn-pond" ng-click="$ctrl.removeSlice($index)" title="Remove Slice" ng-disabled="$ctrl.patternData.slices.length === 1">
+          <i class="fas fa-minus-square"></i>
+        </button>
+      </div>
+    </div>
+    <div class="row mt-3">
+      <div class="col">
+        <h4>Base</h4>
+        <div id="svgFullContainer"></div>
+      </div>
+      <div class="col">
+        <h4>Comparison</h4>
+        <div id="svgOtherContainer"></div>
+      </div>
+    </div>
+    <div class="row mt-3 justify-content-md-center">
+      <div class="col">
+        <label class="form-switch ms-3">
+          <input type="number" ng-model="$ctrl.ultimateValue" class="form-control" placeholder="Ultimate Value">
+        </label>
+      </div>
+      <div class="col">
+        <label class="form-switch ms-3">
+          Written Value: {{$ctrl.writtenValue}}
+        </label>
+      </div>
+      <div class="col">
+        <label class="form-switch ms-3">
+          Unwritten Value: {{$ctrl.unwrittenValue}}
+        </label>
+      </div>
+      <div class="col">
+        <label class="form-switch ms-3">
+          LIC: {{$ctrl.lic}}
+        </label>
+      </div>
+      <div class="col">
+        <label class="form-switch ms-3">
+          LRC: {{$ctrl.lrc}}
+        </label>
+      </div>
+      <div class="col">
+        <label class="form-switch ms-3">
+          UPR: {{$ctrl.upr}}
+        </label>
+      </div>
+    </div>
+    <div class="row mt-3 justify-content-md-center">
+      <div class="col">
+        <table class="table table-striped mt-3">
+          <thead>
+            <tr>
+              <th>End Point</th>
+              <th>Value</th>
+              <th>Cumulative Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="value in $ctrl.cumulativePatternValuesByTimeSlice">
+              <td>{{ value.endPoint + 1 }}</td>
+              <td>{{ value.value }}</td>
+              <td>{{ value.cumulativeValue }}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   `

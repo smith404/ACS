@@ -12,9 +12,10 @@ from typing import List
 from pattern_evaluator import PatternBlock, BlockShape
 
 class PatternSlice:
-    def __init__(self, distribution: float = 0, startDistribution: float = 0, duration: int = 0, startOffset: int = 0, durationOffset: int = 0, developmentPeriods: int = 0):
+    def __init__(self, distribution: float = 0, startDistribution: float = 0, skew: float = 0, duration: int = 0, startOffset: int = 0, durationOffset: int = 0, developmentPeriods: int = 0):
         self.distribution = distribution
         self.startDistribution = startDistribution
+        self.skew = skew
         self.duration = duration
         self.startOffset = startOffset
         self.durationOffset = durationOffset
@@ -73,6 +74,7 @@ class PatternSlice:
         return json.dumps({
             'distribution': self.distribution,
             'startDistribution': self.startDistribution,
+            'skew': self.skew,
             'duration': self.duration,
             'startOffset': self.startOffset,
             'durationOffset': self.durationOffset,
@@ -85,6 +87,7 @@ class PatternSlice:
         return cls(
             distribution=data.get('distribution', 0),
             startDistribution=data.get('startDistribution', 0),
+            skew=data.get('skew', 0),
             duration=data.get('duration', 0),
             startOffset=data.get('startOffset', 0),
             durationOffset=data.get('durationOffset', 0),

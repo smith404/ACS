@@ -35,6 +35,7 @@ angular.module('app').controller('PatternController', function($http) {
 
   ctrl.removeSlice = function(index) {
     ctrl.patternData.slices.splice(index, 1);
+    ctrl.alignSlicePeriods();
     ctrl.onSliceChange();
   };
 
@@ -52,6 +53,7 @@ angular.module('app').controller('PatternController', function($http) {
     }
     ctrl.patternData.slices.forEach((slice, index) => {
       slice.developmentPeriods = developmentPeriods;
+      slice.skew = (1 / ctrl.patternData.slices.length);
       slice.durationOffset = ctrl.patternData.duration / developmentPeriods;
       slice.startOffset = index * (ctrl.patternData.duration / developmentPeriods);
     });
@@ -62,7 +64,7 @@ angular.module('app').controller('PatternController', function($http) {
     if (totalDistribution < 1) {
       let remaining = 1 - totalDistribution;
       ctrl.patternData.slices.forEach(slice => {
-        slice.distribution += remaining / ctrl.patternData.slices.length;
+        slice.distribution += (remaining / ctrl.patternData.slices.length);
       });
     }
   };
