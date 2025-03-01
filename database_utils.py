@@ -49,6 +49,29 @@ class DuckDBWrapper:
         headers = [desc[0] for desc in self.connection.description]
         return tabulate(result, headers, tablefmt="grid")
 
+    def execute_prepared_statement(self, query: str, params: list):
+        """
+        Execute a prepared statement with the given parameters on the connected DuckDB database.
+        
+        :param query: The SQL query to execute.
+        :param params: The list of parameters to use in the query.
+        :return: The results of the query.
+        :raises ConnectionError: If the database is not connected.
+        :raises ValueError: If the number of parameters does not match the query.
+        """
+        if self.connection is None:
+            raise ConnectionError("Database is not connected.")
+        
+        # Check if the number of parameters matches the number of placeholders in the query
+        placeholder_count = query.count('?')
+        if placeholder_count != len(params):
+            raise ValueError(f"Expected {placeholder_count} parameters, but got {len(params)}.")
+        
+        result = self.connection.execute(query, params).fetchall()
+        if self.auto_commit:
+            self.commit()
+        return result
+
     def close(self):
         """
         Close the connection to the DuckDB database.
