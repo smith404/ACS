@@ -5,6 +5,10 @@ target/
 # Log file
 *.log
 
+# Database files
+*.duckdb
+*.wal
+
 # BlueJ files
 *.ctxt
 
