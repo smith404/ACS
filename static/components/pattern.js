@@ -26,7 +26,7 @@ angular.module('app').component('pattern', {
     </div>
     <div class="row mt-3 mb-3">
       <div class="col-12">
-        <button class="btn btn-pond" ng-click="$ctrl.addSlice({distribution: 0, startDistribution: 0, duration: $ctrl.patternData.duration, startOffset: 0, durationOffset: 0, developmentPeriods: 0, skew: 0})" title="Add Slice">
+        <button class="btn btn-pond" ng-click="$ctrl.addSlice({distribution: 0, startDistribution: 0, duration: $ctrl.patternData.duration, startOffset: 0, durationOffset: 0, developmentPeriods: 0, weight: 0})" title="Add Slice">
           <i class="fas fa-plus-square"></i>
         </button>
         <button class="btn btn-pond" ng-click="$ctrl.distributeRemaining()" title="Distribute Remaining">
@@ -73,7 +73,7 @@ angular.module('app').component('pattern', {
           distribution="slice.distribution" 
           start-distribution="slice.startDistribution" 
           duration="slice.duration" 
-          skew="slice.skew"
+          weight="slice.weight"
           start-offset="slice.startOffset" 
           duration-offset="slice.durationOffset" 
           development-periods="slice.developmentPeriods">

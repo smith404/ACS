@@ -60,7 +60,10 @@ def generate_svg() -> Response:
 @app.route('/pattern/new')
 def pattern_new() -> Response:
     pattern = Pattern()
-    pattern.add_slice(PatternSlice())
+    slice = PatternSlice()
+    slice.developmentPeriods = 1
+    slice.weight = 1
+    pattern.add_slice(slice)
     return Response(pattern.to_json(), mimetype='application/json')
 
 @app.route('/patternslice/new')

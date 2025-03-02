@@ -53,7 +53,7 @@ angular.module('app').controller('PatternController', function($http) {
     }
     ctrl.patternData.slices.forEach((slice, index) => {
       slice.developmentPeriods = developmentPeriods;
-      slice.skew = (1 / ctrl.patternData.slices.length);
+      slice.weight = (1 / ctrl.patternData.slices.length);
       slice.durationOffset = ctrl.patternData.duration / developmentPeriods;
       slice.startOffset = index * (ctrl.patternData.duration / developmentPeriods);
     });

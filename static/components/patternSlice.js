@@ -3,7 +3,7 @@ angular.module('app').component('patternSlice', {
     distribution: '=',
     startDistribution: '=',
     duration: '=',
-    skew: '=',
+    weight: '=',
     startOffset: '=',
     durationOffset: '=',
     developmentPeriods: '='
@@ -19,9 +19,9 @@ angular.module('app').component('patternSlice', {
       <div class="col-sm-1">
         <input type="number" ng-model="$ctrl.distribution" class="form-control" />
       </div>
-      <label class="col-sm-1 col-form-label">Skew:</label>
+      <label class="col-sm-1 col-form-label">Weight:</label>
       <div class="col-sm-1">
-        <input type="number" ng-model="$ctrl.skew" class="form-control" />
+        <input type="number" ng-model="$ctrl.weight" class="form-control" />
       </div>
       <label class="col-sm-1 col-form-label">
       Start {{$ctrl.startOffset}}
