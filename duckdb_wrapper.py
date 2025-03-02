@@ -176,14 +176,24 @@ class DuckDBWrapper:
         if self.connection is None:
             raise ConnectionError("Database is not connected.")
         
+        # Split the table name if it contains a period
+        schema_name, table_name = table_name.split('.') if '.' in table_name else (None, table_name)
+        
         # Check if the table exists
-        table_exists_query = f"SELECT COUNT(*) FROM information_schema.tables WHERE table_name = '{table_name}';"
+        table_exists_query = f"SELECT COUNT(*) FROM information_schema.tables WHERE table_name = '{table_name}'"
+        if schema_name:
+            table_exists_query += f" AND table_schema = '{schema_name}'"
+        table_exists_query += ";"
+        
         table_exists_result = self.execute_query(table_exists_query)
         if table_exists_result[0][0] == 0:
             raise ValueError(f"Table '{table_name}' does not exist.")
         
         # Get the structure of the table
         table_structure_query = f"DESCRIBE {table_name};"
+        if schema_name:
+            table_structure_query = f"DESCRIBE {schema_name}.{table_name};"
+        
         table_structure = self.execute_query(table_structure_query)
         table_columns = [row[0] for row in table_structure]
         
@@ -198,6 +208,9 @@ class DuckDBWrapper:
         
         # Load data from the Parquet file into the table
         load_data_query = f"COPY {table_name} FROM '{parquet_file_path}' (FORMAT 'parquet');"
+        if schema_name:
+            load_data_query = f"COPY {schema_name}.{table_name} FROM '{parquet_file_path}' (FORMAT 'parquet');"
+        
         self.execute_query(load_data_query)
 
     def extract_table_to_csv(self, table: str, csv_file_path: str, delimiter: str = ";"):

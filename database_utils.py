@@ -37,7 +37,9 @@ def main():
         print(f"Converted {args.convert} to {parquet_file_path}")
     
     if args.extract:
-        csv_file_path = f"{args.extract}.csv"
+        csv_file_path = f"{args.extract}"
+        csv_file_path = csv_file_path.replace('.', '_')
+        csv_file_path = f"{csv_file_path}.csv"
         db_wrapper.extract_table_to_csv(args.extract, csv_file_path, args.delimiter)
         print(f"Extracted {args.extract} to {csv_file_path} with delimiter '{args.delimiter}'")
     
