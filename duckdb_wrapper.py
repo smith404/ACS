@@ -200,23 +200,25 @@ class DuckDBWrapper:
         load_data_query = f"COPY {table_name} FROM '{parquet_file_path}' (FORMAT 'parquet');"
         self.execute_query(load_data_query)
 
-    def extract_table_to_csv(self, table: str, csv_file_path: str):
+    def extract_table_to_csv(self, table: str, csv_file_path: str, delimiter: str = ";"):
         """
         Execute a SELECT SQL query and save the table to a CSV file.
         
         :param table: The table to extract.
         :param csv_file_path: The path to the output CSV file.
+        :param delimiter: The delimiter to use in the CSV file.
         :raises ConnectionError: If the database is not connected.
         :raises ValueError: If the query is not a SELECT query.
         """
-        self.extract_select_query_to_csv(f"SELECT * FROM {table}", csv_file_path)
+        self.extract_select_query_to_csv(f"SELECT * FROM {table}", csv_file_path, delimiter)
 
-    def extract_select_query_to_csv(self, query: str, csv_file_path: str):
+    def extract_select_query_to_csv(self, query: str, csv_file_path: str, delimiter: str = ";"):
         """
         Execute a SELECT SQL query and save the results to a CSV file.
         
         :param query: The SELECT SQL query to execute.
         :param csv_file_path: The path to the output CSV file.
+        :param delimiter: The delimiter to use in the CSV file.
         :raises ConnectionError: If the database is not connected.
         :raises ValueError: If the query is not a SELECT query.
         """
@@ -225,5 +227,5 @@ class DuckDBWrapper:
         if not query.strip().lower().startswith("select"):
             raise ValueError("Only SELECT queries are allowed.")
         
-        query = f"COPY ({query}) TO '{csv_file_path}' (FORMAT 'csv', HEADER);"
+        query = f"COPY ({query}) TO '{csv_file_path}' (FORMAT 'csv', DELIMITER '{delimiter}', HEADER);"
         self.execute_query(query)

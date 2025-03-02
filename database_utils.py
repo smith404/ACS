@@ -15,6 +15,7 @@ def main():
     parser.add_argument("--convert", type=str, help="The path to the CSV file to convert to Parquet")
     parser.add_argument("--quiet", action="store_true", help="If provided, do not enter interactive query mode")
     parser.add_argument("--extract", type=str, help="The name of the table to extract as CSV")
+    parser.add_argument("--delimiter", type=str, default=";", help="The delimiter to use for CSV files (default is ';')")
     args = parser.parse_args()
 
     if (args.table and not args.data) or (args.data and not args.table):
@@ -37,8 +38,8 @@ def main():
     
     if args.extract:
         csv_file_path = f"{args.extract}.csv"
-        db_wrapper.extract_table_to_csv(args.extract, csv_file_path)
-        print(f"Extracted {args.extract} to {csv_file_path}")
+        db_wrapper.extract_table_to_csv(args.extract, csv_file_path, args.delimiter)
+        print(f"Extracted {args.extract} to {csv_file_path} with delimiter '{args.delimiter}'")
     
     if not args.quiet:
         try:

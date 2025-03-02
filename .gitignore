@@ -48,3 +48,10 @@ __azurite*
 # Paython cache
 __pycache__/
 scratch/
+
+# CSV files
+*.csv
+
+# Parquet files
+*.parquet
+
