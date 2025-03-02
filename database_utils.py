@@ -1,6 +1,7 @@
 import duckdb
 from tabulate import tabulate
 import os
+import argparse  # Add import for argparse
 
 class DuckDBWrapper:
     def __init__(self, database_path: str, auto_commit: bool = True):
@@ -115,7 +116,7 @@ class DuckDBWrapper:
                 print("Exiting interactive query mode.")
                 break
             try:
-                if user_input.lower().startswith("select"):
+                if (user_input.lower().startswith("select")):
                     result = self.execute_select_query(user_input)
                 else:
                     result = self.execute_query(user_input)
@@ -144,17 +145,98 @@ class DuckDBWrapper:
         
         self.execute_query(script)
 
+    def convert_csv_to_parquet(self, csv_file_path: str, parquet_file_path: str):
+        """
+        Convert a CSV file to a Parquet file using DuckDB.
+        
+        :param csv_file_path: The path to the input CSV file.
+        :param parquet_file_path: The path to the output Parquet file.
+        :raises FileNotFoundError: If the CSV file does not exist.
+        :raises ConnectionError: If the database is not connected.
+        """
+        if not os.path.isfile(csv_file_path):
+            raise FileNotFoundError(f"CSV file '{csv_file_path}' does not exist.")
+        if self.connection is None:
+            raise ConnectionError("Database is not connected.")
+        
+        query = f"COPY (SELECT * FROM read_csv_auto('{csv_file_path}')) TO '{parquet_file_path}' (FORMAT 'parquet');"
+        self.execute_query(query)
+
+    def load_parquet_to_table(self, parquet_file_path: str, table_name: str):
+        """
+        Load data from a Parquet file into a table after checking if the table exists and has the same structure.
+        
+        :param parquet_file_path: The path to the input Parquet file.
+        :param table_name: The name of the table to load data into.
+        :raises FileNotFoundError: If the Parquet file does not exist.
+        :raises ConnectionError: If the database is not connected.
+        :raises ValueError: If the table does not exist or the structures do not match.
+        """
+        if not os.path.isfile(parquet_file_path):
+            raise FileNotFoundError(f"Parquet file '{parquet_file_path}' does not exist.")
+        if self.connection is None:
+            raise ConnectionError("Database is not connected.")
+        
+        # Check if the table exists
+        table_exists_query = f"SELECT COUNT(*) FROM information_schema.tables WHERE table_name = '{table_name}';"
+        table_exists_result = self.execute_query(table_exists_query)
+        if table_exists_result[0][0] == 0:
+            raise ValueError(f"Table '{table_name}' does not exist.")
+        
+        # Get the structure of the table
+        table_structure_query = f"DESCRIBE {table_name};"
+        table_structure = self.execute_query(table_structure_query)
+        table_columns = [row[0] for row in table_structure]
+        
+        # Get the structure of the Parquet file
+        parquet_structure_query = f"DESCRIBE SELECT * FROM read_parquet('{parquet_file_path}');"
+        parquet_structure = self.execute_query(parquet_structure_query)
+        parquet_columns = [row[0] for row in parquet_structure]
+        
+        # Check if the structures match
+        if table_columns != parquet_columns:
+            raise ValueError("The structure of the table and the Parquet file do not match.")
+        
+        # Load data from the Parquet file into the table
+        load_data_query = f"COPY {table_name} FROM '{parquet_file_path}' (FORMAT 'parquet');"
+        self.execute_query(load_data_query)
+
 def main():
     """
     Main method to demonstrate the usage of DuckDBWrapper class.
     """
+    parser = argparse.ArgumentParser(description="DuckDB Wrapper Script Executor")
+    parser.add_argument("--script", type=str, help="The name of the script to be run (optional)")
+    parser.add_argument("--table", type=str, help="The name of the table to load data into (required with --data)")
+    parser.add_argument("--data", type=str, help="The path to the data file to load (required with --table)")
+    parser.add_argument("--convert", type=str, help="The path to the CSV file to convert to Parquet")
+    parser.add_argument("--quiet", action="store_true", help="If provided, do not enter interactive query mode")
+    args = parser.parse_args()
+
+    if (args.table and not args.data) or (args.data and not args.table):
+        parser.error("--table and --data must be provided together")
+
     database_path = "example.duckdb"
     db_wrapper = DuckDBWrapper(database_path)
     db_wrapper.connect()
-    db_wrapper.execute_script_from_file("create_database")
-    try:
-        db_wrapper.interactive_query()
-    finally:
+    
+    if args.script:
+        db_wrapper.execute_script_from_file(args.script)  # Use the script name from the argument
+    
+    if args.table and args.data:
+        db_wrapper.load_parquet_to_table(args.data, args.table)  # Load data into the specified table
+    
+    if args.convert:
+        parquet_file_path = args.convert.replace('.csv', '.parquet')
+        db_wrapper.convert_csv_to_parquet(args.convert, parquet_file_path)
+        print(f"Converted {args.convert} to {parquet_file_path}")
+    
+    if not args.quiet:
+        try:
+            db_wrapper.interactive_query()
+        finally:
+            db_wrapper.close()
+    else:
         db_wrapper.close()
 
 if __name__ == "__main__":
