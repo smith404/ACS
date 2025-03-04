@@ -1,0 +1,19 @@
+{
+    "transforms": [
+        {
+            "transform_type": "rename",
+            "source_column": "source_value",
+            "target_column": "target_value"
+        },
+        {
+            "transform_type": "rename",
+            "source_column": "source_value",
+            "target_column": "target_value"
+        },
+        {
+            "transform_type": "simplemap",
+            "source_column": "source_value",
+            "target_column": "target_value"
+        }
+    ]
+}
