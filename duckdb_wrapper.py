@@ -268,3 +268,35 @@ class DuckDBWrapper:
             table_name = table[0]
             csv_file_path = os.path.join(output_directory, f"{table_name}.csv")
             self.extract_table_to_csv(f"{schema_name}.{table_name}", csv_file_path, delimiter)
+
+    def load_csv_files(self, schema_name: str, input_directory: str = None, truncate: bool = False, delimiter: str = ";"):
+        """
+        Load CSV files from the specified directory into the database, ensuring foreign key dependencies are handled.
+        
+        :param schema_name: The schema where the tables should be loaded.
+        :param input_directory: The directory containing the CSV files. Defaults to the schema name.
+        :param truncate: Whether to truncate the tables before loading the data. Defaults to False.
+        :raises ConnectionError: If the database is not connected.
+        :raises FileNotFoundError: If the directory does not exist.
+        """
+        if self.connection is None:
+            raise ConnectionError("Database is not connected.")
+        
+        if input_directory is None:
+            input_directory = schema_name
+
+        if not os.path.exists(input_directory):
+            raise FileNotFoundError(f"Directory '{input_directory}' does not exist.")
+        
+        # Get the list of CSV files in the directory
+        csv_files = [f for f in os.listdir(input_directory) if f.endswith('.csv')]
+        
+        
+        # Load the tables in the sorted order
+        for csv_file in csv_files:
+            table_name = os.path.splitext(csv_file)[0]
+            if truncate:
+                truncate_query = f"TRUNCATE TABLE {schema_name}.{table_name};"
+                self.execute_query(truncate_query)
+            load_query = f"COPY {schema_name}.{table_name} FROM '{os.path.join(input_directory, csv_file)}' (FORMAT 'csv', DELIMITER '{delimiter}', HEADER);"
+            self.execute_query(load_query)
