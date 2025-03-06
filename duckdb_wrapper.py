@@ -242,3 +242,29 @@ class DuckDBWrapper:
         
         query = f"COPY ({query}) TO '{csv_file_path}' (FORMAT 'csv', DELIMITER '{delimiter}', HEADER);"
         self.execute_query(query)
+
+    def dump_tables(self, schema_name: str, output_directory: str = None, delimiter: str = ";"):
+        """
+        Export all tables in the specified schema to CSV files in the given directory.
+        
+        :param schema_name: The name of the schema containing the tables to export.
+        :param output_directory: The directory to save the CSV files. Defaults to the schema name.
+        :raises ConnectionError: If the database is not connected.
+        """
+        if self.connection is None:
+            raise ConnectionError("Database is not connected.")
+        
+        if output_directory is None:
+            output_directory = schema_name
+        
+        if not os.path.exists(output_directory):
+            os.makedirs(output_directory)
+        
+        # Get the list of tables in the schema
+        tables_query = f"SELECT table_name FROM information_schema.tables WHERE table_schema = '{schema_name}';"
+        tables = self.execute_query(tables_query)
+        
+        for table in tables:
+            table_name = table[0]
+            csv_file_path = os.path.join(output_directory, f"{table_name}.csv")
+            self.extract_table_to_csv(f"{schema_name}.{table_name}", csv_file_path, delimiter)

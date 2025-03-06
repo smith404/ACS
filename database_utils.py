@@ -16,6 +16,7 @@ def main():
     parser.add_argument("--quiet", action="store_true", help="If provided, do not enter interactive query mode")
     parser.add_argument("--extract", type=str, help="The name of the table to extract as CSV")
     parser.add_argument("--delimiter", type=str, default=";", help="The delimiter to use for CSV files (default is ';')")
+    parser.add_argument("--dump", type=str, help="The schema name to dump tables from")  # Add new argument
     args = parser.parse_args()
 
     if (args.table and not args.data) or (args.data and not args.table):
@@ -43,6 +44,9 @@ def main():
         db_wrapper.extract_table_to_csv(args.extract, csv_file_path, args.delimiter)
         print(f"Extracted {args.extract} to {csv_file_path} with delimiter '{args.delimiter}'")
     
+    if args.dump:
+        db_wrapper.dump_tables(args.dump)  # Call the dump_tables method with the schema name
+
     if not args.quiet:
         try:
             db_wrapper.interactive_query()
