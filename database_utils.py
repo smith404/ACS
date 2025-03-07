@@ -46,10 +46,10 @@ def main():
         print(f"Extracted {args.extract} to {csv_file_path} with delimiter '{args.delimiter}'")
     
     if args.dump:
-        db_wrapper.dump_tables(args.dump, args.delimiter)  # Call the dump_tables method with the schema name and delimiter
+        db_wrapper.dump_tables(schema_name=args.dump, delimiter=args.delimiter)  # Call the dump_tables method with the schema name and delimiter
 
     if args.load:
-        db_wrapper.load_csv_files(args.load, args.delimiter, truncate=True)  # Call the load_csv_files method with the schema name and delimiter
+        db_wrapper.load_csv_files(schema_name=args.load, delimiter=args.delimiter, truncate=True)  # Call the load_csv_files method with the schema name and delimiter
 
     if not args.quiet:
         try:

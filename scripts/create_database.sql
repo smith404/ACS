@@ -23,6 +23,8 @@ CREATE TABLE IF NOT EXISTS data_language.data_attributes (
     data_attribute_id INTEGER DEFAULT nextval('data_attribute_key') NOT NULL,
     attribute_name VARCHAR(50) NOT NULL,
     attribute_description VARCHAR(255),
+    attribute_type VARCHAR(10) NOT NULL, -- ENUM('STRING', 'INTEGER', 'FLOAT', 'DATE', 'TIME', 'DATETIME', 'BOOLEAN', 'ENUM', 'OBJECT', 'ARRAY', 'MAP')
+    attribute_length INTEGER,
     external_source VARCHAR(255),
     PRIMARY KEY (data_attribute_id)
 );
