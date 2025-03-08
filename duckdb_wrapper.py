@@ -320,3 +320,29 @@ class DuckDBWrapper:
                 self.execute_query(truncate_query)
             load_query = f"COPY {schema_name}.{table_name} FROM '{os.path.join(input_directory, csv_file)}' (FORMAT 'csv', DELIMITER '{delimiter}', HEADER);"
             self.execute_query(load_query)
+
+    def execute_named_query_to_json(self, query_name: str, directory: str = "queries", parameters: dict = None):
+        """
+        Execute a SQL script from a file located in the specified directory and return the result in JSON format.
+        
+        :param query_name: The name of the query file to execute.
+        :param directory: The directory where the query file is located. Defaults to 'scripts'.
+        :param parameters: A dictionary of optional parameters to use in query string formatting.
+        :return: The results of the query as a JSON list.
+        :raises FileNotFoundError: If the query file does not exist.
+        :raises ConnectionError: If the database is not connected.
+        """
+        if not query_name.endswith(".sql"):
+            query_name += ".sql"
+        
+        query_path = os.path.join(directory, query_name)
+        if not os.path.isfile(query_path):
+            raise FileNotFoundError(f"Query file '{query_path}' does not exist.")
+        
+        with open(query_path, 'r') as file:
+            query = file.read()
+        
+        if parameters:
+            query = query.format(**parameters)
+        
+        return self.execute_select_query_to_json(query)

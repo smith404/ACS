@@ -19,18 +19,18 @@ class Mapper:
         self.to_asset_id = to_asset_id
         self.target_attr_value_id = target_attr_value_id
 
-    def to_json(self) -> str:
+    def describe(self) -> str:
         return json.dumps({
-            'map_id': self.map_id,
             'map_name': self.map_name,
             'map_description': self.map_description,
-            'from_asset_id': self.from_asset_id,
-            'to_asset_id': self.to_asset_id,
+            'from_asset': self.from_asset_id,
+            'to_asset': self.to_asset_id,
             'target_attr_value_id': self.target_attr_value_id
         })
 
-    def describe(self) -> str:
+    def to_json(self) -> str:
         return json.dumps({
+            'map_id': self.map_id,
             'map_name': self.map_name,
             'map_description': self.map_description,
             'from_asset_id': self.from_asset_id,
@@ -124,6 +124,58 @@ class DataAttribute:
     def __str__(self):
         return f"DataAttribute(ID: {self.data_attribute_id}, Name: {self.attribute_name}, Description: {self.attribute_description}, Type: {self.attribute_type}, Length: {self.attribute_length}, Source: {self.external_source})"
 
+class MappingRule:
+    def __init__(self, rule_id: str, rule_name: str, rule_description: str, rule_type: str, target_attr_value_id: str, target_attr_value_value: str, valid_from: str, valid_to: str):
+        self.rule_id = rule_id
+        self.rule_name = rule_name
+        self.rule_description = rule_description
+        self.rule_type = rule_type
+        self.target_attr_value_id = target_attr_value_id
+        self.target_attr_value_value = target_attr_value_value
+        self.valid_from = valid_from
+        self.valid_to = valid_to
+
+    def parts(self) -> dict:
+        return {
+            'rule_id': self.rule_id,
+            'rule_name': self.rule_name,
+            'rule_description': self.rule_description,
+            'rule_type': self.rule_type,
+            'target_attr_value_id': self.target_attr_value_id,
+            'target_attr_value_value': self.target_attr_value_value,
+            'valid_from': self.valid_from,
+            'valid_to': self.valid_to
+        }
+    
+    def to_json(self) -> str:
+        return json.dumps({
+            'rule_id': self.rule_id,
+            'rule_name': self.rule_name,
+            'rule_description': self.rule_description,
+            'rule_type': self.rule_type,
+            'target_attr_value_id': self.target_attr_value_id,
+            'target_attr_value_value': self.target_attr_value_value,
+            'valid_from': self.valid_from,
+            'valid_to': self.valid_to
+        })
+
+    @classmethod
+    def from_json(cls, json_str: str):
+        data = json.loads(json_str)
+        return cls(
+            rule_id=data.get('rule_id'),
+            rule_name=data.get('rule_name'),
+            rule_description=data.get('rule_description', ''),
+            rule_type=data.get('rule_type', ''),
+            target_attr_value_id=data.get('target_attr_value_id', ''),
+            target_attr_value_value=data.get('target_attr_value_value', ''),
+            valid_from=data.get('valid_from', ''),
+            valid_to=data.get('valid_to', '')
+        )
+
+    def __str__(self):
+        return f"MappingRule(ID: {self.rule_id}, Name: {self.rule_name}, Description: {self.rule_description}, Type: {self.rule_type}, Target Attr Value ID: {self.target_attr_value_id}, Target Attr Value: {self.target_attr_value_value}, Valid From: {self.valid_from}, Valid To: {self.valid_to})"
+
 class FrameMapper:
     def __init__(self, df: pd.DataFrame):
         self.df = df
@@ -150,15 +202,13 @@ def main():
     db_wrapper.connect()
     
     if args.map:
-        query = f"SELECT * FROM data_language.mapper WHERE map_name = '{args.map}'"
-        result_json = db_wrapper.execute_select_query_to_json(query)
+        result_json = db_wrapper.execute_named_query_to_json("read_mapper", parameters={"map_name": args.map})
         for result in json.loads(result_json):
             mapper = Mapper.from_json(json.dumps(result))
             print(f"Mapper: {mapper}")
 
     if args.asset:
-        query = f"SELECT * FROM data_language.data_assets WHERE asset_name = '{args.asset}'"
-        result_json = db_wrapper.execute_select_query_to_json(query)
+        result_json = db_wrapper.execute_named_query_to_json("read_assets", parameters={"asset_name": args.asset})
         for result in json.loads(result_json):
             data_asset = DataAsset.from_json(json.dumps(result))
             print(f"Data Asset: {data_asset}")
