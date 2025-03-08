@@ -1,6 +1,7 @@
 import duckdb
 from tabulate import tabulate
 import os
+import json  # Add import for json
 
 class DuckDBWrapper:
     def __init__(self, database_path: str, auto_commit: bool = True):
@@ -48,6 +49,25 @@ class DuckDBWrapper:
         result = self.connection.execute(query).fetchall()
         headers = [desc[0] for desc in self.connection.description]
         return tabulate(result, headers, tablefmt="grid")
+
+    def execute_select_query_to_json(self, query: str):
+        """
+        Execute a SELECT SQL query on the connected DuckDB database and return the results as a JSON list.
+        
+        :param query: The SELECT SQL query to execute.
+        :return: The results of the query as a JSON list.
+        :raises ConnectionError: If the database is not connected.
+        :raises ValueError: If the query is not a SELECT query.
+        """
+        if self.connection is None:
+            raise ConnectionError("Database is not connected.")
+        if not query.strip().lower().startswith("select"):
+            raise ValueError("Only SELECT queries are allowed.")
+        
+        result = self.connection.execute(query).fetchall()
+        headers = [desc[0] for desc in self.connection.description]
+        json_result = [dict(zip(headers, row)) for row in result]
+        return json.dumps(json_result)
 
     def execute_prepared_statement(self, query: str, params: list):
         """
