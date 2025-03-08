@@ -7,7 +7,7 @@ CREATE SEQUENCE IF NOT EXISTS data_assets_key
 CREATE TABLE IF NOT EXISTS data_language.data_assets (
     data_asset_id INTEGER DEFAULT nextval('data_assets_key') NOT NULL,
     domain VARCHAR(10) NOT NULL,
-    asset_name VARCHAR(50) NOT NULL,
+    asset_name VARCHAR(50) NOT NULL UNIQUE,
     asset_description VARCHAR(255),
     medallion_layer VARCHAR(10) NOT NULL,
     container VARCHAR(255),
@@ -58,7 +58,7 @@ CREATE SEQUENCE IF NOT EXISTS mapper_key
 
 CREATE TABLE IF NOT EXISTS data_language.mapper (
     map_id INTEGER DEFAULT nextval('mapper_key') NOT NULL,
-    map_name VARCHAR(50) NOT NULL,
+    map_name VARCHAR(50) NOT NULL UNIQUE,
     map_description VARCHAR(255),
     from_asset_id INTEGER NOT NULL,
     to_asset_id INTEGER NOT NULL,
