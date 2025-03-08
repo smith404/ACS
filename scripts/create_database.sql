@@ -1,11 +1,11 @@
 CREATE SCHEMA IF NOT EXISTS data_language;
 
-CREATE SEQUENCE IF NOT EXISTS data_asset_key 
+CREATE SEQUENCE IF NOT EXISTS data_assets_key 
     START WITH 1 
     INCREMENT BY 1;
 
-CREATE TABLE IF NOT EXISTS data_language.data_asset (
-    data_asset_id INTEGER DEFAULT nextval('data_asset_key') NOT NULL,
+CREATE TABLE IF NOT EXISTS data_language.data_assets (
+    data_asset_id INTEGER DEFAULT nextval('data_assets_key') NOT NULL,
     domain VARCHAR(10) NOT NULL,
     asset_name VARCHAR(50) NOT NULL,
     asset_description VARCHAR(255),
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS data_language.data_asset_attributes (
     valid_from DATE NOT NULL,
     valid_to DATE NOT NULL,
     PRIMARY KEY (data_asset_id, data_attribute_id),
-    FOREIGN KEY (data_asset_id) REFERENCES data_language.data_asset(data_asset_id),
+    FOREIGN KEY (data_asset_id) REFERENCES data_language.data_assets(data_asset_id),
     FOREIGN KEY (data_attribute_id) REFERENCES data_language.data_attributes(data_attribute_id)
 );
 
@@ -64,8 +64,8 @@ CREATE TABLE IF NOT EXISTS data_language.mapper (
     to_asset_id INTEGER NOT NULL,
     target_attr_value_id VARCHAR(50) NOT NULL,
     PRIMARY KEY (map_id),
-    FOREIGN KEY (from_asset_id) REFERENCES data_language.data_asset(data_asset_id),
-    FOREIGN KEY (to_asset_id) REFERENCES data_language.data_asset(data_asset_id)
+    FOREIGN KEY (from_asset_id) REFERENCES data_language.data_assets(data_asset_id),
+    FOREIGN KEY (to_asset_id) REFERENCES data_language.data_assets(data_asset_id)
 );
 
 CREATE SEQUENCE IF NOT EXISTS attribute_mapping_rule_key 
