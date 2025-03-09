@@ -202,10 +202,9 @@ def main():
     db_wrapper.connect()
     
     if args.map:
-        result_json = db_wrapper.execute_named_query_to_json("read_mapper", parameters={"map_name": args.map})
+        result_json = db_wrapper.execute_named_query_to_json("get_mapper", parameters={"map_name": args.map})
         for result in json.loads(result_json):
-            mapper = Mapper.from_json(json.dumps(result))
-            print(f"Mapper: {mapper}")
+            print(f"Mapper: {result}")
 
     if args.asset:
         result_json = db_wrapper.execute_named_query_to_json("read_assets", parameters={"asset_name": args.asset})
