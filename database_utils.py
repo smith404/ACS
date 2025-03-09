@@ -1,6 +1,4 @@
-import duckdb
 from tabulate import tabulate
-import os
 import argparse
 from duckdb_wrapper import DuckDBWrapper  # Import DuckDBWrapper from the new file
 from config import database_path
