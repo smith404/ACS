@@ -9,9 +9,12 @@
 
 from flask import Flask, send_from_directory, render_template, Response, request
 from flask_wtf.csrf import CSRFProtect
+from duckdb_wrapper import DuckDBWrapper
 from pattern import Pattern
 from pattern_evaluator import PatternBlock, PatternEvaluator
 from pattern_slice import PatternSlice
+import sqlite3
+import json
 
 app = Flask(__name__)
 #csrf = CSRFProtect(app)
@@ -118,6 +121,20 @@ def generate_svg_content(evaluator: PatternEvaluator, svgType: str, latestWritte
         return evaluator.create_svg(evaluator.patternBlocks, dayCut=timePoint, showText=showText)
     else:
         return evaluator.create_svg(evaluator.patternBlocks, showText=showText)
+
+@app.route('/assets/')
+def assets() -> str:
+    return render_template('data_assets.html')
+
+@app.route('/data_assets')
+def data_assets() -> Response:
+    database_path = "example.duckdb"
+    db_wrapper = DuckDBWrapper(database_path)
+    db_wrapper.connect()
+    data_assets = db_wrapper.execute_named_query_to_json("read_assets")
+    print("XXXXXXXXX:" + data_assets)
+    db_wrapper.close()
+    return Response(data_assets, mimetype='application/json')
 
 if __name__ == '__main__':
     app.run(debug=True)

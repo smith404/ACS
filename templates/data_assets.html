@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="app">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Assets</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/fontawesome-free/css/all.min.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/site.css')}}">
+    <script src="{{ url_for('static', filename='vendor/angular/angular.min.js')}}"></script>
+    <script>
+        angular.module('app', [])
+            .controller('DataAssetsController', ['$http', function($http) {
+                let ctrl = this;
+                ctrl.dataAssets = [];
+
+                $http.get('/data_assets').then(function(response) {
+                    ctrl.dataAssets = response.data;
+                });
+            }]);
+    </script>
+</head>
+<body>
+    <div class="container" ng-controller="DataAssetsController as ctrl">
+        <h1>Data Assets</h1>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Domain</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Layer</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="asset in ctrl.dataAssets">
+                    <td ng-bind="asset.data_asset_id">id</td>
+                    <td ng-bind="asset.domain">domain</td>
+                    <td ng-bind="asset.asset_name">name</td>
+                    <td ng-bind="asset.asset_description">description</td>
+                    <td ng-bind="asset.medallion_layer">layer</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
