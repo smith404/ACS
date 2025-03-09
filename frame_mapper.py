@@ -210,7 +210,7 @@ def main():
                 print(f"Rule Part: {rule_part}")
 
     if args.asset:
-        result_json = db_wrapper.execute_named_query_to_json("read_assets", parameters={"asset_name": args.asset})
+        result_json = db_wrapper.execute_named_query_to_json("read_asset", parameters={"asset_name": args.asset})
         for result in json.loads(result_json):
             data_asset = DataAsset.from_json(json.dumps(result))
             print(f"Data Asset: {data_asset}")

@@ -77,12 +77,12 @@ CREATE TABLE IF NOT EXISTS data_language.attribute_mapping_rules (
     rule_name VARCHAR(50) NOT NULL,
     rule_description VARCHAR(255),
     rule_type VARCHAR(50) NOT NULL, -- ENUM('MAX', 'MIN', 'SUM', 'AVE', 'AND', 'OR', 'RENAME', 'REPLACE', 'REMOVE', 'ADD', 'COPY', 'MOVE', 'FILTER', 'SPLIT', 'MERGE', 'CONCATENATE', 'LOOKUP', 'MAP')
-    target_attr_value_id INTEGER NOT NULL,
-    target_attr_value_value VARCHAR(255) NOT NULL,
+    target_attribute_id INTEGER NOT NULL,
+    target_attribute_value VARCHAR(255) NOT NULL,
     valid_from DATE NOT NULL,
     valid_to DATE NOT NULL,
     PRIMARY KEY (rule_id),
-    FOREIGN KEY (target_attr_value_id) REFERENCES data_language.data_attributes(data_attribute_id)
+    FOREIGN KEY (target_attribute_id) REFERENCES data_language.data_attributes(data_attribute_id)
 );
 
 CREATE TABLE IF NOT EXISTS data_language.attribute_mapping_rule_parts (

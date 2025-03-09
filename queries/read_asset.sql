@@ -8,3 +8,5 @@ data_asset_id
 ,feed_path
 FROM
 data_language.data_assets
+WHERE
+data_asset_id = '{data_asset_id}'

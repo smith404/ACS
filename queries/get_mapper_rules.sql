@@ -8,7 +8,6 @@ map.map_name
 ,amr.rule_id
 ,amr.rule_name
 ,amr.rule_type
-,da.data_attribute_id as target_attribute_id
 ,da.attribute_name as target_attribute_name
 ,da.attribute_type as target_attribute_type
 FROM
@@ -29,5 +28,6 @@ map.map_id = mra.map_id
 and
 mra.rule_id = amr.rule_id
 AND
-amr.target_attr_value_id = da.data_attribute_id
-ORDER BY mra.step_number;
+amr.target_attribute_id = da.data_attribute_id
+ORDER BY
+mra.step_number;

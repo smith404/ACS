@@ -308,13 +308,14 @@ class DuckDBWrapper:
         if not os.path.exists(input_directory):
             raise FileNotFoundError(f"Directory '{input_directory}' does not exist.")
         
-        # Get the list of CSV files in the directory
-        csv_files = [f for f in os.listdir(input_directory) if f.endswith('.csv')]
-        
+        # Get the list of CSV files in the directory and sort them alphabetically
+        csv_files = sorted([f for f in os.listdir(input_directory) if f.endswith('.csv')])
         
         # Load the tables in the sorted order
         for csv_file in csv_files:
+            # Remove leading numbers followed by an underscore from the file name
             table_name = os.path.splitext(csv_file)[0]
+            table_name = table_name.split('_', 1)[-1] if table_name[0].isdigit() else table_name
             if truncate:
                 truncate_query = f"TRUNCATE TABLE {schema_name}.{table_name};"
                 self.execute_query(truncate_query)
@@ -344,5 +345,5 @@ class DuckDBWrapper:
         
         if parameters:
             query = query.format(**parameters)
-        
+
         return self.execute_select_query_to_json(query)
