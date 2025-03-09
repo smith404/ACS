@@ -4,6 +4,7 @@ map.map_name
 ,from_das.asset_name as from_asset_name
 ,to_das.data_asset_id as to_asset_id
 ,to_das.asset_name as to_asset_name
+,mra.step_number as rule_priority
 ,amr.rule_id
 ,amr.rule_name
 ,amr.rule_type
@@ -29,3 +30,4 @@ and
 mra.rule_id = amr.rule_id
 AND
 amr.target_attr_value_id = da.data_attribute_id
+ORDER BY mra.step_number;

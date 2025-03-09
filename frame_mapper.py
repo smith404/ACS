@@ -202,9 +202,12 @@ def main():
     db_wrapper.connect()
     
     if args.map:
-        result_json = db_wrapper.execute_named_query_to_json("get_mapper", parameters={"map_name": args.map})
-        for result in json.loads(result_json):
-            print(f"Mapper: {result}")
+        rules_json = db_wrapper.execute_named_query_to_json("get_mapper_rules", parameters={"map_name": args.map})
+        for rule in json.loads(rules_json):
+            print(f"Mapper: {rule}")
+            rule_part_json = db_wrapper.execute_named_query_to_json("get_rule_parts", parameters={"rule_id": rule['rule_id']})
+            for rule_part in json.loads(rule_part_json):
+                print(f"Rule Part: {rule_part}")
 
     if args.asset:
         result_json = db_wrapper.execute_named_query_to_json("read_assets", parameters={"asset_name": args.asset})
