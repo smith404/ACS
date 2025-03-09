@@ -3,6 +3,7 @@ import pandas as pd
 from enum import Enum
 from duckdb_wrapper import DuckDBWrapper  # Import DuckDBWrapper
 import json  # Import json module
+from config import database_path
 
 class TransformationActionType(Enum):
     RENAME = "rename"
@@ -197,7 +198,6 @@ def main():
     parser.add_argument("--asset", type=str, help="The JSON string of the data asset")  # Add asset argument
     args = parser.parse_args()
 
-    database_path = "example.duckdb"
     db_wrapper = DuckDBWrapper(database_path)
     db_wrapper.connect()
     

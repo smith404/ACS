@@ -3,6 +3,7 @@ from tabulate import tabulate
 import os
 import argparse
 from duckdb_wrapper import DuckDBWrapper  # Import DuckDBWrapper from the new file
+from config import database_path
 
 def main():
     """
@@ -23,7 +24,6 @@ def main():
     if (args.table and not args.data) or (args.data and not args.table):
         parser.error("--table and --data must be provided together")
 
-    database_path = "example.duckdb"
     db_wrapper = DuckDBWrapper(database_path)
     db_wrapper.connect()
     
