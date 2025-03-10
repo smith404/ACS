@@ -10,8 +10,8 @@ amr.rule_id
 ,sda.attribute_type as rule_part__attribute_type
 ,mrp.feed_attribute_value
 FROM
-data_language.attribute_mapping_rules amr
-,data_language.attribute_mapping_rule_parts mrp
+data_language.mapping_rules amr
+,data_language.mapping_rule_parts mrp
 ,data_language.data_attributes sda
 ,data_language.data_attributes tda
 WHERE

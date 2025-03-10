@@ -10,7 +10,7 @@
 from enum import Enum
 import json
 from typing import List, Optional, Tuple
-from pattern_block import PatternBlock
+from pattern_block import PatternBlock, BlockShape
 
 from utils import cumulative_sum, scale_vector_to_sum
 

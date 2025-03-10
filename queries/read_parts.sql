@@ -5,7 +5,7 @@ rule_id
 ,feed_attribute_id
 ,feed_attribute_value
 FROM
-data_language.attribute_mapping_rule_parts
+data_language.mapping_rule_parts
 WHERE
 rule_id = '{rule_id}'
 ORDER BY

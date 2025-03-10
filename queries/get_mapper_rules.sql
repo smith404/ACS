@@ -15,7 +15,7 @@ data_language.mapper map
 ,data_language.data_assets from_das
 ,data_language.data_assets to_das 
 ,data_language.mapper_rule_assignments mra
-,data_language.attribute_mapping_rules amr
+,data_language.mapping_rules amr
 ,data_language.data_attributes da
 WHERE
 map.map_name = '{map_name}'

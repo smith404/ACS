@@ -8,6 +8,6 @@ rule_id
 ,valid_from
 ,valid_to
 FROM
-data_language.attribute_mapping_rules
+data_language.mapping_rules
 WHERE
 rule_id = '{rule_id}'
