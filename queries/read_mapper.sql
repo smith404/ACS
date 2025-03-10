@@ -6,6 +6,6 @@ map_id
 ,to_asset_id
 ,target_attr_value_id
 FROM
-data_language.mapper 
+data_language.mappings
 WHERE
 map_id = '{map_id}'

@@ -4,7 +4,7 @@ CREATE SEQUENCE IF NOT EXISTS domain_key
     START WITH 1 
     INCREMENT BY 1;
 
-CREATE TABLE IF NOT EXISTS data_language.domain (
+CREATE TABLE IF NOT EXISTS data_language.domains (
     domain_id INTEGER DEFAULT nextval('domain_key') NOT NULL,
     domain VARCHAR(10) NOT NULL UNIQUE,
     domain_description VARCHAR(255),
@@ -45,6 +45,8 @@ CREATE TABLE IF NOT EXISTS data_language.data_asset_attributes (
     data_attribute_id INTEGER NOT NULL,
     mandatory BOOLEAN NOT NULL,
     is_key BOOLEAN NOT NULL,
+    default_value VARCHAR(255),
+    format_string VARCHAR(255),
     valid_from DATE NOT NULL,
     valid_to DATE NOT NULL,
     PRIMARY KEY (data_asset_id, data_attribute_id),

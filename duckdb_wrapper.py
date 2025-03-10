@@ -127,15 +127,21 @@ class DuckDBWrapper:
     def interactive_query(self):
         """
         Interactively take user input to execute either a SELECT or other query, then output the result.
-        The method terminates if the user enters 'exit'.
+        The method terminates if the user enters 'exit' or 'quit'.
         """
         while True:
             user_input = input("Enter SQL query (or 'exit' to quit): ").strip()
-            if user_input.lower() == 'exit':
+            if user_input.lower() in ['exit', 'quit']:
                 print("Exiting interactive query mode.")
                 break
             try:
-                if (user_input.lower().startswith("select")):
+                if user_input.lower().startswith("!exe"):
+                    tokens = user_input.split(maxsplit=2)
+                    query_name = tokens[1].strip()
+                    parameters = json.loads(tokens[2]) if len(tokens) > 2 else None
+                    print(query_name, parameters)
+                    user_input = self.read_named_query(query_name, parameters=parameters)
+                if user_input.lower().startswith("select"):
                     result = self.execute_select_query(user_input)
                 else:
                     result = self.execute_query(user_input)
@@ -347,3 +353,29 @@ class DuckDBWrapper:
             query = query.format(**parameters)
 
         return self.execute_select_query_to_json(query)
+
+    def read_named_query(self, query_name: str, directory: str = "queries", parameters: dict = None):
+        """
+        Execute a SQL script from a file located in the specified directory and return the result in JSON format.
+        
+        :param query_name: The name of the query file to execute.
+        :param directory: The directory where the query file is located. Defaults to 'scripts'.
+        :param parameters: A dictionary of optional parameters to use in query string formatting.
+        :return: The expanded query.
+        :raises FileNotFoundError: If the query file does not exist.
+        :raises ConnectionError: If the database is not connected.
+        """
+        if not query_name.endswith(".sql"):
+            query_name += ".sql"
+        
+        query_path = os.path.join(directory, query_name)
+        if not os.path.isfile(query_path):
+            raise FileNotFoundError(f"Query file '{query_path}' does not exist.")
+        
+        with open(query_path, 'r') as file:
+            query = file.read()
+        
+        if parameters:
+            query = query.format(**parameters)
+
+        return query

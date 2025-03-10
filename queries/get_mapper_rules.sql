@@ -11,10 +11,10 @@ map.map_name
 ,da.attribute_name as target_attribute_name
 ,da.attribute_type as target_attribute_type
 FROM
-data_language.mapper map
+data_language.mappings map
 ,data_language.data_assets from_das
 ,data_language.data_assets to_das 
-,data_language.mapper_rule_assignments mra
+,data_language.mapping_rule_assignments mra
 ,data_language.mapping_rules amr
 ,data_language.data_attributes da
 WHERE

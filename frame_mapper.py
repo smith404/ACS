@@ -11,7 +11,7 @@ class TransformationActionType(Enum):
     REFORMAT = "reformat"
     REMOVE = "remove"
 
-class Mapper:
+class Mapping:
     def __init__(self, map_id: str, map_name: str, map_description: str, from_asset_id: str, to_asset_id: str, target_attr_value_id: str):
         self.map_id = map_id
         self.map_name = map_name

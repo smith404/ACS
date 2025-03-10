@@ -8,7 +8,7 @@ amr.rule_id
 ,amr.valid_from
 ,amr.valid_to
 FROM
-data_language.mapper_rule_assignments mra
+data_language.mapping_rule_assignments mra
 ,data_language.mapping_rules amr
 WHERE
 mra.rule_id = amr.rule_id
