@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import lit, when, col
+from pyspark.sql.functions import lit, when, col, avg
 
 # Initialize a SparkSession
 spark = SparkSession.builder \
@@ -7,8 +7,8 @@ spark = SparkSession.builder \
     .getOrCreate()
 
 # Create a simple DataFrame
-data = [("Alice", 34), ("Bob", 45), ("Cathy", 29), ("Cathy", 59)]
-columns = ["Name", "Age"]
+data = [("John", 34, "M"), ("Alice", 34, "F"), ("Bob", 45, "M"), ("Cathy", 29, "F"), ("Cathy", 59, "F")]
+columns = ["Name", "Age", "Gender"]
 df = spark.createDataFrame(data, columns)
 
 # Rename the column "Age" to "CurrentAge"
@@ -25,6 +25,13 @@ df = df.withColumn("MonthsOld", col("CurrentAge") * 12)
 
 # Show the DataFrame
 df.show()
+
+# Group by "Gender" and calculate the average "MonthsOld"
+df_grouped = df.groupBy("Gender").agg(avg("MonthsOld").alias("AverageMonthsOld"))
+#df.groupBy("year", "sex").agg(avg("percent"), count("*"))
+
+# Show the grouped DataFrame
+df_grouped.show()
 
 # Perform a simple transformation
 df_filtered = df.filter(df.CurrentAge > 30)
