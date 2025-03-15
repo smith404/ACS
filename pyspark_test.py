@@ -79,6 +79,9 @@ df_joined.show()
 # Make all column names in df_joined lowercase
 df_joined = df_joined.toDF(*[c.lower() for c in df_joined.columns])
 
+# Remove the column TOA from df_joined
+df_joined = df_joined.drop("toa")
+
 df_joined.show()
 
 # Stop the SparkSession

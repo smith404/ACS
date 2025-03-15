@@ -27,6 +27,14 @@
             "default_value": 42
         },
         {
+            "transform_type": "drop_column",
+            "source_column": "Series_title_4"
+        },
+        {
+            "transform_type": "drop_column",
+            "source_column": "Series_title_5"
+        },
+        {
             "transform_type": "set_column",
             "source_column": "Suppressed",
             "default_value": false
