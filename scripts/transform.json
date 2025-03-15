@@ -1,4 +1,7 @@
 {
+    "from_asset": "source_asset",
+    "to_asset": "target_asset",
+    "path": "path/to/asset",
     "transforms": [
         {
             "transform_type": "rename",
