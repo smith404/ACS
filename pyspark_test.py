@@ -21,7 +21,7 @@ toa_mappings = {
 # Apply toa_mappings to update uv_df with updated TOA values
 uv_df = uv_df.withColumn("TOA", col("TOA").cast("string"))
 for key, value in toa_mappings.items():
-    uv_df = uv_df.withColumn("TOA", when(col("TOA") == key, lit(value)).otherwise(col("TOA")))
+    uv_df = uv_df.withColumn("TOA", when(col("TOA") == lit(key), lit(value)).otherwise(col("TOA")))
 
 # Add columns quarter and year by splitting column FIN_PERIOD using the '_' character
 uv_df = uv_df.withColumn("quarter", split(col("FIN_PERIOD"), "_").getItem(0))

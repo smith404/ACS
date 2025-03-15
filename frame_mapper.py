@@ -103,7 +103,8 @@ class FrameMapper:
         return df
 
     def transfrom_type_simplemap(self, mapping, df):
-        print(f"SimpleMap {mapping}")
+        for key, value in mapping.get("mapping").items():
+            df = df.withColumn(mapping.get("source_column"), when(col(mapping.get("source_column")) == key, lit(value)).otherwise(col(mapping.get("source_column"))))
         return df
 
 def main():
