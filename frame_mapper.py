@@ -59,23 +59,45 @@ class FrameMapper:
         return value
 
     def process_transforms(self):
-        transforms = self.mapping.get('transforms', [])
+        from_asset_path = self.get_mappping_property("from_asset_path")
+        if from_asset_path:
+            print(f"Reading from {from_asset_path}")
+            df = self.spark.read.format("parquet").option("header", "true").load(from_asset_path)
+            transforms = self.mapping.get('transforms', [])
+            df = self.apply_transforms(transforms, df)
+            to_asset_path = self.get_mappping_property("to_asset_path")
+            if to_asset_path:
+                print(f"Writing to {to_asset_path}")
+                compression = self.config.get('compression', 'none')  # Get compression from config
+                print(f"Using compression: {compression}")
+                df.write.format("parquet").mode("overwrite").option("compression", compression).save(to_asset_path)
+
+    def apply_transforms(self, transforms, df):
         if isinstance(transforms, list):
             for transform in transforms:
-                transform_type = transform.get('transform_type')
-                if transform_type:
-                    method_name = f"transfrom_type_{transform_type}"
-                    method = getattr(self, method_name, None)
-                    if callable(method):
-                        method(transform)
-                    else:
-                        print(f"No method found for transform type: {transform_type}")
+                df = self.apply_transform(transform, df)
+        return df
 
-    def transfrom_type_rename(self, mapping):
+    def apply_transform(self, transform, df):
+        transform_type = transform.get('transform_type')
+        if transform_type:
+            method_name = f"transfrom_type_{transform_type}"
+            method = getattr(self, method_name, None)
+            if callable(method):
+                 return method(transform, df)
+            else:
+                print(f"No method found for transform type: {transform_type}")
+                return df
+
+    def transfrom_type_rename(self, mapping, df):
         print(f"Rename {mapping}")
+        df.withColumnRenamed(mapping.get("source_column"), mapping.get("target_column"))
+        return df
 
-    def transfrom_type_simplemap(self, mapping):
+
+    def transfrom_type_simplemap(self, mapping, df):
         print(f"SimpleMap {mapping}")
+        return df
 
 def main():
     """
@@ -92,8 +114,6 @@ def main():
             .getOrCreate()
 
         frame_mapper = FrameMapper(args.mapper, spark=spark_session)
-        print(frame_mapper.get_mappping_property("from_asset_path"))
-        print(frame_mapper.get_mappping_property("to_asset_path"))
         frame_mapper.process_transforms()
         
 if __name__ == "__main__":

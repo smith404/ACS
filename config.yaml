@@ -1,1 +1,2 @@
 mapper_directory: ./scripts
+compression: snappy
