@@ -61,15 +61,12 @@ class FrameMapper:
     def process_transforms(self):
         from_asset_path = self.get_mappping_property("from_asset_path")
         if from_asset_path:
-            print(f"Reading from {from_asset_path}")
             df = self.spark.read.format("parquet").option("header", "true").load(from_asset_path)
             transforms = self.mapping.get('transforms', [])
             df = self.apply_transforms(transforms, df)
             to_asset_path = self.get_mappping_property("to_asset_path")
             if to_asset_path:
-                print(f"Writing to {to_asset_path}")
                 compression = self.config.get('compression', 'none')  # Get compression from config
-                print(f"Using compression: {compression}")
                 df.write.format("parquet").mode("overwrite").option("compression", compression).save(to_asset_path)
 
     def apply_transforms(self, transforms, df):
@@ -90,8 +87,7 @@ class FrameMapper:
                 return df
 
     def transfrom_type_rename(self, mapping, df):
-        print(f"Rename {mapping}")
-        df.withColumnRenamed(mapping.get("source_column"), mapping.get("target_column"))
+        df = df.withColumnRenamed(mapping.get("source_column"), mapping.get("target_column"))
         return df
 
 
