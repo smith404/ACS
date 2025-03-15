@@ -17,6 +17,21 @@
             "target_column": "Level"
         },
         {
+            "transform_type": "add_column",
+            "source_column": "Name",
+            "default_value": "Mark"
+        },
+        {
+            "transform_type": "add_column",
+            "source_column": "Age",
+            "default_value": 42
+        },
+        {
+            "transform_type": "set_column",
+            "source_column": "Suppressed",
+            "default_value": false
+        },
+        {
             "transform_type": "simplemap",
             "source_column": "STATUS",
             "target_column": "STATUS",

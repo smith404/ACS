@@ -90,6 +90,13 @@ class FrameMapper:
         df = df.withColumnRenamed(mapping.get("source_column"), mapping.get("target_column"))
         return df
 
+    def transfrom_type_set_column(self, mapping, df):
+        df = df = df.withColumn(mapping.get("source_column"), lit(mapping.get("default_value")))
+        return df
+
+    def transfrom_type_add_column(self, mapping, df):
+        df = df = df.withColumn(mapping.get("source_column"), lit(mapping.get("default_value")))
+        return df
 
     def transfrom_type_simplemap(self, mapping, df):
         print(f"SimpleMap {mapping}")
