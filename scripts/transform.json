@@ -1,22 +1,30 @@
 {
-    "from_asset": "source_asset",
-    "to_asset": "target_asset",
-    "path": "path/to/asset",
+    "from_asset_path": "{from_container}/{from_medallion_layer}/test_data.parquet",
+    "to_asset_path": "{to_container}/{to_medallion_layer}/{cob}/{uuid}/processed_data.parquet",
+    "from_medallion_layer": "bronze",
+    "to_medallion_layer": "silver",
+    "from_container": "scratch",
+    "to_container": "scratch",
     "transforms": [
         {
             "transform_type": "rename",
-            "source_column": "source_value",
-            "target_column": "target_value"
+            "source_column": "Period",
+            "target_column": "Month"
         },
         {
             "transform_type": "rename",
-            "source_column": "source_value",
-            "target_column": "target_value"
+            "source_column": "Magnitude",
+            "target_column": "Level"
         },
         {
             "transform_type": "simplemap",
-            "source_column": "source_value",
-            "target_column": "target_value"
+            "source_column": "STATUS",
+            "target_column": "STATUS",
+            "mapping": {
+                "F": "First",
+                "C": "Current",
+                "R": "Retired"
+            }
         }
     ]
 }

@@ -29,6 +29,25 @@ class FrameMapper:
     def get_mapping(self):
         return self.mapping
 
+    def get_mappping_property(self, property_name):
+        """
+        Get a property value from the config.
+        
+        :param property_name: The name of the property to retrieve.
+        :return: The value of the property or None if the property does not exist.
+        """
+        value = self.mapping.get(property_name)
+        if isinstance(value, str):
+            tokens = [token.strip('{}') for token in value.split(sep="/") if token.startswith('{') and token.endswith('}')]
+            for token in tokens:
+                if token == 'uuid':
+                    value = value.replace(f'{{{token}}}', self.uuid)
+                elif token == 'cob':
+                    value = value.replace(f'{{{token}}}', self.cob)
+                else:
+                    value = value.replace(f'{{{token}}}', self.mapping.get(token, ''))
+        return value
+
 def main():
     """
     Main method to demonstrate the usage of FrameMapper class.
@@ -39,7 +58,8 @@ def main():
 
     if args.mapper:
         frame_mapper = FrameMapper(args.mapper)
-        print(frame_mapper.get_mapping())
-
+        print(frame_mapper.get_mappping_property("from_asset_path"))
+        print(frame_mapper.get_mappping_property("to_asset_path"))
+        
 if __name__ == "__main__":
     main()

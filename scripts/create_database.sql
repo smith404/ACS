@@ -21,8 +21,8 @@ CREATE TABLE IF NOT EXISTS data_language.data_assets (
     asset_name VARCHAR(50) NOT NULL UNIQUE,
     asset_description VARCHAR(255),
     medallion_layer VARCHAR(10) NOT NULL,
-    container VARCHAR(255),
-    feed_path VARCHAR(255),
+    container VARCHAR(255) NOT NULL,
+    feed_path VARCHAR(255) NOT NULL,
     PRIMARY KEY (data_asset_id)
 );
 
