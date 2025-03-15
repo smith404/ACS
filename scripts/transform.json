@@ -1,6 +1,6 @@
 {
     "from_asset_path": "{from_container}/{from_medallion_layer}/test_data.parquet",
-    "to_asset_path": "{to_container}/{to_medallion_layer}/{cob}/{uuid}/processed_data.parquet",
+    "to_asset_path": "{to_container}/{to_medallion_layer}/processed_data.parquet",
     "from_medallion_layer": "bronze",
     "to_medallion_layer": "silver",
     "from_container": "scratch",

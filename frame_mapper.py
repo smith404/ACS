@@ -5,12 +5,18 @@ import yaml  # Import yaml module
 import uuid  # Import uuid module
 from datetime import datetime  # Import datetime module
 from config import database_path
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import lit, when, col, avg, split
+
 
 class FrameMapper:
-    def __init__(self, mapper, uuid_str=None, cob=None):
+    def __init__(self, mapper, spark, uuid_str=None, cob=None, time=None, version=None):
         self.mapper = mapper
+        self.spark = spark
         self.uuid = uuid_str if uuid_str else str(uuid.uuid4())
         self.cob = cob if cob else datetime.now().strftime('%Y%m%d')
+        self.time = time if time else datetime.now().strftime('%H-%M-%S')
+        self.version = version if version else "v1.0.0"
         self.load_config()
         self.load_mapper()
 
@@ -44,9 +50,32 @@ class FrameMapper:
                     value = value.replace(f'{{{token}}}', self.uuid)
                 elif token == 'cob':
                     value = value.replace(f'{{{token}}}', self.cob)
+                elif token == 'time':
+                    value = value.replace(f'{{{token}}}', self.time)
+                elif token == 'version':
+                    value = value.replace(f'{{{token}}}', self.version)
                 else:
                     value = value.replace(f'{{{token}}}', self.mapping.get(token, ''))
         return value
+
+    def process_transforms(self):
+        transforms = self.mapping.get('transforms', [])
+        if isinstance(transforms, list):
+            for transform in transforms:
+                transform_type = transform.get('transform_type')
+                if transform_type:
+                    method_name = f"transfrom_type_{transform_type}"
+                    method = getattr(self, method_name, None)
+                    if callable(method):
+                        method(transform)
+                    else:
+                        print(f"No method found for transform type: {transform_type}")
+
+    def transfrom_type_rename(self, mapping):
+        print(f"Rename {mapping}")
+
+    def transfrom_type_simplemap(self, mapping):
+        print(f"SimpleMap {mapping}")
 
 def main():
     """
@@ -57,9 +86,15 @@ def main():
     args = parser.parse_args()
 
     if args.mapper:
-        frame_mapper = FrameMapper(args.mapper)
+        # Initialize a SparkSession
+        spark_session = SparkSession.builder \
+            .appName("PySparkExample") \
+            .getOrCreate()
+
+        frame_mapper = FrameMapper(args.mapper, spark=spark_session)
         print(frame_mapper.get_mappping_property("from_asset_path"))
         print(frame_mapper.get_mappping_property("to_asset_path"))
+        frame_mapper.process_transforms()
         
 if __name__ == "__main__":
     main()

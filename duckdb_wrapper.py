@@ -379,3 +379,33 @@ class DuckDBWrapper:
             query = query.format(**parameters)
 
         return query
+
+    def describe_parquet_file(self, parquet_file_path: str, n: int = 5):
+        """
+        Describe the structure of a Parquet file and print the first n rows in a tabulated format.
+        
+        :param parquet_file_path: The path to the Parquet file.
+        :param n: The number of rows to display. Defaults to 5.
+        :raises FileNotFoundError: If the Parquet file does not exist.
+        :raises ConnectionError: If the database is not connected.
+        """
+        if not parquet_file_path.endswith(".parquet"):
+            parquet_file_path += ".parquet"
+        if not os.path.isfile(parquet_file_path):
+            raise FileNotFoundError(f"Parquet file '{parquet_file_path}' does not exist.")
+        if self.connection is None:
+            raise ConnectionError("Database is not connected.")
+        
+        # Describe the structure of the Parquet file
+        describe_query = f"DESCRIBE SELECT * FROM read_parquet('{parquet_file_path}');"
+        structure = self.execute_query(describe_query)
+        print("Table Structure:")
+        print(tabulate(structure, headers=["Column", "Type"], tablefmt="grid"))
+        
+        # Fetch the first n rows
+        select_query = f"SELECT * FROM read_parquet('{parquet_file_path}') LIMIT {n};"
+        rows = self.execute_query(select_query)
+        headers = [desc[0] for desc in self.connection.description]
+        print(f"\nFirst {n} rows:")
+        print(tabulate(rows, headers, tablefmt="grid"))
+

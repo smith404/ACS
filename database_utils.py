@@ -17,6 +17,7 @@ def main():
     parser.add_argument("--delimiter", type=str, default=";", help="The delimiter to use for CSV files (default is ';')")
     parser.add_argument("--dump", type=str, help="The schema name to dump tables from")  # Add new argument
     parser.add_argument("--load", type=str, help="The schema name to load CSV files into")  # Add new argument
+    parser.add_argument("--describe", type=str, help="The path to the Parquet file to describe")  # Add new argument
     args = parser.parse_args()
 
     if (args.table and not args.data) or (args.data and not args.table):
@@ -48,6 +49,9 @@ def main():
 
     if args.load:
         db_wrapper.load_csv_files(schema_name=args.load, delimiter=args.delimiter, truncate=True)  # Call the load_csv_files method with the schema name and delimiter
+
+    if args.describe:
+        db_wrapper.describe_parquet_file(args.describe)  # Call the describe_parquet_file method with the Parquet file path
 
     if not args.quiet:
         try:
