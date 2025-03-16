@@ -29,15 +29,15 @@
                 {
                     "source_column": "Name",
                     "default_value": "Mark"
-                        },
+                },
                 {
                     "source_column": "Age",
                     "default_value": 54
-                        },
+                },
                 {
                     "source_column": "Suppressed",
                     "default_value": false
-                        }
+                }
             ]
         },
         {
@@ -48,6 +48,22 @@
                 },
                 {
                     "source_column": "Series_title_5"
+                }
+            ]
+        },
+        {
+            "transform_type": "update_columns",
+            "columns": [
+                {
+                    "source_column": "Status",
+                    "target_value": "Overflow",
+                    "conditions": [
+                        {
+                            "column": "Level",
+                            "operator": ">",
+                            "value": 1200
+                        }
+                    ] 
                 }
             ]
         },

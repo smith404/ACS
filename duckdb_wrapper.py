@@ -230,6 +230,25 @@ class DuckDBWrapper:
         query = f"COPY (SELECT * FROM read_csv_auto('{csv_file_path}')) TO '{parquet_file_path}' (FORMAT 'parquet');"
         self.execute_query(query)
 
+    def convert_parquet_to_csv(self, parquet_file_path: str, csv_file_path: str, delimiter: str = ";"):
+        """
+        Convert a Parquet file to a CSV file using DuckDB.
+        
+        :param parquet_file_path: The path to the input Parquet file.
+        :param csv_file_path: The path to the output CSV file.
+        :param delimiter: The delimiter to use in the CSV file. Defaults to ';'.
+        :raises FileNotFoundError: If the Parquet file does not exist.
+        :raises ConnectionError: If the database is not connected.
+        """
+        # Check if the Parquet file exists
+        parquet_file_path = self.check_parquet_file(parquet_file_path)
+        
+        if self.connection is None:
+            raise ConnectionError(self.DATABASE_NOT_CONNECTED_ERROR)
+        
+        query = f"COPY (SELECT * FROM read_parquet('{parquet_file_path}')) TO '{csv_file_path}' (FORMAT 'csv', DELIMITER '{delimiter}', HEADER);"
+        self.execute_query(query)
+
     def load_parquet_to_table(self, parquet_file_path: str, table_name: str):
         """
         Load data from a Parquet file into a table after checking if the table exists and has the same structure.

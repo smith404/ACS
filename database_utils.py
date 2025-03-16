@@ -20,7 +20,8 @@ def main():
     parser.add_argument("--script", type=str, help="The name of the script to be run (optional)")
     parser.add_argument("--table", type=str, help="The name of the table to load data into (required with --data)")
     parser.add_argument("--data", type=str, help="The path to the data file to load (required with --table)")
-    parser.add_argument("--convert", type=str, help="The path to the CSV file to convert to Parquet")
+    parser.add_argument("--toparquet", type=str, help="The path to the CSV file to convert to Parquet")
+    parser.add_argument("--tocsv", type=str, help="The path to the Parquet file to convert to CSV")
     parser.add_argument("--quiet", action="store_true", help="If provided, do not enter interactive query mode")
     parser.add_argument("--extract", type=str, help="The name of the table to extract as CSV")
     parser.add_argument("--delimiter", type=str, default=";", help="The delimiter to use for CSV files (default is ';')")
@@ -41,10 +42,15 @@ def main():
     if args.table and args.data:
         db_wrapper.load_parquet_to_table(args.data, args.table)  # Load data into the specified table
     
-    if args.convert:
-        parquet_file_path = args.convert.replace('.csv', '.parquet')
-        db_wrapper.convert_csv_to_parquet(args.convert, parquet_file_path)
-        print(f"Converted {args.convert} to {parquet_file_path}")
+    if args.toparquet:
+        parquet_file_path = args.toparquet.replace('.csv', '.parquet')
+        db_wrapper.convert_csv_to_parquet(args.toparquet, parquet_file_path)
+        print(f"Converted {args.toparquet} to {parquet_file_path}")
+    
+    if args.tocsv:
+        csv_file_path = args.tocsv.replace('.parquet', '.csv')
+        db_wrapper.convert_parquet_to_csv(args.tocsv, csv_file_path)
+        print(f"Converted {args.tocsv} to {csv_file_path}")
     
     if args.extract:
         csv_file_path = f"{args.extract}"
