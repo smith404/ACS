@@ -14,7 +14,6 @@ import yaml  # Import yaml module
 import uuid  # Import uuid module
 import os  # Import os module
 from datetime import datetime  # Import datetime module
-from config import database_path
 from pyspark.sql import SparkSession
 import pyspark.sql.functions as sf
 
