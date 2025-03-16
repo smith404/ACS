@@ -101,16 +101,22 @@ class FrameMapper:
                 print(f"No method found for transform type: {transform_type}")
                 return df
 
-    def transfrom_type_rename(self, mapping, df):
-        df = df.withColumnRenamed(mapping.get("source_column"), mapping.get("target_column"))
+    def transfrom_type_rename_columns(self, mapping, df):
+        columns = mapping.get("columns", [])
+        for column in columns:
+            df = df.withColumnRenamed(column.get("source_column"), column.get("target_column"))
         return df
 
-    def transfrom_type_set_column(self, mapping, df):
-        df = df = df.withColumn(mapping.get("source_column"), sf.lit(mapping.get("default_value")))
+    def transfrom_type_drop_columns(self, mapping, df):
+        columns = mapping.get("columns", [])
+        for column in columns:
+            df = df.drop(column.get("source_column"))
         return df
 
-    def transfrom_type_drop_column(self, mapping, df):
-        df = df.drop(mapping.get("source_column"))
+    def transfrom_type_set_columns(self, mapping, df):
+        columns = mapping.get("columns", [])
+        for column in columns:
+            df = df = df.withColumn(column.get("source_column"), sf.lit(column.get("default_value")))
         return df
 
     def transfrom_type_simplemap(self, mapping, df):
@@ -127,12 +133,17 @@ class FrameMapper:
         return df
     
     def transfrom_type_group_by(self, mapping, df):
-        method_name = mapping.get('function')
-        method = getattr(sf, method_name, None)
-        if callable(method):
-            df = df.groupBy(mapping.get('columns')).agg(method(mapping.get('source_column')).alias(mapping.get('target_column')))
-        else:
-            print(f"No aggregation method found for : {method_name}")    
+        aggregations = mapping.get('aggregations', [])
+        if isinstance(aggregations, list):
+            agg_exprs = []
+            for agg in aggregations:
+                method_name = agg.get('function')
+                method = getattr(sf, method_name, None)
+                if callable(method):
+                    agg_exprs.append(method(agg.get('source_column')).alias(agg.get('target_column')))
+                else:
+                    print(f"No aggregation method found for: {method_name}")
+            df = df.groupBy(mapping.get('columns')).agg(*agg_exprs)
         return df
     
 def main():

@@ -7,37 +7,49 @@
     "to_container": "scratch",
     "transforms": [
         {
-            "transform_type": "rename",
-            "source_column": "Period",
-            "target_column": "Month"
+            "transform_type": "rename_columns",
+            "columns": [
+                {
+                    "source_column": "Series_reference",
+                    "target_column": "Reference"
+                },
+                {
+                    "source_column": "Period",
+                    "target_column": "Month"
+                },
+                {
+                    "source_column": "Magnitude",
+                    "target_column": "Level"
+                }
+            ]
         },
         {
-            "transform_type": "rename",
-            "source_column": "Magnitude",
-            "target_column": "Level"
+            "transform_type": "set_columns",
+            "columns": [
+                {
+                    "source_column": "Name",
+                    "default_value": "Mark"
+                        },
+                {
+                    "source_column": "Age",
+                    "default_value": 54
+                        },
+                {
+                    "source_column": "Suppressed",
+                    "default_value": false
+                        }
+            ]
         },
         {
-            "transform_type": "set_column",
-            "source_column": "Name",
-            "default_value": "Mark"
-        },
-        {
-            "transform_type": "set_column",
-            "source_column": "Age",
-            "default_value": 54
-        },
-        {
-            "transform_type": "drop_column",
-            "source_column": "Series_title_4"
-        },
-        {
-            "transform_type": "drop_column",
-            "source_column": "Series_title_5"
-        },
-        {
-            "transform_type": "set_column",
-            "source_column": "Suppressed",
-            "default_value": false
+            "transform_type": "drop_columns",
+            "columns": [
+                {
+                    "source_column": "Series_title_4"
+                },
+                {
+                    "source_column": "Series_title_5"
+                }
+            ]
         },
         {
             "transform_type": "simplemap",
@@ -49,23 +61,9 @@
             }
         },
         {
-            "transform_type": "select",
-            "columns": [
-                "Series_reference",
-                "Month",
-                "Subject",
-                "STATUS",
-                "Level",
-                "Group",
-                "Series_title_1",
-                "Series_title_2",
-                "Series_title_3"
-            ]
-        },
-        {
             "transform_type": "select_expression",
             "columns": [
-                "Series_reference",
+                "Reference",
                 "Month",
                 "Subject",
                 "STATUS",
@@ -77,15 +75,24 @@
         },
         {
             "transform_type": "group_by",
-            "target_column": "Count_Level",
-            "function": "count",
-            "source_column": "New_Level",
             "columns": [
-                "Series_reference",
+                "Reference",
                 "STATUS",
                 "New_Level",
                 "Group",
                 "Series_title_1"
+            ],
+            "aggregations": [
+                {
+                    "target_column": "Count_Level",
+                    "function": "count",
+                    "source_column": "New_Level"
+                },
+                {
+                    "target_column": "Sum_Level",
+                    "function": "sum",
+                    "source_column": "New_Level"
+                }
             ]
         }
     ]
