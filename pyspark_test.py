@@ -8,7 +8,7 @@
 # furnished to do so, subject to the licence conditions.
 
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import lit, when, col, avg, split
+from pyspark.sql.functions import lit, when, col, avg, split, max, min
 
 # Initialize a SparkSession
 spark = SparkSession.builder \
@@ -66,8 +66,12 @@ df_new = df.select("CurrentAge", "Gender", "FIN_PERIOD").withColumnRenamed("Curr
 # Show the new DataFrame
 df_new.show()
 
-# Group by "Gender" and calculate the average "MonthsOld"
-df_grouped = df.groupBy("Gender").agg(avg("MonthsOld").alias("AverageMonthsOld"))
+# Group by "Gender" and calculate the average, max, and min "MonthsOld"
+df_grouped = df.groupBy("Gender").agg(
+    avg("MonthsOld").alias("AverageMonthsOld"),
+    max("MonthsOld").alias("MaxMonthsOld"),
+    min("MonthsOld").alias("MinMonthsOld")
+)
 
 # Show the grouped DataFrame
 df_grouped.show()

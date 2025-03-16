@@ -12,6 +12,7 @@ from enum import Enum
 import json  # Import json module
 import yaml  # Import yaml module
 import uuid  # Import uuid module
+import os  # Import os module
 from datetime import datetime  # Import datetime module
 from config import database_path
 from pyspark.sql import SparkSession
@@ -29,7 +30,13 @@ class FrameMapper:
         self.load_mapper()
 
     def load_config(self):
-        with open('config.yaml', 'r') as file:
+        config_home = os.getenv('FM_CONFIG_HOME', '.')  # Get environment variable or default to current directory
+        config_filename = 'config.yaml'
+        environment = os.getenv('FM_ENVIRONMENT')
+        if environment:
+            config_filename = f'config-{environment}.yaml'
+        config_path = os.path.join(config_home, config_filename)
+        with open(config_path, 'r') as file:
             self.config = yaml.safe_load(file)
         self.mapper_directory = self.config.get('mapper_directory', '')
 
