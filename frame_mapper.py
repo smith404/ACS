@@ -6,8 +6,7 @@ import uuid  # Import uuid module
 from datetime import datetime  # Import datetime module
 from config import database_path
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import lit, when, col, avg, split
-
+import pyspark.sql.functions as sf
 
 class FrameMapper:
     def __init__(self, mapper, spark, uuid_str=None, cob=None, time=None, version=None):
@@ -91,10 +90,7 @@ class FrameMapper:
         return df
 
     def transfrom_type_set_column(self, mapping, df):
-        return self.transfrom_type_add_column(mapping, df)
-
-    def transfrom_type_add_column(self, mapping, df):
-        df = df = df.withColumn(mapping.get("source_column"), lit(mapping.get("default_value")))
+        df = df = df.withColumn(mapping.get("source_column"), sf.lit(mapping.get("default_value")))
         return df
 
     def transfrom_type_drop_column(self, mapping, df):
@@ -103,7 +99,7 @@ class FrameMapper:
 
     def transfrom_type_simplemap(self, mapping, df):
         for key, value in mapping.get("mapping").items():
-            df = df.withColumn(mapping.get("source_column"), when(col(mapping.get("source_column")) == key, lit(value)).otherwise(col(mapping.get("source_column"))))
+            df = df.withColumn(mapping.get("source_column"), sf.when(sf.col(mapping.get("source_column")) == key, sf.lit(value)).otherwise(sf.col(mapping.get("source_column"))))
         return df
 
     def transfrom_type_select(self, mapping, df):
@@ -112,6 +108,15 @@ class FrameMapper:
     
     def transfrom_type_select_expression(self, mapping, df):
         df = df.selectExpr(mapping.get("columns"))
+        return df
+    
+    def transfrom_type_group_by(self, mapping, df):
+        method_name = mapping.get('function')
+        method = getattr(sf, method_name, None)
+        if callable(method):
+            df = df.groupBy(mapping.get('columns')).agg(method(mapping.get('source_column')).alias(mapping.get('target_column')))
+        else:
+            print(f"No aggregation method found for : {method_name}")    
         return df
     
 def main():

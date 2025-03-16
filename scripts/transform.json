@@ -17,12 +17,12 @@
             "target_column": "Level"
         },
         {
-            "transform_type": "add_column",
+            "transform_type": "set_column",
             "source_column": "Name",
             "default_value": "Mark"
         },
         {
-            "transform_type": "add_column",
+            "transform_type": "set_column",
             "source_column": "Age",
             "default_value": 54
         },
@@ -71,6 +71,19 @@
                 "STATUS",
                 "Level",
                 "Level + 20 as New_Level",
+                "Group",
+                "Series_title_1"
+            ]
+        },
+        {
+            "transform_type": "group_by",
+            "target_column": "Count_Level",
+            "function": "count",
+            "source_column": "New_Level",
+            "columns": [
+                "Series_reference",
+                "STATUS",
+                "New_Level",
                 "Group",
                 "Series_title_1"
             ]
