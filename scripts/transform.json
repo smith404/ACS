@@ -24,7 +24,7 @@
         {
             "transform_type": "add_column",
             "source_column": "Age",
-            "default_value": 42
+            "default_value": 54
         },
         {
             "transform_type": "drop_column",
@@ -42,8 +42,16 @@
         {
             "transform_type": "simplemap",
             "source_column": "STATUS",
-            "target_column": "STATUS",
             "mapping": {
+                "F": "First",
+                "C": "Current",
+                "R": "Retired"
+            }
+        },
+        {
+            "transform_type": "conditional",
+            "target_column": "Magnitude",
+            "conditions": {
                 "F": "First",
                 "C": "Current",
                 "R": "Retired"

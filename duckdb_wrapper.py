@@ -2,8 +2,14 @@ import duckdb
 from tabulate import tabulate
 import os
 import json  # Add import for json
+import glob  # Add import for glob
 
 class DuckDBWrapper:
+    DATABASE_NOT_CONNECTED_ERROR = "Database is not connected."
+    ONLY_SELECT_QUERIES_ALLOWED_ERROR = "Only SELECT queries are allowed."
+    PARQUET_EXTENSION = ".parquet"
+    PARQUET_WILDCARD = "*.parquet"
+
     def __init__(self, database_path: str, auto_commit: bool = True):
         """
         Initialize the DuckDBWrapper with the path to the database file and auto_commit setting.
@@ -11,6 +17,31 @@ class DuckDBWrapper:
         self.database_path = database_path
         self.connection = None
         self.auto_commit = auto_commit
+
+    def check_parquet_file(self, parquet_file_path: str):
+        """
+        Check if the Parquet file exists.
+        
+        :param parquet_file_path: The path to the Parquet file.
+        :raises FileNotFoundError: If the Parquet file does not exist.
+        """
+        # Check if the path ends with '.parquet'
+        if not parquet_file_path.endswith(self.PARQUET_EXTENSION):
+            parquet_file_path += self.PARQUET_EXTENSION
+        
+        # Check if the path is a directory
+        if os.path.isdir(parquet_file_path):
+            parquet_file_path = os.path.join(parquet_file_path, self.PARQUET_WILDCARD)
+        
+        # Check if the path is a wildcard
+        if '*' in parquet_file_path or '?' in parquet_file_path:
+            parquet_files = glob.glob(parquet_file_path)
+            if not parquet_files:
+                raise FileNotFoundError(f"No Parquet files match the pattern '{parquet_file_path}'.")
+        elif not os.path.isfile(parquet_file_path):
+            raise FileNotFoundError(f"Parquet file '{parquet_file_path}' does not exist.")
+        
+        return parquet_file_path
 
     def connect(self):
         """
@@ -27,7 +58,7 @@ class DuckDBWrapper:
         :raises ConnectionError: If the database is not connected.
         """
         if self.connection is None:
-            raise ConnectionError("Database is not connected.")
+            raise ConnectionError(self.DATABASE_NOT_CONNECTED_ERROR)
         result = self.connection.execute(query).fetchall()
         if self.auto_commit:
             self.commit()
@@ -43,9 +74,9 @@ class DuckDBWrapper:
         :raises ValueError: If the query is not a SELECT query.
         """
         if self.connection is None:
-            raise ConnectionError("Database is not connected.")
+            raise ConnectionError(self.DATABASE_NOT_CONNECTED_ERROR)
         if not query.strip().lower().startswith("select"):
-            raise ValueError("Only SELECT queries are allowed.")
+            raise ValueError(self.ONLY_SELECT_QUERIES_ALLOWED_ERROR)
         result = self.connection.execute(query).fetchall()
         headers = [desc[0] for desc in self.connection.description]
         return tabulate(result, headers, tablefmt="grid")
@@ -60,9 +91,9 @@ class DuckDBWrapper:
         :raises ValueError: If the query is not a SELECT query.
         """
         if self.connection is None:
-            raise ConnectionError("Database is not connected.")
+            raise ConnectionError(self.DATABASE_NOT_CONNECTED_ERROR)
         if not query.strip().lower().startswith("select"):
-            raise ValueError("Only SELECT queries are allowed.")
+            raise ValueError(self.ONLY_SELECT_QUERIES_ALLOWED_ERROR)
         
         result = self.connection.execute(query).fetchall()
         headers = [desc[0] for desc in self.connection.description]
@@ -80,7 +111,7 @@ class DuckDBWrapper:
         :raises ValueError: If the number of parameters does not match the query.
         """
         if self.connection is None:
-            raise ConnectionError("Database is not connected.")
+            raise ConnectionError(self.DATABASE_NOT_CONNECTED_ERROR)
         
         # Check if the number of parameters matches the number of placeholders in the query
         placeholder_count = query.count('?')
@@ -105,7 +136,7 @@ class DuckDBWrapper:
         Begin a new transaction.
         """
         if self.connection is None:
-            raise ConnectionError("Database is not connected.")
+            raise ConnectionError(self.DATABASE_NOT_CONNECTED_ERROR)
         self.connection.begin()
 
     def commit(self):
@@ -113,7 +144,7 @@ class DuckDBWrapper:
         Commit the current transaction.
         """
         if self.connection is None:
-            raise ConnectionError("Database is not connected.")
+            raise ConnectionError(self.DATABASE_NOT_CONNECTED_ERROR)
         self.connection.commit()
 
     def rollback(self):
@@ -121,7 +152,7 @@ class DuckDBWrapper:
         Rollback the current transaction.
         """
         if self.connection is None:
-            raise ConnectionError("Database is not connected.")
+            raise ConnectionError(self.DATABASE_NOT_CONNECTED_ERROR)
         self.connection.rollback()
 
     def interactive_query(self):
@@ -168,6 +199,9 @@ class DuckDBWrapper:
         with open(script_path, 'r') as file:
             script = file.read()
         
+        if self.connection is None:
+            raise ConnectionError(self.DATABASE_NOT_CONNECTED_ERROR)
+        
         self.execute_query(script)
 
     def convert_csv_to_parquet(self, csv_file_path: str, parquet_file_path: str):
@@ -182,7 +216,7 @@ class DuckDBWrapper:
         if not os.path.isfile(csv_file_path):
             raise FileNotFoundError(f"CSV file '{csv_file_path}' does not exist.")
         if self.connection is None:
-            raise ConnectionError("Database is not connected.")
+            raise ConnectionError(self.DATABASE_NOT_CONNECTED_ERROR)
         
         query = f"COPY (SELECT * FROM read_csv_auto('{csv_file_path}')) TO '{parquet_file_path}' (FORMAT 'parquet');"
         self.execute_query(query)
@@ -197,10 +231,12 @@ class DuckDBWrapper:
         :raises ConnectionError: If the database is not connected.
         :raises ValueError: If the table does not exist or the structures do not match.
         """
-        if not os.path.isfile(parquet_file_path):
-            raise FileNotFoundError(f"Parquet file '{parquet_file_path}' does not exist.")
+
+        # Check if the Parquet file exists
+        parquet_file_path = self.check_parquet_file(parquet_file_path)
+
         if self.connection is None:
-            raise ConnectionError("Database is not connected.")
+            raise ConnectionError(self.DATABASE_NOT_CONNECTED_ERROR)
         
         # Split the table name if it contains a period
         schema_name, table_name = table_name.split('.') if '.' in table_name else (None, table_name)
@@ -262,9 +298,9 @@ class DuckDBWrapper:
         :raises ValueError: If the query is not a SELECT query.
         """
         if self.connection is None:
-            raise ConnectionError("Database is not connected.")
+            raise ConnectionError(self.DATABASE_NOT_CONNECTED_ERROR)
         if not query.strip().lower().startswith("select"):
-            raise ValueError("Only SELECT queries are allowed.")
+            raise ValueError(self.ONLY_SELECT_QUERIES_ALLOWED_ERROR)
         
         query = f"COPY ({query}) TO '{csv_file_path}' (FORMAT 'csv', DELIMITER '{delimiter}', HEADER);"
         self.execute_query(query)
@@ -278,7 +314,7 @@ class DuckDBWrapper:
         :raises ConnectionError: If the database is not connected.
         """
         if self.connection is None:
-            raise ConnectionError("Database is not connected.")
+            raise ConnectionError(self.DATABASE_NOT_CONNECTED_ERROR)
         
         if output_directory is None:
             output_directory = schema_name
@@ -306,7 +342,7 @@ class DuckDBWrapper:
         :raises FileNotFoundError: If the directory does not exist.
         """
         if self.connection is None:
-            raise ConnectionError("Database is not connected.")
+            raise ConnectionError(self.DATABASE_NOT_CONNECTED_ERROR)
         
         if input_directory is None:
             input_directory = schema_name
@@ -352,6 +388,9 @@ class DuckDBWrapper:
         if parameters:
             query = query.format(**parameters)
 
+        if self.connection is None:
+            raise ConnectionError(self.DATABASE_NOT_CONNECTED_ERROR)
+
         return self.execute_select_query_to_json(query)
 
     def read_named_query(self, query_name: str, directory: str = "queries", parameters: dict = None):
@@ -389,13 +428,13 @@ class DuckDBWrapper:
         :raises FileNotFoundError: If the Parquet file does not exist.
         :raises ConnectionError: If the database is not connected.
         """
-        if not parquet_file_path.endswith(".parquet"):
-            parquet_file_path += ".parquet"
-        if not os.path.isfile(parquet_file_path):
-            raise FileNotFoundError(f"Parquet file '{parquet_file_path}' does not exist.")
+
+        # Check if the Parquet file exists
+        parquet_file_path = self.check_parquet_file(parquet_file_path)
+
         if self.connection is None:
-            raise ConnectionError("Database is not connected.")
-        
+            raise ConnectionError(self.DATABASE_NOT_CONNECTED_ERROR)
+
         # Describe the structure of the Parquet file
         describe_query = f"DESCRIBE SELECT * FROM read_parquet('{parquet_file_path}');"
         structure = self.execute_query(describe_query)
