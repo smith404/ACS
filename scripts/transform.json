@@ -49,13 +49,31 @@
             }
         },
         {
-            "transform_type": "conditional",
-            "target_column": "Magnitude",
-            "conditions": {
-                "F": "First",
-                "C": "Current",
-                "R": "Retired"
-            }
+            "transform_type": "select",
+            "columns": [
+                "Series_reference",
+                "Month",
+                "Subject",
+                "STATUS",
+                "Level",
+                "Group",
+                "Series_title_1",
+                "Series_title_2",
+                "Series_title_3"
+            ]
+        },
+        {
+            "transform_type": "select_expression",
+            "columns": [
+                "Series_reference",
+                "Month",
+                "Subject",
+                "STATUS",
+                "Level",
+                "Level + 20 as New_Level",
+                "Group",
+                "Series_title_1"
+            ]
         }
     ]
 }

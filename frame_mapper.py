@@ -91,8 +91,7 @@ class FrameMapper:
         return df
 
     def transfrom_type_set_column(self, mapping, df):
-        df = df = df.withColumn(mapping.get("source_column"), lit(mapping.get("default_value")))
-        return df
+        return self.transfrom_type_add_column(mapping, df)
 
     def transfrom_type_add_column(self, mapping, df):
         df = df = df.withColumn(mapping.get("source_column"), lit(mapping.get("default_value")))
@@ -107,6 +106,14 @@ class FrameMapper:
             df = df.withColumn(mapping.get("source_column"), when(col(mapping.get("source_column")) == key, lit(value)).otherwise(col(mapping.get("source_column"))))
         return df
 
+    def transfrom_type_select(self, mapping, df):
+        df = df.select(mapping.get("columns"))
+        return df
+    
+    def transfrom_type_select_expression(self, mapping, df):
+        df = df.selectExpr(mapping.get("columns"))
+        return df
+    
 def main():
     """
     Main method to demonstrate the usage of FrameMapper class.

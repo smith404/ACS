@@ -34,6 +34,8 @@ data = [("John", 37, "M", "3410", "Q1_2024"), ("Alice", 64, "F", "1400", "Q2_202
 columns = ["Name", "Age", "Gender", "TOA", "FIN_PERIOD"]
 df = spark.createDataFrame(data, columns)
 
+
+
 # Rename the column "Age" to "CurrentAge"
 df = df.withColumnRenamed("Age", "CurrentAge")
 
@@ -48,6 +50,12 @@ df = df.withColumn("MonthsOld", col("CurrentAge") * 12)
 
 # Show the DataFrame
 df.show()
+
+# Create a new DataFrame based on df with columns: "Age", "Gender", "FIN_PERIOD"
+df_new = df.select("CurrentAge", "Gender", "FIN_PERIOD").withColumnRenamed("CurrentAge", "Age")
+
+# Show the new DataFrame
+df_new.show()
 
 # Group by "Gender" and calculate the average "MonthsOld"
 df_grouped = df.groupBy("Gender").agg(avg("MonthsOld").alias("AverageMonthsOld"))
