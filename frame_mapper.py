@@ -145,6 +145,47 @@ class FrameMapper:
                     print(f"No aggregation method found for: {method_name}")
             df = df.groupBy(mapping.get('columns')).agg(*agg_exprs)
         return df
+
+    def transfrom_type_update_columns(self, mapping, df):
+        columns = mapping.get("columns", [])
+        for column in columns:
+            condition_expr = self.build_condition_expr(column.get("conditions", []))
+            if condition_expr is not None:
+                df = df.withColumn(column.get("source_column"), sf.when(condition_expr, sf.lit(column.get("target_value"))).otherwise(sf.col(column.get("source_column"))))
+        return df
+
+    def build_condition_expr(self, conditions):
+        condition_expr = None
+        for condition in conditions:
+            col_name = condition.get("column")
+            operator = condition.get("operator")
+            value = condition.get("value")
+            expr = self.get_condition_expr(col_name, operator, value)
+            if expr is not None:
+                condition_expr = expr if condition_expr is None else condition_expr & expr
+        return condition_expr
+
+    def get_condition_expr(self, col_name, operator, value):
+        if operator == ">":
+            return sf.col(col_name) > value
+        elif operator == "<":
+            return sf.col(col_name) < value
+        elif operator == "==":
+            return sf.col(col_name) == value
+        elif operator == "!=":
+            return sf.col(col_name) != value
+        elif operator == ">=":
+            return sf.col(col_name) >= value
+        elif operator == "<=":
+            return sf.col(col_name) <= value
+        elif operator == "like":
+            return sf.col(col_name).like(value)
+        elif operator == "is_null":
+            return sf.col(col_name).isNull()
+        elif operator == "is_not_null":
+            return sf.col(col_name).isNotNull()
+        else:
+            return None
     
 def main():
     """
