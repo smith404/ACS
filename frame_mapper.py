@@ -185,6 +185,19 @@ class FrameMapper:
             return sf.col(col_name).isNotNull()
         else:
             return None
+
+    def transfrom_type_split_column(self, mapping, df):
+        source_column = mapping.get("source_column")
+        delimiter = mapping.get("delimiter")
+        target_columns = mapping.get("target_columns", [])
+        if source_column and delimiter and target_columns:
+            split_col = sf.split(sf.col(source_column), delimiter)
+            for idx, target_column in enumerate(target_columns):
+                if idx < len(split_col):
+                    df = df.withColumn(target_column, split_col.getItem(idx))
+                else:
+                    df = df.withColumn(target_column, sf.lit(None))
+        return df
     
 def main():
     """

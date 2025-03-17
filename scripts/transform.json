@@ -44,11 +44,17 @@
             "transform_type": "drop_columns",
             "columns": [
                 {
-                    "source_column": "Series_title_4"
-                },
-                {
                     "source_column": "Series_title_5"
                 }
+            ]
+        },
+        {
+            "transform_type": "split_column",
+            "source_column": "FIN_PERIOD",
+            "delimiter": "_",
+            "target_columns": [
+                "FROM_QUARTER",
+                "TO_QUARTER"
             ]
         },
         {
@@ -70,6 +76,8 @@
                 "Level",
                 "Level + 20 as New_Level",
                 "Group",
+                "FROM_QUARTER",
+                "TO_QUARTER",
                 "Series_title_1"
             ]
         },
@@ -80,6 +88,8 @@
                 "STATUS",
                 "New_Level",
                 "Group",
+                "FROM_QUARTER",
+                "TO_QUARTER",
                 "Series_title_1"
             ],
             "aggregations": [
@@ -110,7 +120,7 @@
                         {
                             "column": "Sum_Level",
                             "operator": ">",
-                            "value": 9
+                            "value": 0
                         }
                     ] 
                 },
