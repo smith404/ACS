@@ -58,18 +58,22 @@ class FrameMapper:
         """
         value = self.mapping.get(property_name)
         if isinstance(value, str):
-            tokens = [token.strip('{}') for token in value.split(sep="/") if token.startswith('{') and token.endswith('}')]
-            for token in tokens:
-                if token == 'uuid':
-                    value = value.replace(f'{{{token}}}', self.uuid)
-                elif token == 'cob':
-                    value = value.replace(f'{{{token}}}', self.cob)
-                elif token == 'time':
-                    value = value.replace(f'{{{token}}}', self.time)
-                elif token == 'version':
-                    value = value.replace(f'{{{token}}}', self.version)
-                else:
-                    value = value.replace(f'{{{token}}}', self.mapping.get(token, ''))
+            value = self.replace_tokens(value)
+        return value
+
+    def replace_tokens(self, value):
+        tokens = [token.strip('{}') for token in value.split(sep="/") if token.startswith('{') and token.endswith('}')]
+        for token in tokens:
+            if token == 'uuid':
+                value = value.replace(f'{{{token}}}', self.uuid)
+            elif token == 'cob':
+                value = value.replace(f'{{{token}}}', self.cob)
+            elif token == 'time':
+                value = value.replace(f'{{{token}}}', self.time)
+            elif token == 'version':
+                value = value.replace(f'{{{token}}}', self.version)
+            else:
+                value = value.replace(f'{{{token}}}', self.mapping.get(token, ''))
         return value
 
     def process_transforms(self):
@@ -115,7 +119,13 @@ class FrameMapper:
     def transfrom_type_set_columns(self, mapping, df):
         columns = mapping.get("columns", [])
         for column in columns:
-            df = df = df.withColumn(column.get("source_column"), sf.lit(column.get("default_value")))
+            if "pattern_value" in column:
+                value = self.replace_tokens(column.get("pattern_value"))
+                if "_this_" in value:
+                    value = sf.expr(f"regexp_replace('{value}', '_this_', {column.get('source_column')})")
+                df = df.withColumn(column.get("source_column"), sf.lit(value))
+            else:
+                df = df.withColumn(column.get("source_column"), sf.lit(column.get("default_value")))
         return df
 
     def transfrom_type_simplemap(self, mapping, df):

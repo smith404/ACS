@@ -35,8 +35,8 @@
                     "default_value": 54
                 },
                 {
-                    "source_column": "Suppressed",
-                    "default_value": false
+                    "source_column": "Reference",
+                    "pattern_value": "X-_this_"
                 }
             ]
         },
