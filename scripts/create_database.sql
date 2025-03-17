@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS data_language.mapping_rules (
     rule_group_id INTEGER NOT NULL,
     step_number INTEGER NOT NULL,
     rule_name VARCHAR(50) NOT NULL,
-    rule_type VARCHAR(50) NOT NULL, -- ENUM('MAX', 'MIN', 'SUM', 'AVE', 'AND', 'OR', 'RENAME', 'REPLACE', 'REMOVE', 'ADD', 'COPY', 'MOVE', 'FILTER', 'SPLIT', 'MERGE', 'CONCATENATE', 'LOOKUP', 'MAP')
+    rule_type VARCHAR(50) NOT NULL, -- ENUM('RENAME', 'REPLACE', 'DROP', 'ADD', 'COPY', 'MOVE', 'FILTER', 'SPLIT', 'MERGE', 'CONCATENATE', 'LOOKUP', 'MAP')
     valid_from DATE NOT NULL,
     valid_to DATE NOT NULL,
     PRIMARY KEY (rule_id),

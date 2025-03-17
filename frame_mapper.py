@@ -193,12 +193,18 @@ class FrameMapper:
         if source_column and delimiter and target_columns:
             split_col = sf.split(sf.col(source_column), delimiter)
             for idx, target_column in enumerate(target_columns):
-                if idx < len(split_col):
-                    df = df.withColumn(target_column, split_col.getItem(idx))
-                else:
-                    df = df.withColumn(target_column, sf.lit(None))
+                df = df.withColumn(target_column, split_col.getItem(idx))
         return df
-    
+
+    def transfrom_type_merge_columns(self, mapping, df):
+        target_column = mapping.get("target_column")
+        delimiter = mapping.get("delimiter")
+        source_columns = mapping.get("source_columns", [])
+        if target_column and delimiter and source_columns:
+            merged_col = sf.concat_ws(delimiter, *[sf.col(col) for col in source_columns])
+            df = df.withColumn(target_column, merged_col)
+        return df
+
 def main():
     """
     Main method to demonstrate the usage of FrameMapper class.

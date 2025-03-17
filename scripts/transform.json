@@ -58,6 +58,15 @@
             ]
         },
         {
+            "transform_type": "merge_columns",
+            "target_column": "FIN_PERIOD",
+            "delimiter": ">>",
+            "source_columns": [
+                "FROM_QUARTER",
+                "Month"
+            ]
+        },
+        {
             "transform_type": "simplemap",
             "source_column": "STATUS",
             "mapping": {
@@ -76,7 +85,7 @@
                 "Level",
                 "Level + 20 as New_Level",
                 "Group",
-                "FROM_QUARTER",
+                "FIN_PERIOD",
                 "TO_QUARTER",
                 "Series_title_1"
             ]
@@ -88,7 +97,7 @@
                 "STATUS",
                 "New_Level",
                 "Group",
-                "FROM_QUARTER",
+                "FIN_PERIOD",
                 "TO_QUARTER",
                 "Series_title_1"
             ],
