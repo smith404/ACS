@@ -5,6 +5,13 @@
     "to_medallion_layer": "silver",
     "from_container": "scratch",
     "to_container": "scratch",
+    "spark_config": {
+        "spark.driver.memory": "2g",
+        "spark.executor.memory": "2g",
+        "spark.executor.cores": "2",
+        "spark.executor.instances": "2",
+        "spark.sql.debug.maxToStringFields": "100"
+    },
     "transforms": [
         {
             "transform_type": "rename_columns",

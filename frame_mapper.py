@@ -27,6 +27,7 @@ class FrameMapper:
         self.version = version if version else "v1.0.0"
         self.load_config()
         self.load_mapper()
+        self.apply_spark_config()
 
     def load_config(self):
         config_home = os.getenv('FM_CONFIG_HOME', '.')  # Get environment variable or default to current directory
@@ -38,6 +39,11 @@ class FrameMapper:
         with open(config_path, 'r') as file:
             self.config = yaml.safe_load(file)
         self.mapper_directory = self.config.get('mapper_directory', '')
+
+    def apply_spark_config(self):
+        spark_config = self.config.get('spark_config', {})
+        for key, value in spark_config.items():
+            self.spark.conf.set(key, value)
 
     def load_mapper(self):
         if not self.mapper.endswith('.json'):
@@ -264,6 +270,11 @@ def main():
 
         frame_mapper = FrameMapper(args.mapper, spark=spark_session)
         frame_mapper.process_transforms()
+
+        try:
+            spark_session.stop()
+        except Exception as e:
+            print(f"Error stopping Spark session: {e}")
         
 if __name__ == "__main__":
     main()
