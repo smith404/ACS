@@ -40,6 +40,10 @@
             "trim": true,
             "columns": [
                 {
+                    "source_column": "RowNum",
+                    "default_value": 1
+                },
+                {
                     "source_column": "Name",
                     "default_value": "Mark"
                 },
@@ -161,6 +165,10 @@
         {
             "transform_type": "set_column_type",
             "columns": [
+                {
+                    "column": "RowNum",
+                    "type": "counter"
+                },
                 {
                     "column": "Age",
                     "type": "int"

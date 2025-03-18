@@ -16,6 +16,7 @@ import os  # Import os module
 from datetime import datetime  # Import datetime module
 from pyspark.sql import SparkSession
 import pyspark.sql.functions as sf
+from pyspark.sql import Window  # Import Window module
 
 class FrameMapper:
     def __init__(self, mapper, spark, uuid_str=None, cob=None, time=None, version=None):
@@ -252,6 +253,9 @@ class FrameMapper:
                 df = df.withColumn(col_name, sf.col(col_name).cast("short"))
             elif col_type == "byte":
                 df = df.withColumn(col_name, sf.col(col_name).cast("byte"))
+            elif col_type == "counter":
+                window_spec = Window.orderBy(sf.monotonically_increasing_id())
+                df = df.withColumn(col_name, sf.row_number().over(window_spec))
         return df
 
     def transfrom_type_copy_columns(self, mapping, df):
