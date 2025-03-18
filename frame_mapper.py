@@ -40,17 +40,17 @@ class FrameMapper:
             self.config = yaml.safe_load(file)
         self.mapper_directory = self.config.get('mapper_directory', '')
 
-    def apply_spark_config(self):
-        spark_config = self.config.get('spark_config', {})
-        for key, value in spark_config.items():
-            self.spark.conf.set(key, value)
-
     def load_mapper(self):
         if not self.mapper.endswith('.json'):
             self.mapper += '.json'
         mapper_path = f"{self.mapper_directory}/{self.mapper}"
         with open(mapper_path, 'r') as file:
             self.mapping = json.load(file)
+
+    def apply_spark_config(self):
+        spark_config = self.mapping.get('spark_config', {})
+        for key, value in spark_config.items():
+            self.spark.conf.set(key, value)
 
     def get_mapping(self):
         return self.mapping
@@ -252,6 +252,12 @@ class FrameMapper:
                 df = df.withColumn(col_name, sf.col(col_name).cast("short"))
             elif col_type == "byte":
                 df = df.withColumn(col_name, sf.col(col_name).cast("byte"))
+        return df
+
+    def transfrom_type_copy_columns(self, mapping, df):
+        columns = mapping.get("columns", [])
+        for column in columns:
+            df = df.withColumn(column.get("target_column"), sf.col(column.get("source_column")))
         return df
 
 def main():

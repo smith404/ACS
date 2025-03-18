@@ -6,10 +6,6 @@
     "from_container": "scratch",
     "to_container": "scratch",
     "spark_config": {
-        "spark.driver.memory": "2g",
-        "spark.executor.memory": "2g",
-        "spark.executor.cores": "2",
-        "spark.executor.instances": "2",
         "spark.sql.debug.maxToStringFields": "100"
     },
     "transforms": [
@@ -27,6 +23,15 @@
                 {
                     "source_column": "Magnitude",
                     "target_column": "Level"
+                }
+            ]
+        },
+        {
+            "transform_type": "copy_columns",
+            "columns": [
+                {
+                    "source_column": "Level",
+                    "target_column": "Copy_Level"
                 }
             ]
         },
