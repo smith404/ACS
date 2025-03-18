@@ -10,6 +10,14 @@
     },
     "transforms": [
         {
+            "transform_type": "trim_columns",
+            "columns": [
+                "Series_reference",
+                "Period",
+                "Month"
+            ]
+        },
+        {
             "transform_type": "rename_columns",
             "columns": [
                 {

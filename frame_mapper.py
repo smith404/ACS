@@ -264,6 +264,13 @@ class FrameMapper:
             df = df.withColumn(column.get("target_column"), sf.col(column.get("source_column")))
         return df
 
+    def transfrom_type_trim_columns(self, mapping, df):
+        columns = mapping.get("columns", [])
+        for column in columns:
+            if dict(df.dtypes).get(column) == "string":
+                df = df.withColumn(column, sf.trim(sf.col(column)))
+        return df
+
 def main():
     """
     Main method to demonstrate the usage of FrameMapper class.
