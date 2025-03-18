@@ -25,6 +25,7 @@
         },
         {
             "transform_type": "set_columns",
+            "trim": true,
             "columns": [
                 {
                     "source_column": "Name",

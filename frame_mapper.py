@@ -119,13 +119,19 @@ class FrameMapper:
     def transfrom_type_set_columns(self, mapping, df):
         columns = mapping.get("columns", [])
         for column in columns:
+            trim = column.get("trim", False)
             if "pattern_value" in column:
                 value = self.replace_tokens(column.get("pattern_value"))
                 if "_this_" in value:
                     value = sf.expr(f"regexp_replace('{value}', '_this_', {column.get('source_column')})")
+                if trim:
+                    value = sf.trim(value)
                 df = df.withColumn(column.get("source_column"), sf.lit(value))
             else:
-                df = df.withColumn(column.get("source_column"), sf.lit(column.get("default_value")))
+                value = column.get("default_value")
+                if trim and isinstance(value, str):
+                    value = value.strip()
+                df = df.withColumn(column.get("source_column"), sf.lit(value))
         return df
 
     def transfrom_type_simplemap(self, mapping, df):
