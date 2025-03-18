@@ -221,6 +221,33 @@ class FrameMapper:
             df = df.withColumn(target_column, merged_col)
         return df
 
+    def transfrom_type_set_column_type(self, mapping, df):
+        columns = mapping.get("columns", [])
+        for column in columns:
+            col_name = column.get("column")
+            col_type = column.get("type")
+            if col_type == "int":
+                df = df.withColumn(col_name, sf.col(col_name).cast("int"))
+            elif col_type == "float":
+                df = df.withColumn(col_name, sf.col(col_name).cast("float"))
+            elif col_type == "string":
+                df = df.withColumn(col_name, sf.col(col_name).cast("string"))
+            elif col_type == "boolean":
+                df = df.withColumn(col_name, sf.col(col_name).cast("boolean"))
+            elif col_type == "date":
+                df = df.withColumn(col_name, sf.col(col_name).cast("date"))
+            elif col_type == "timestamp":
+                df = df.withColumn(col_name, sf.col(col_name).cast("timestamp"))
+            elif col_type == "long":
+                df = df.withColumn(col_name, sf.col(col_name).cast("long"))
+            elif col_type == "double":
+                df = df.withColumn(col_name, sf.col(col_name).cast("double"))
+            elif col_type == "short":
+                df = df.withColumn(col_name, sf.col(col_name).cast("short"))
+            elif col_type == "byte":
+                df = df.withColumn(col_name, sf.col(col_name).cast("byte"))
+        return df
+
 def main():
     """
     Main method to demonstrate the usage of FrameMapper class.

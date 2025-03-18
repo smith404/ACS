@@ -33,7 +33,7 @@
                 },
                 {
                     "source_column": "Age",
-                    "default_value": 54
+                    "default_value": null
                 },
                 {
                     "source_column": "Reference",
@@ -81,13 +81,12 @@
             "columns": [
                 "Reference",
                 "Month",
-                "Subject",
+                "Name",
+                "Age",
                 "STATUS",
                 "Level",
                 "Level + 20 as New_Level",
                 "Group",
-                "FIN_PERIOD",
-                "TO_QUARTER",
                 "Series_title_1"
             ]
         },
@@ -95,11 +94,11 @@
             "transform_type": "group_by",
             "columns": [
                 "Reference",
+                "Name",
+                "Age",
                 "STATUS",
                 "New_Level",
                 "Group",
-                "FIN_PERIOD",
-                "TO_QUARTER",
                 "Series_title_1"
             ],
             "aggregations": [
@@ -119,8 +118,8 @@
             "transform_type": "update_columns",
             "columns": [
                 {
-                    "source_column": "STATUS",
-                    "target_value": "Underflow",
+                    "source_column": "Name",
+                    "target_value": null,
                     "conditions": [
                         {
                             "column": "Sum_Level",
@@ -144,6 +143,19 @@
                             "value": "%jobs%"
                         }
                     ] 
+                }
+            ]
+        },
+        {
+            "transform_type": "set_column_type",
+            "columns": [
+                {
+                    "column": "Age",
+                    "type": "int"
+                },
+                {
+                    "column": "New_Level",
+                    "type": "float"
                 }
             ]
         }
