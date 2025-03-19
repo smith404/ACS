@@ -112,7 +112,13 @@
                 "Level + 20 as New_Level",
                 "Group",
                 "Series_title_1"
-            ]
+            ],
+            "filter":
+            {
+                "column": "Level",
+                "operator": ">",
+                "value": 0
+            }
         },
         {
             "transform_type": "group_by",

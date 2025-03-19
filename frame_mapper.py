@@ -148,10 +148,26 @@ class FrameMapper:
 
     def transfrom_type_select(self, mapping, df):
         df = df.select(mapping.get("columns"))
+        filter_condition = mapping.get("filter")
+        if filter_condition:
+            column = filter_condition.get("column")
+            operator = filter_condition.get("operator")
+            value = filter_condition.get("value")
+            condition_expr = self.get_condition_expr(column, operator, value)
+            if condition_expr is not None:
+                df = df.filter(condition_expr)
         return df
     
     def transfrom_type_select_expression(self, mapping, df):
         df = df.selectExpr(mapping.get("columns"))
+        filter_condition = mapping.get("filter")
+        if filter_condition:
+            column = filter_condition.get("column")
+            operator = filter_condition.get("operator")
+            value = filter_condition.get("value")
+            condition_expr = self.get_condition_expr(column, operator, value)
+            if condition_expr is not None:
+                df = df.filter(condition_expr)
         return df
     
     def transfrom_type_group_by(self, mapping, df):
@@ -271,6 +287,25 @@ class FrameMapper:
                 df = df.withColumn(column, sf.trim(sf.col(column)))
         return df
 
+    def transfrom_type_transpose_columns(self, mapping, df):
+        id_column = mapping.get("id_column")
+        value_columns = mapping.get("value_column", [])
+        if id_column and value_columns:
+            df = df.withColumn(
+                "transposed",
+                sf.explode(
+                    sf.array(
+                        *[sf.struct(sf.lit(col).alias(id_column), sf.col(col).alias("value")) for col in value_columns]
+                    )
+                )
+            )
+            df = df.select(
+                *[col for col in df.columns if col != "transposed"],
+                sf.col("transposed" + id_column).alias(id_column),
+                sf.col("transposed.value").alias("value")
+            )      
+        return df
+    
 def main():
     """
     Main method to demonstrate the usage of FrameMapper class.
