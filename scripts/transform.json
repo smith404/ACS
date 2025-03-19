@@ -68,9 +68,7 @@
         {
             "transform_type": "drop_columns",
             "columns": [
-                {
-                    "source_column": "Series_title_5"
-                }
+                "Series_title_5"
             ]
         },
         {
@@ -113,12 +111,13 @@
                 "Group",
                 "Series_title_1"
             ],
-            "filter":
-            {
-                "column": "Level",
-                "operator": ">",
-                "value": 0
-            }
+            "filter":[
+                {
+                    "column": "Level",
+                    "operator": ">",
+                    "value": 0
+                }
+            ]
         },
         {
             "transform_type": "group_by",
