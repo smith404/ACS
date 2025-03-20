@@ -6,6 +6,7 @@ CREATE SEQUENCE IF NOT EXISTS domain_key
 
 CREATE TABLE IF NOT EXISTS data_language.domains (
     domain_id INTEGER DEFAULT nextval('domain_key') NOT NULL,
+    uuid CHAR(36) NOT NULL UNIQUE,
     domain VARCHAR(10) NOT NULL UNIQUE,
     domain_description VARCHAR(255),
     PRIMARY KEY (domain_id)
@@ -17,6 +18,7 @@ CREATE SEQUENCE IF NOT EXISTS data_assets_key
 
 CREATE TABLE IF NOT EXISTS data_language.data_assets (
     data_asset_id INTEGER DEFAULT nextval('data_assets_key') NOT NULL,
+    uuid CHAR(36) NOT NULL UNIQUE,
     domain VARCHAR(10) NOT NULL,
     asset_name VARCHAR(50) NOT NULL UNIQUE,
     asset_description VARCHAR(255),
@@ -32,6 +34,7 @@ CREATE SEQUENCE IF NOT EXISTS data_attribute_key
 
 CREATE TABLE IF NOT EXISTS data_language.data_attributes (
     data_attribute_id INTEGER DEFAULT nextval('data_attribute_key') NOT NULL,
+    uuid CHAR(36) NOT NULL UNIQUE,
     attribute_name VARCHAR(50) NOT NULL,
     attribute_description VARCHAR(255),
     attribute_type VARCHAR(10) NOT NULL, -- ENUM('STRING', 'INTEGER', 'FLOAT', 'DATE', 'TIME', 'DATETIME', 'BOOLEAN', 'ENUM', 'OBJECT', 'ARRAY', 'MAP')
@@ -71,6 +74,7 @@ CREATE SEQUENCE IF NOT EXISTS mappings_key
 
 CREATE TABLE IF NOT EXISTS data_language.mappings (
     map_id INTEGER DEFAULT nextval('mappings_key') NOT NULL,
+    uuid CHAR(36) NOT NULL UNIQUE,
     map_name VARCHAR(50) NOT NULL UNIQUE,
     map_description VARCHAR(255),
     from_asset_id INTEGER NOT NULL,
@@ -87,6 +91,7 @@ CREATE SEQUENCE IF NOT EXISTS mapping_rule_group_key
 
 CREATE TABLE IF NOT EXISTS data_language.mapping_rule_groups (
     rule_group_id INTEGER DEFAULT nextval('mapping_rule_group_key') NOT NULL,
+    uuid CHAR(36) NOT NULL UNIQUE,
     group_name VARCHAR(50) NOT NULL,
     group_name_description VARCHAR(255),
     target_attribute_id INTEGER NOT NULL,
@@ -101,6 +106,7 @@ CREATE SEQUENCE IF NOT EXISTS mapping_rule_key
 
 CREATE TABLE IF NOT EXISTS data_language.mapping_rules (
     rule_id INTEGER DEFAULT nextval('mapping_rule_key') NOT NULL,
+    uuid CHAR(36) NOT NULL UNIQUE,
     rule_group_id INTEGER NOT NULL,
     step_number INTEGER NOT NULL,
     rule_name VARCHAR(50) NOT NULL,
