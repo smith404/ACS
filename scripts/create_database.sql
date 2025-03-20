@@ -35,7 +35,7 @@ CREATE SEQUENCE IF NOT EXISTS data_attribute_key
 CREATE TABLE IF NOT EXISTS data_language.data_attributes (
     data_attribute_id INTEGER DEFAULT nextval('data_attribute_key') NOT NULL,
     uuid CHAR(36) NOT NULL UNIQUE,
-    attribute_name VARCHAR(50) NOT NULL,
+    attribute_name VARCHAR(100) NOT NULL,
     attribute_description VARCHAR(255),
     attribute_type VARCHAR(10) NOT NULL, -- ENUM('STRING', 'INTEGER', 'FLOAT', 'DATE', 'TIME', 'DATETIME', 'BOOLEAN', 'ENUM', 'OBJECT', 'ARRAY', 'MAP')
     attribute_length INTEGER NOT NULL,
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS data_language.data_asset_attributes (
 
 CREATE TABLE IF NOT EXISTS data_language.attribute_values (
     data_attribute_id INTEGER NOT NULL,
-    attribute_value VARCHAR(100) NOT NULL,
+    attribute_value VARCHAR(255) NOT NULL,
     attribute_value_label VARCHAR(255),
     is_default BOOLEAN NOT NULL,
     valid_from DATE NOT NULL,

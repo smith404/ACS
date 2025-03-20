@@ -220,6 +220,8 @@ class FrameMapper:
             return sf.col(col_name) <= value
         elif operator == "like":
             return sf.col(col_name).like(value)
+        elif operator == "not like":
+            return ~sf.col(col_name).like(value)
         elif operator == "is_null":
             return sf.col(col_name).isNull()
         elif operator == "is_not_null":
