@@ -1,27 +1,16 @@
 package com.k2.acs.model;
 
+import lombok.Data;
+import lombok.AllArgsConstructor;
+
+@Data
+@AllArgsConstructor
 public class UltimateValue {
     private double amount;
-    private String type;
+    private Type type;
+    private String typeOfAmount;
 
-    public UltimateValue(double amount, String type) {
-        this.amount = amount;
-        this.type = type;
-    }
-
-    public double getAmount() {
-        return amount;
-    }
-
-    public void setAmount(double amount) {
-        this.amount = amount;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
+    public enum Type {
+        PREMIUM, COST, CLAIM
     }
 }

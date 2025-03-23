@@ -1,28 +1,18 @@
 package com.k2.acs.model;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import java.util.ArrayList;
 import java.util.List;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Pattern {
     private String type;
-    private List<PatternElement> elements;
-
-    public Pattern(String type) {
-        this.type = type;
-        this.elements = new ArrayList<>();
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public List<PatternElement> getElements() {
-        return elements;
-    }
+    private List<PatternElement> elements = new ArrayList<>();
+    private int contractDuration;
 
     public void addElement(PatternElement element) {
         elements.add(element);
