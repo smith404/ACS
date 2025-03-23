@@ -1,0 +1,39 @@
+{
+    "columns" : [
+        "First Name",
+        "Last Name",
+        "Company",
+        "City",
+        "Country"
+    ],
+    "target_column" : "Classification",
+    "default": "Unknown",
+    "rule_separator" : "/",
+    "rules" : [
+        {
+            "pattern" : "*/*/*/*/Afghanistan",
+            "value" : "Low"
+        },
+        {
+            "pattern" : "*/*/*/Goodmanborough/*",
+            "value" : "High"
+        },
+        {
+            "pattern" : "*/*/*/*/United States of America",
+            "value" : "High"
+        },
+        {
+            "pattern" : "*/*/*/Birdtown/United States of America",
+            "value" : "Medium"
+        },
+        {
+            "pattern" : "*/*/*/*/Liechtenstein",
+            "value" : "Ultra High"
+        },
+        {
+            "pattern" : "*/*/*/*/Switzerland",
+            "value" : "Ultra High"
+        }
+    ]
+
+}
