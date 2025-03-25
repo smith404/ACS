@@ -142,8 +142,10 @@ class FrameMapper:
         return df
 
     def transfrom_type_simplemap(self, mapping, df):
-        for key, value in mapping.get("mapping").items():
-            df = df.withColumn(mapping.get("source_column"), sf.when(sf.col(mapping.get("source_column")) == key, sf.lit(value)).otherwise(sf.col(mapping.get("source_column"))))
+        targetColumns = mapping.get("target_columns", [])
+        for targetColumn in targetColumns:
+            for key, value in mapping.get("mapping").items():
+                df = df.withColumn(targetColumn, sf.when(sf.col(targetColumn) == key, sf.lit(value)).otherwise(sf.col(targetColumn))
         return df
 
     def transfrom_type_select(self, mapping, df):
@@ -308,6 +310,29 @@ class FrameMapper:
                 sf.col("transposed." + id_column).alias(id_column),
                 sf.col("transposed.value").alias("value")
             )      
+        return df
+
+    def transfrom_type_map(self, mapping, df):
+        target_column = mapping.get("target_column")
+        map_dict = mapping.get("mapping", {})
+        default_value = mapping.get("default_value", None)
+        
+        # Create a DataFrame from the mapping dictionary
+        map_df = self.spark.createDataFrame(
+            [(k, v) for k, v in map_dict.items()],
+            ["from", "to"]
+        )
+        
+        # Join the input DataFrame with the mapping DataFrame
+        if default_value is None:
+            df = df.join(map_df, df[target_column] == map_df["from"], how="left") \
+                .withColumn(target_column, sf.when(sf.col("to").isNotNull(), sf.col("to"))
+                    .otherwise(sf.col(target_column))).drop("from", "to")
+        else:
+            df = df.join(map_df, df[target_column] == map_df["from"], how="left") \
+               .withColumn(target_column, sf.when(sf.col("to").isNotNull(), sf.col("to"))
+                    .otherwise(sf.lit(default_value))).drop("from", "to")
+        
         return df
     
 def main():

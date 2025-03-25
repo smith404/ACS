@@ -91,7 +91,23 @@
         },
         {
             "transform_type": "simplemap",
-            "source_column": "STATUS",
+            "target_columns": [
+                "FROM_QUARTER",
+                "TO_QUARTER"
+            ],
+            "mapping": {
+                "F": "First",
+                "C": "Current",
+                "R": "Retired"
+            }
+        },
+        {
+            "transform_type": "map",
+            "default_value": "Unknown",
+            "target_columns": [
+                "FROM_QUARTER",
+                "TO_QUARTER"
+            ],
             "mapping": {
                 "F": "First",
                 "C": "Current",
