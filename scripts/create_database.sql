@@ -79,7 +79,8 @@ CREATE TABLE IF NOT EXISTS data_language.mappings (
     map_description VARCHAR(255),
     from_asset_id INTEGER NOT NULL,
     to_asset_id INTEGER NOT NULL,
-    target_attr_value_id VARCHAR(50) NOT NULL,
+    sucess_mapping CHAR(36) NOT NULL,
+    fail_mapping CHAR(36) NOT NULL,
     PRIMARY KEY (map_id),
     FOREIGN KEY (from_asset_id) REFERENCES data_language.data_assets(data_asset_id),
     FOREIGN KEY (to_asset_id) REFERENCES data_language.data_assets(data_asset_id)
@@ -94,8 +95,9 @@ CREATE TABLE IF NOT EXISTS data_language.mapping_rule_groups (
     uuid CHAR(36) NOT NULL UNIQUE,
     group_name VARCHAR(50) NOT NULL,
     group_name_description VARCHAR(255),
+    rule_group_type VARCHAR(255) NOT NULL,
     target_attribute_id INTEGER NOT NULL,
-    target_attribute_value VARCHAR(255) NOT NULL,
+    target_attribute_value VARCHAR(255),
     PRIMARY KEY (rule_group_id),
     FOREIGN KEY (target_attribute_id) REFERENCES data_language.data_attributes(data_attribute_id)
 );
