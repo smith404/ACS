@@ -145,7 +145,7 @@ class FrameMapper:
         targetColumns = mapping.get("target_columns", [])
         for targetColumn in targetColumns:
             for key, value in mapping.get("mapping").items():
-                df = df.withColumn(targetColumn, sf.when(sf.col(targetColumn) == key, sf.lit(value)).otherwise(sf.col(targetColumn))
+                df = df.withColumn(targetColumn, sf.when(sf.col(targetColumn) == key, sf.lit(value)).otherwise(sf.col(targetColumn)))
         return df
 
     def transfrom_type_select(self, mapping, df):
@@ -313,7 +313,7 @@ class FrameMapper:
         return df
 
     def transfrom_type_map(self, mapping, df):
-        target_column = mapping.get("target_column")
+        target_columns = mapping.get("target_columns", )
         map_dict = mapping.get("mapping", {})
         default_value = mapping.get("default_value", None)
         
@@ -322,16 +322,24 @@ class FrameMapper:
             [(k, v) for k, v in map_dict.items()],
             ["from", "to"]
         )
-        
-        # Join the input DataFrame with the mapping DataFrame
-        if default_value is None:
-            df = df.join(map_df, df[target_column] == map_df["from"], how="left") \
-                .withColumn(target_column, sf.when(sf.col("to").isNotNull(), sf.col("to"))
-                    .otherwise(sf.col(target_column))).drop("from", "to")
-        else:
-            df = df.join(map_df, df[target_column] == map_df["from"], how="left") \
-               .withColumn(target_column, sf.when(sf.col("to").isNotNull(), sf.col("to"))
-                    .otherwise(sf.lit(default_value))).drop("from", "to")
+   
+        for target_column in target_columns:
+            if default_value:
+                df = df.join(map_df, 
+                            on=(df[target_column] == map_df["from"]),
+                            how="left"
+                        ).withColumn(
+                            target_column,
+                            sf.when(sf.col("to").isNotNull(), sf.col("to")).otherwise(sf.lit(default_value))
+                        ).drop("from", "to")
+            else:
+                df = df.join(map_df, 
+                            on=(df[target_column] == map_df["from"]),
+                            how="left"
+                        ).withColumn(
+                            target_column,
+                            sf.when(sf.col("to").isNotNull(), sf.col("to")).otherwise(sf.col(target_column))
+                        ).drop("from", "to")
         
         return df
     
