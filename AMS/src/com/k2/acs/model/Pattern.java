@@ -8,6 +8,10 @@ import java.util.List;
 
 import java.util.Map;
 import java.util.EnumMap;
+import java.util.Date;
+import java.util.Calendar;
+import java.time.LocalDate;
+import java.util.stream.Collectors;
 
 
 @Data
@@ -83,11 +87,22 @@ public class Pattern {
     }
 
     public boolean isDistributionValid() {
-        double sum = 0;
+        double sumDistribution = 0;
+        double sumInitialDistribution = 0;
         for (PatternElement element : elements) {
-            sum += element.getDistribution();
+            sumDistribution += element.getDistribution();
+            sumInitialDistribution += element.getInitialDistribution();
         }
-        return sum == 1.0;
+        return sumDistribution == 1.0 && sumInitialDistribution == 1.0;
+    }
+
+    public List<Factor> iterateElementsWithStartDate(LocalDate startDate) {
+        List<Factor> factors = new ArrayList<>();
+        for (PatternElement element : elements) {
+            factors.addAll(element.generateFactors(startDate));
+            startDate = startDate.plusDays(element.getLength());
+        }
+        return factors;
     }
 
     public enum Type {

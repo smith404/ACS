@@ -25,16 +25,17 @@ public class Main {
         pattern.setType("Monthly Pattern");
 
         // Add two PatternElements of type MONTH with a distribution of 0.5 each
-        PatternElement element1 = new PatternElement(0.5, Pattern.Type.MONTH, null);
-        PatternElement element2 = new PatternElement(0.5, Pattern.Type.DAY, null);
+        PatternElement element1 = new PatternElement(0.2, 0.4, Pattern.Type.MONTH);
+        PatternElement element2 = new PatternElement(0.4, Pattern.Type.MONTH);
         pattern.addElement(element1);
         pattern.addElement(element2);
 
-        // Generate factors starting from February 21, 2024
+        // Use February 21, 2024, as the start date
         LocalDate startDate = LocalDate.of(2024, 2, 21);
-        List<Factor> factors = element1.generateFactors(startDate);
-
-        // Print the generated factors
-        factors.forEach(System.out::println);
+        List<Factor> factors = pattern.iterateElementsWithStartDate(startDate);
+        System.out.println("Factors for the pattern:");
+        for (Factor factor : factors) {
+            System.out.println(factor);
+        }
     }
 }
