@@ -139,3 +139,15 @@ CREATE TABLE IF NOT EXISTS data_language.mapping_rule_assignments (
     FOREIGN KEY (rule_group_id) REFERENCES data_language.mapping_rule_groups(rule_group_id)
 );
 
+CREATE SEQUENCE IF NOT EXISTS data_assets_key 
+    START WITH 1 
+    INCREMENT BY 1;
+
+CREATE TABLE IF NOT EXISTS data_language.data_tranformations (
+    data_trnsformation_id INTEGER DEFAULT nextval('data_assets_key') NOT NULL,
+    uuid CHAR(36) NOT NULL UNIQUE,
+    domain VARCHAR(10) NOT NULL,
+    map_id INTEGER NOT NULL,
+    PRIMARY KEY (data_asset_id),
+    FOREIGN KEY (data_trnsformation_id) REFERENCES data_language.mappings(map_id),
+);

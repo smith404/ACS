@@ -1,14 +1,14 @@
 package com.k2.acs.model;
 
 import lombok.Data;
-import java.util.Date;
+import java.time.LocalDate;
 
 @Data
 public class Factor {
     private double distribution;
-    private Date date;
+    private LocalDate date;
 
-    public Factor(double distribution, Date date) {
+    public Factor(double distribution, LocalDate date) {
         this.distribution = distribution;
         this.date = date;
     }
