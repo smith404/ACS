@@ -7,9 +7,15 @@ import java.time.LocalDate;
 public class Factor {
     private double distribution;
     private LocalDate date;
+    private double value;
 
-    public Factor(double distribution, LocalDate date) {
+    public Factor(double distribution, LocalDate date, double value) {
         this.distribution = distribution;
         this.date = date;
+        this.value = value;
+    }
+
+    public Factor(double distribution, LocalDate date) {
+        this(distribution, date, 0);
     }
 }

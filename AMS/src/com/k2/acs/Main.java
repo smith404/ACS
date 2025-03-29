@@ -4,6 +4,7 @@ import com.k2.acs.model.UltimateValue;
 import com.k2.acs.model.Pattern;
 import com.k2.acs.model.PatternElement;
 import com.k2.acs.model.Factor;
+import com.k2.acs.model.Calculator;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -12,7 +13,7 @@ public class Main {
     public static void main(String[] args) {
         // Create an UltimateValue object
         UltimateValue ultimateValue = new UltimateValue();
-        ultimateValue.setAmount(1000.0);
+        ultimateValue.setAmount(1945.0);
         ultimateValue.setType(UltimateValue.Type.PREMIUM);
         ultimateValue.addProperty("TOA", "1100");
         ultimateValue.addProperty("UV_BASIS", 39);
@@ -32,10 +33,13 @@ public class Main {
 
         // Use February 21, 2024, as the start date
         LocalDate startDate = LocalDate.of(2024, 2, 21);
-        List<Factor> factors = pattern.iterateElementsWithStartDate(startDate);
-        System.out.println("Factors for the pattern:");
-        for (Factor factor : factors) {
-            System.out.println(factor);
-        }
+
+        Calculator calculator = new Calculator();
+
+        List<Factor> factors = calculator.applyUltimateValueToPattern(pattern, ultimateValue, startDate);
+
+        // Print the results
+        factors.forEach(factor -> System.out.println(factor.toString()));
+
     }
 }
