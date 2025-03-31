@@ -12,7 +12,7 @@ from flask_wtf.csrf import CSRFProtect
 from duckdb_wrapper import DuckDBWrapper
 from pattern import Pattern
 from pattern_evaluator import PatternBlock, PatternEvaluator
-from pattern_slice import PatternSlice
+from pattern_element import PatternElement
 from pattern_routes import pattern_bp
 from config import database_path
 

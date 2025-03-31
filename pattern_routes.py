@@ -10,14 +10,14 @@
 from flask import Blueprint, Response, request, render_template
 from pattern import Pattern
 from pattern_evaluator import PatternBlock, PatternEvaluator
-from pattern_slice import PatternSlice
+from pattern_element import PatternElement
 
 pattern_bp = Blueprint('pattern', __name__)
 
 @pattern_bp.route('/pattern/new')
 def pattern_new() -> Response:
     pattern = Pattern()
-    slice = PatternSlice()
+    slice = PatternElement()
     slice.developmentPeriods = 1
     slice.weight = 1
     pattern.add_slice(slice)
@@ -25,8 +25,8 @@ def pattern_new() -> Response:
 
 @pattern_bp.route('/patternslice/new')
 def pattern_slice__new() -> Response:
-    patternSlice = PatternSlice()
-    return Response(patternSlice.to_json(), mimetype='application/json')
+    patternElement = PatternElement()
+    return Response(patternElement.to_json(), mimetype='application/json')
 
 @pattern_bp.route('/patternblock/new')
 def pattern_block_new() -> Response:

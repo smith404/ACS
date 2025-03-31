@@ -26,6 +26,7 @@ public class Pattern {
 
     static {
         typeToDaysMap.put(Type.DAY, 1);
+        typeToDaysMap.put(Type.WEEK, 7);
         typeToDaysMap.put(Type.MONTH, 30);
         typeToDaysMap.put(Type.QUARTER, 90);
         typeToDaysMap.put(Type.YEAR, 360);
@@ -105,7 +106,23 @@ public class Pattern {
         return factors;
     }
 
+    public Pattern add(Pattern other) {
+        if (!this.type.equals(other.type)) {
+            throw new IllegalArgumentException("Patterns must have the same type to be added.");
+        }
+
+        Pattern result = new Pattern();
+        result.setType(this.type);
+        result.setContractDuration(this.contractDuration + other.contractDuration);
+
+        List<PatternElement> combinedElements = new ArrayList<>(this.elements);
+        combinedElements.addAll(other.elements);
+        result.setElements(combinedElements);
+
+        return result;
+    }
+
     public enum Type {
-        DAY, MONTH, QUARTER, YEAR
+        DAY, WEEK, MONTH, QUARTER, YEAR
     }
 }

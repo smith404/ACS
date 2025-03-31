@@ -9,9 +9,10 @@
  
 import json
 from typing import List
-from pattern_evaluator import PatternBlock, BlockShape
+from pattern_block import BlockShape, PatternBlock
 
-class PatternSlice:
+
+class PatternElement:
     def __init__(self, distribution: float = 0, startDistribution: float = 0, weight: float = 0, duration: int = 0, startOffset: int = 0, durationOffset: int = 0, developmentPeriods: int = 0):
         self.distribution = distribution
         self.startDistribution = startDistribution
@@ -82,7 +83,7 @@ class PatternSlice:
         })
 
     @classmethod
-    def from_json(cls, json_str: str) -> 'PatternSlice':
+    def from_json(cls, json_str: str) -> 'PatternElement':
         data = json.loads(json_str)
         return cls(
             distribution=data.get('distribution', 0),
@@ -95,4 +96,4 @@ class PatternSlice:
         )
 
     def __str__(self) -> str:
-        return f"PatternSlice: (Distribution: {self.distribution}, Start Distribution: {self.startDistribution}, Duration: {self.duration}, Start Offset: {self.startOffset}, Duration Offset: {self.durationOffset}, Development Periods: {self.developmentPeriods}, Weight: {self.weight})"
+        return f"PatternElement: (Distribution: {self.distribution}, Start Distribution: {self.startDistribution}, Duration: {self.duration}, Start Offset: {self.startOffset}, Duration Offset: {self.durationOffset}, Development Periods: {self.developmentPeriods}, Weight: {self.weight})"

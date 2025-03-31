@@ -39,7 +39,15 @@ public class Main {
         List<Factor> factors = calculator.applyUltimateValueToPattern(pattern, ultimateValue, startDate);
 
         // Print the results
-        factors.forEach(factor -> System.out.println(factor.toString()));
+        //factors.forEach(factor -> System.out.println(factor.toString()));
 
+        List<Factor> factors1 = element1.generateFactors(startDate);
+        System.out.println("\n\nFactors for element1:");
+        factors1.forEach(factor -> System.out.println(factor.toString()));
+        
+        PatternElement element3 = PatternElement.fromFactors(factors1, Pattern.Type.QUARTER);
+        List<Factor> factors3 = element3.generateFactors(startDate);
+        System.out.println("\n\nFactors for element3:");
+        factors3.forEach(factor -> System.out.println(factor.toString()));
     }
 }
