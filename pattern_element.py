@@ -11,6 +11,29 @@ import json
 from typing import List
 from pattern_block import BlockShape, PatternBlock
 
+from enum import Enum
+
+class ElementType(str, Enum):
+    YEAR = "YEAR"
+    QUARTER = "QUARTER"
+    MONTH = "MONTH"
+    WEEK = "WEEK"
+    DAY = "DAY"
+
+    def __init__(self, *args):
+        self.days_mapping = {
+            ElementType.YEAR: 360,
+            ElementType.QUARTER: 90,
+            ElementType.MONTH: 30,
+            ElementType.WEEK: 7,
+            ElementType.DAY: 1
+        }
+
+    def get_days(self) -> int:
+        return self.days_mapping[self]
+
+    def update_days_mapping(self, shape: 'ElementType', days: int):
+        self.days_mapping[shape] = days
 
 class PatternElement:
     def __init__(self, distribution: float = 0, startDistribution: float = 0, weight: float = 0, duration: int = 0, startOffset: int = 0, durationOffset: int = 0, developmentPeriods: int = 0):
