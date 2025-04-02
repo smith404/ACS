@@ -20,20 +20,21 @@ class ElementType(str, Enum):
     WEEK = "WEEK"
     DAY = "DAY"
 
-    def __init__(self, *args):
-        self.days_mapping = {
-            ElementType.YEAR: 360,
-            ElementType.QUARTER: 90,
-            ElementType.MONTH: 30,
-            ElementType.WEEK: 7,
-            ElementType.DAY: 1
-        }
+    # Static mapping of ElementType to number of days
+    DAYS_MAP = {
+        YEAR: 365,
+        QUARTER: 90,
+        MONTH: 30,
+        WEEK: 7,
+        DAY: 1
+    }
 
     def get_days(self) -> int:
-        return self.days_mapping[self]
+        return self.DAYS_MAP[self]
 
     def update_days_mapping(self, shape: 'ElementType', days: int):
-        self.days_mapping[shape] = days
+        self.DAYS_MAP[shape] = days
+
 
 class PatternElement:
     def __init__(self, distribution: float = 0, startDistribution: float = 0, weight: float = 0, duration: int = 0, startOffset: int = 0, durationOffset: int = 0, developmentPeriods: int = 0):
