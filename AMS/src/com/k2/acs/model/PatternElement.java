@@ -6,12 +6,11 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
 public class PatternElement {
-    public static PatternElement fromFactors(List<Factor> factors, Pattern.Type type) {
+    public static PatternElement fromFactors(List<Factor> factors, Type type) {
         double totalDistribution = factors.stream()
                                           .mapToDouble(Factor::getDistribution)
                                           .sum();
@@ -29,22 +28,22 @@ public class PatternElement {
     private final String uuid = UUID.randomUUID().toString(); // Generate UUID on creation
     private double distribution = 0;
     private double initialDistribution = 0;
-    private Pattern.Type type;
+    private Type type;
     private Pattern parentPattern; // Reference to the parent pattern
 
-    public PatternElement(double initialDistribution, double distribution, Pattern.Type type) {
+    public PatternElement(double initialDistribution, double distribution, Type type) {
         this.initialDistribution = initialDistribution;
         this.distribution = distribution;
         this.type = type;
     }
 
-    public PatternElement(double distribution, Pattern.Type type) {
+    public PatternElement(double distribution, Type type) {
         this.distribution = distribution;
         this.type = type;
     }
 
-    public List<Factor> generateFactors(LocalDate startDate) {
-        int days = Pattern.getDaysForType(this.type);
+    public List<Factor> generateFactors(Calculator calculator, LocalDate startDate) {
+        int days = calculator.getDaysForType(this.type, startDate);
         List<Factor> factors = new ArrayList<>();
         double factorDistribution = this.distribution / days; // Calculate distribution per factor
 
@@ -59,30 +58,11 @@ public class PatternElement {
         return factors;
     }
 
-    public int getLength() {
-        return Pattern.getDaysForType(this.type);
+    public int getLength(Calculator calculator) {
+        return calculator.getDaysForType(this.type);
     }
 
-    public void weightPattern(double[] weights) {
-        if (weights.length != this.getLength()) {
-            throw new IllegalArgumentException("The number of weights must match the number of elements.");
-        }
-
-        double totalWeight = 0;
-        for (double weight : weights) {
-            totalWeight += weight;
-        }
-
-        double factorDistribution = this.distribution / totalWeight;
-
-        for (int i = 0; i < weights.length; i++) {
-            if (i == 0) {
-                this.initialDistribution = factorDistribution * weights[i];
-                this.distribution = factorDistribution * weights[i];
-            } else {
-                // Adjust the distribution for subsequent elements
-                this.distribution = factorDistribution * weights[i];
-            }
-        }
+    public enum Type {
+        DAY, WEEK, MONTH, QUARTER, YEAR
     }
 }
