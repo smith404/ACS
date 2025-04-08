@@ -59,6 +59,24 @@ public class PatternElement {
         return factors;
     }
 
+    public List<Factor> generateEarningFactors(LocalDate startDate) {
+        int elementDays = Calculator.getDaysForType(this.type, startDate);
+        int contractDurationDays = parentPattern.getDuration();
+        List<Factor> factors = new ArrayList<>();
+        double factorDistribution = this.distribution / (elementDays + contractDurationDays); 
+        double initialFactorDistribution = this.initialDistribution / contractDurationDays; 
+
+        for (int i = 0; i < elementDays + contractDurationDays; i++) {
+            if (i < contractDurationDays) {
+                factors.add(new Factor(factorDistribution + initialFactorDistribution, startDate.plusDays(i)));
+            } else {
+                factors.add(new Factor(factorDistribution, startDate.plusDays(i)));
+            }
+        }
+
+        return factors;
+    }
+
     public int getLength() {
         return Calculator.getDaysForType(this.type);
     }

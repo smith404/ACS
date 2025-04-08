@@ -25,6 +25,7 @@ public class Pattern {
         if (elements.contains(element)) {
             throw new IllegalArgumentException("Element already exists in the pattern.");
         }
+        element.setParentPattern(this);
         elements.add(element);
     }
 
@@ -39,6 +40,7 @@ public class Pattern {
         if (elements.contains(element)) {
             throw new IllegalArgumentException("Element already exists in the pattern.");
         }
+        element.setParentPattern(this);
         elements.add(index, element);
     }
 

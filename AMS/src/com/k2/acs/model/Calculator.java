@@ -1,9 +1,5 @@
 package com.k2.acs.model;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-
 import java.time.LocalDate;
 import java.util.EnumMap;
 import java.util.List;
@@ -15,6 +11,11 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 
 public class Calculator {
+    public enum FactorType {
+        WRITING,
+        EARNING
+    }
+
     private static final Map<PatternElement.Type, Integer> typeToDaysMap = new EnumMap<>(PatternElement.Type.class);
     private static boolean useCalendar = false;
 
@@ -38,15 +39,16 @@ public class Calculator {
         return useCalendar;
     }
 
-    public static List<LocalDate> getQuarterStartDates(int year) {
-        return IntStream.rangeClosed(1, 4)
-                        .mapToObj(quarter -> LocalDate.of(year, (quarter - 1) * 3 + 1, 1))
-                        .collect(Collectors.toList());
-    }
-
     public static List<LocalDate> getQuarterEndDates(int year) {
         return IntStream.rangeClosed(1, 4)
                         .mapToObj(quarter -> LocalDate.of(year, quarter * 3, 1).withDayOfMonth(LocalDate.of(year, quarter * 3, 1).lengthOfMonth())) // Adjusted to include the first quarter
+                        .collect(Collectors.toList());
+    }
+
+    public static List<LocalDate> getQuarterEndDates(int startYear, int endYear) {
+        return IntStream.rangeClosed(startYear, endYear)
+                        .boxed()
+                        .flatMap(year -> getQuarterEndDates(year).stream())
                         .collect(Collectors.toList());
     }
 
@@ -75,12 +77,15 @@ public class Calculator {
         return typeToDaysMap.getOrDefault(type, 0);
     }
 
-    public List<Factor> calculateDailyWritingFactors(LocalDate startDate) {
+    public List<Factor> calculateDailyFactors(LocalDate startDate, FactorType factorType) {
         List<Factor> allFactors = new ArrayList<>();
         for (PatternElement element : pattern.getElements()) {
-            List<Factor> factors = element.generateWritingFactors(startDate);
+            List<Factor> factors = switch (factorType) {
+                case WRITING -> element.generateWritingFactors(startDate);
+                case EARNING -> element.generateEarningFactors(startDate);
+            };
             allFactors.addAll(factors);
-            startDate = startDate.plusDays(factors.size()); // Increment startDate by the length of the factor list
+            startDate = startDate.plusDays(Calculator.getDaysForType(element.getType(), startDate)); 
         }
         return allFactors;
     }

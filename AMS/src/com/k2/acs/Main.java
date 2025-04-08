@@ -22,6 +22,7 @@ public class Main {
         // Create a Pattern object
         Pattern pattern = new Pattern();
         pattern.setType("INCR");
+        pattern.setDuration(360); // Set the duration to 6 months
 
         // Add two PatternElements of type MONTH with a distribution of 0.5 each
         PatternElement element1 = new PatternElement(0.2, PatternElement.Type.QUARTER);
@@ -37,18 +38,13 @@ public class Main {
         LocalDate startDate = LocalDate.of(2024, 2, 21);
 
         Calculator calculator = new Calculator(6, pattern);
+        Calculator.setUseCalendar(false);
 
-        List<Factor> factors = calculator.calculateDailyWritingFactors(startDate);
+        List<Factor> factors = calculator.calculateDailyFactors(startDate, Calculator.FactorType.EARNING);
 
         factors = calculator.applyUltimateValueToPattern(factors, ultimateValue);
 
-        //factors.forEach(factor -> System.out.println(factor.toString()));
-
-        List<CashFlow> cashFlows = calculator.generateCashFlows(factors, LocalDate.of(2024, 1, 1), Calculator.getQuarterEndDates(2024));
-
-        cashFlows.forEach(cashFlow -> System.out.println(cashFlow.toString()));
-
-        cashFlows = calculator.generateCashFlows(factors, LocalDate.of(2025, 1, 1), Calculator.getQuarterEndDates(2025));
+        List<CashFlow> cashFlows = calculator.generateCashFlows(factors, LocalDate.of(2024, 1, 1), Calculator.getQuarterEndDates(2023,2026));
 
         cashFlows.forEach(cashFlow -> System.out.println(cashFlow.toString()));
     }
