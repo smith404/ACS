@@ -9,8 +9,10 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 
 @Data
 @NoArgsConstructor
@@ -28,6 +30,18 @@ public class Calculator {
 
     public static void updateTypeToDays(PatternElement.Type type, int days) {
         typeToDaysMap.put(type, days);
+    }
+
+    public static List<LocalDate> getQuarterStartDates(int year) {
+        return IntStream.rangeClosed(1, 4) // Changed from range(0, 4) to rangeClosed(1, 4)
+                        .mapToObj(quarter -> LocalDate.of(year, (quarter - 1) * 3 + 1, 1)) // Adjusted to include the first quarter
+                        .collect(Collectors.toList());
+    }
+
+    public static List<LocalDate> getQuarterEndDates(int year) {
+        return IntStream.rangeClosed(1, 4) // Changed from range(0, 4) to rangeClosed(1, 4)
+                        .mapToObj(quarter -> LocalDate.of(year, quarter * 3, 1).withDayOfMonth(LocalDate.of(year, quarter * 3, 1).lengthOfMonth())) // Adjusted to include the first quarter
+                        .collect(Collectors.toList());
     }
 
     private int precision = 6;
@@ -51,9 +65,13 @@ public class Calculator {
     }
 
     public List<Factor> calculateDailyFactors(Pattern pattern, LocalDate startDate) {
-        return pattern.getElements().stream()
-                      .flatMap(element -> element.generateFactors(this, startDate).stream())
-                      .collect(Collectors.toList());
+        List<Factor> allFactors = new ArrayList<>();
+        for (PatternElement element : pattern.getElements()) {
+            List<Factor> factors = element.generateFactors(this, startDate);
+            allFactors.addAll(factors);
+            startDate = startDate.plusDays(factors.size()); // Increment startDate by the length of the factor list
+        }
+        return allFactors;
     }
 
     public List<Factor> applyUltimateValueToPattern(List<Factor> factors, UltimateValue ultimateValue) {
@@ -75,13 +93,14 @@ public class Calculator {
                       .sum();
     }
 
-    public LocalDate addTypeToDate(LocalDate startDate, PatternElement.Type type) {
-        int daysToAdd = getDaysForType(type);
-        return startDate.plusDays(daysToAdd);
+    public List<CashFlow> generateCashFlows(List<Factor> factors, LocalDate startDate, List<LocalDate> dates) {
+        List<CashFlow> cashFlows = new ArrayList<>();
+        for (int i = 0; i < dates.size(); i++) {
+            if (i!=0) startDate = dates.get(i-1);
+            LocalDate endDate = dates.get(i);
+            double sum = sumValuesBetweenDates(factors, startDate, endDate);
+            cashFlows.add(new CashFlow(endDate, sum));
+        }
+        return cashFlows;
     }
-
-    public LocalDate addQuarterToDate(LocalDate startDate) {
-        return startDate.plusMonths(3);
-    }
-
 }

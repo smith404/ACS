@@ -12,7 +12,6 @@ import java.util.List;
 public class Pattern {
     private String type;
     private List<PatternElement> elements = new ArrayList<>();
-    private int contractDuration;
 
     public void addElement(PatternElement element, boolean transfer) {
         if (element.getParentPattern() != null && element.getParentPattern() != this) {
@@ -71,19 +70,16 @@ public class Pattern {
         return sumDistribution == 1.0 && sumInitialDistribution == 1.0;
     }
 
-    public Pattern add(Pattern other) {
+    public void apply(Pattern other) {
         if (!this.type.equals(other.type)) {
             throw new IllegalArgumentException("Patterns must have the same type to be added.");
         }
 
         Pattern result = new Pattern();
         result.setType(this.type);
-        result.setContractDuration(this.contractDuration + other.contractDuration);
 
         List<PatternElement> combinedElements = new ArrayList<>(this.elements);
         combinedElements.addAll(other.elements);
         result.setElements(combinedElements);
-
-        return result;
     }
 }

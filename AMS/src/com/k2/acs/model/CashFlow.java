@@ -4,19 +4,17 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Data
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
-public class UltimateValue extends PropertyObject {
+public class CashFlow extends PropertyObject {
     private double amount;
-    private Type type;
+    private LocalDate date;
 
-    public enum Type {
-        PREMIUM, COST, CLAIM
-    }
-
-    public UltimateValue(Type type, double amount) {
-        this.type = type;
+    public CashFlow(LocalDate date, double amount) {
+        this.date = date;
         this.amount = amount;
     }
 }

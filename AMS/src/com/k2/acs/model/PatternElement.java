@@ -45,7 +45,7 @@ public class PatternElement {
     public List<Factor> generateFactors(Calculator calculator, LocalDate startDate) {
         int days = calculator.getDaysForType(this.type, startDate);
         List<Factor> factors = new ArrayList<>();
-        double factorDistribution = this.distribution / days; // Calculate distribution per factor
+        double factorDistribution = this.distribution / days; 
 
         for (int i = 0; i < days; i++) {
             if (i == 0) {
