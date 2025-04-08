@@ -14,11 +14,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class Calculator {
     private static final Map<PatternElement.Type, Integer> typeToDaysMap = new EnumMap<>(PatternElement.Type.class);
+    private static boolean useCalendar = false;
 
     static {
         typeToDaysMap.put(PatternElement.Type.DAY, 1);
@@ -32,26 +30,39 @@ public class Calculator {
         typeToDaysMap.put(type, days);
     }
 
+    public static void setUseCalendar(boolean useCalendar) {
+        Calculator.useCalendar = useCalendar;
+    }
+
+    public static boolean isUseCalendar() {
+        return useCalendar;
+    }
+
     public static List<LocalDate> getQuarterStartDates(int year) {
-        return IntStream.rangeClosed(1, 4) // Changed from range(0, 4) to rangeClosed(1, 4)
-                        .mapToObj(quarter -> LocalDate.of(year, (quarter - 1) * 3 + 1, 1)) // Adjusted to include the first quarter
+        return IntStream.rangeClosed(1, 4)
+                        .mapToObj(quarter -> LocalDate.of(year, (quarter - 1) * 3 + 1, 1))
                         .collect(Collectors.toList());
     }
 
     public static List<LocalDate> getQuarterEndDates(int year) {
-        return IntStream.rangeClosed(1, 4) // Changed from range(0, 4) to rangeClosed(1, 4)
+        return IntStream.rangeClosed(1, 4)
                         .mapToObj(quarter -> LocalDate.of(year, quarter * 3, 1).withDayOfMonth(LocalDate.of(year, quarter * 3, 1).lengthOfMonth())) // Adjusted to include the first quarter
                         .collect(Collectors.toList());
     }
 
     private int precision = 6;
-    private boolean useCalendar = false;
+    private Pattern pattern = null;
 
-    public int getDaysForType(PatternElement.Type type) {
+    public Calculator(int precision, Pattern pattern) {
+        this.precision = precision;
+        this.pattern = pattern;
+    }
+
+    public static int getDaysForType(PatternElement.Type type) {
         return getDaysForType(type, LocalDate.now());
     }
 
-    public int getDaysForType(PatternElement.Type type, LocalDate startDate) {
+    public static int getDaysForType(PatternElement.Type type, LocalDate startDate) {
         if ((type == PatternElement.Type.MONTH || type == PatternElement.Type.QUARTER || type == PatternElement.Type.YEAR) && useCalendar) {
             LocalDate endDate = switch (type) {
                 case MONTH -> startDate.plusMonths(1);
@@ -64,10 +75,10 @@ public class Calculator {
         return typeToDaysMap.getOrDefault(type, 0);
     }
 
-    public List<Factor> calculateDailyFactors(Pattern pattern, LocalDate startDate) {
+    public List<Factor> calculateDailyWritingFactors(LocalDate startDate) {
         List<Factor> allFactors = new ArrayList<>();
         for (PatternElement element : pattern.getElements()) {
-            List<Factor> factors = element.generateFactors(this, startDate);
+            List<Factor> factors = element.generateWritingFactors(startDate);
             allFactors.addAll(factors);
             startDate = startDate.plusDays(factors.size()); // Increment startDate by the length of the factor list
         }

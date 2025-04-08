@@ -15,8 +15,9 @@ public class PatternElement {
                                           .mapToDouble(Factor::getDistribution)
                                           .sum();
 
-                                          // If we have only one factor, there is no initial distribution
+        // If we have only one factor, there is no initial distribution
         double initialDistribution = 0;
+
         // If we have multiple factors, the initial distribution is the first factor's distribution
         if (factors.size() > 1) {
             initialDistribution = factors.get(0).getDistribution() - factors.get(1).getDistribution();
@@ -29,7 +30,7 @@ public class PatternElement {
     private double distribution = 0;
     private double initialDistribution = 0;
     private Type type;
-    private Pattern parentPattern; // Reference to the parent pattern
+    private Pattern parentPattern;
 
     public PatternElement(double initialDistribution, double distribution, Type type) {
         this.initialDistribution = initialDistribution;
@@ -42,12 +43,12 @@ public class PatternElement {
         this.type = type;
     }
 
-    public List<Factor> generateFactors(Calculator calculator, LocalDate startDate) {
-        int days = calculator.getDaysForType(this.type, startDate);
+    public List<Factor> generateWritingFactors(LocalDate startDate) {
+        int elementDays = Calculator.getDaysForType(this.type, startDate);
         List<Factor> factors = new ArrayList<>();
-        double factorDistribution = this.distribution / days; 
+        double factorDistribution = this.distribution / elementDays; 
 
-        for (int i = 0; i < days; i++) {
+        for (int i = 0; i < elementDays; i++) {
             if (i == 0) {
                 factors.add(new Factor(factorDistribution + this.initialDistribution, startDate.plusDays(i)));
             } else {
@@ -58,8 +59,8 @@ public class PatternElement {
         return factors;
     }
 
-    public int getLength(Calculator calculator) {
-        return calculator.getDaysForType(this.type);
+    public int getLength() {
+        return Calculator.getDaysForType(this.type);
     }
 
     public enum Type {

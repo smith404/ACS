@@ -36,9 +36,9 @@ public class Main {
         // Use February 21, 2024, as the start date
         LocalDate startDate = LocalDate.of(2024, 2, 21);
 
-        Calculator calculator = new Calculator(6, true);
+        Calculator calculator = new Calculator(6, pattern);
 
-        List<Factor> factors = calculator.calculateDailyFactors(pattern, startDate);
+        List<Factor> factors = calculator.calculateDailyWritingFactors(startDate);
 
         factors = calculator.applyUltimateValueToPattern(factors, ultimateValue);
 

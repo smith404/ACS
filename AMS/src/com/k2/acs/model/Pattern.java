@@ -12,6 +12,7 @@ import java.util.List;
 public class Pattern {
     private String type;
     private List<PatternElement> elements = new ArrayList<>();
+    private int duration = 0;
 
     public void addElement(PatternElement element, boolean transfer) {
         if (element.getParentPattern() != null && element.getParentPattern() != this) {
