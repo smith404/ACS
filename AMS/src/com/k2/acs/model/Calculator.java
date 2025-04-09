@@ -52,6 +52,19 @@ public class Calculator {
                         .collect(Collectors.toList());
     }
 
+    public static List<LocalDate> getMonthEndDates(int year) {
+        return IntStream.rangeClosed(1, 12)
+                        .mapToObj(month -> LocalDate.of(year, month, 1).withDayOfMonth(LocalDate.of(year, month, 1).lengthOfMonth()))
+                        .collect(Collectors.toList());
+    }
+
+    public static List<LocalDate> getMonthEndDates(int startYear, int endYear) {
+        return IntStream.rangeClosed(startYear, endYear)
+                        .boxed()
+                        .flatMap(year -> getMonthEndDates(year).stream())
+                        .collect(Collectors.toList());
+    }
+
     private int precision = 6;
     private Pattern pattern = null;
 
@@ -118,5 +131,41 @@ public class Calculator {
             cashFlows.add(new CashFlow(endDate, sum));
         }
         return cashFlows;
+    }
+
+    public List<Factor> combineDailyFactors(Pattern pattern1, Pattern pattern2, LocalDate startDate, FactorType factorType) {
+        List<Factor> factors1 = new Calculator(precision, pattern1).calculateDailyFactors(startDate, factorType);
+        List<Factor> factors2 = new Calculator(precision, pattern2).calculateDailyFactors(startDate, factorType);
+
+        int size = Math.min(factors1.size(), factors2.size());
+        List<Factor> combinedFactors = new ArrayList<>();
+
+        for (int i = 0; i < size; i++) {
+            Factor factor1 = factors1.get(i);
+            Factor factor2 = factors2.get(i);
+            combinedFactors.add(new Factor(
+                factor1.getDistribution() * factor2.getDistribution(),
+                factor1.getDate(),
+                factor1.getValue() * factor2.getValue()
+            ));
+        }
+
+        return combinedFactors;
+    }
+
+    public List<Factor> normalizeFactors(List<Factor> factors) {
+        double totalDistribution = factors.stream()
+                                   .mapToDouble(Factor::getDistribution)
+                                   .sum();
+        if (totalDistribution == 0) {
+            throw new IllegalArgumentException("Total value of factors cannot be zero for normalization.");
+        }
+        return factors.stream()
+                      .map(factor -> new Factor(
+                          factor.getDistribution() / totalDistribution,
+                          factor.getDate(),
+                          factor.getValue()
+                      ))
+                      .collect(Collectors.toList());
     }
 }

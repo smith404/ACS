@@ -72,17 +72,4 @@ public class Pattern {
         }
         return sumDistribution == 1.0 && sumInitialDistribution == 1.0;
     }
-
-    public void apply(Pattern other) {
-        if (!this.type.equals(other.type)) {
-            throw new IllegalArgumentException("Patterns must have the same type to be added.");
-        }
-
-        Pattern result = new Pattern();
-        result.setType(this.type);
-
-        List<PatternElement> combinedElements = new ArrayList<>(this.elements);
-        combinedElements.addAll(other.elements);
-        result.setElements(combinedElements);
-    }
 }
