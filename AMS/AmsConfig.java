@@ -5,8 +5,10 @@ import java.time.ZoneId;
 
 @Data
 public class AmsConfig {
+    private int precision = 6;
     private Date lob;
     private boolean showPastFuture;
+    private boolean endOfPeriod = false;
     private String cashFlowFrequency;
     private Date cashFlowStart;
     private Date cashFlowEnd;
