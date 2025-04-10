@@ -29,9 +29,6 @@ public class Main {
             UltimateValue ultimateValue = new UltimateValue(UltimateValue.Type.PREMIUM, config.getAmount());
             ultimateValue.addProperty("TOA", config.getToa());
 
-            // Print the UltimateValue object
-            System.out.println(ultimateValue);
-
             // Create a Pattern object using AmsConfig
             Pattern pattern = new Pattern();
             pattern.setType(config.getPatternType());
@@ -57,24 +54,16 @@ public class Main {
 
             factors = calculator.applyUltimateValueToPattern(factors, ultimateValue);
 
-            List<LocalDate> dates =  Calculator.getStartDatesBetween(
+            List<LocalDate> endPoints =  Calculator.getEndDatesBetween(
                     config.getCashFlowStartAsLocalDate().getYear(),
                     config.getCashFlowEndAsLocalDate().getYear(),
                     PatternElement.Type.valueOf(config.getCashFlowFrequency().toUpperCase())
                 );
 
-            dates.forEach(nullDate -> {
-                System.out.println("Cash Flow Date: " + nullDate);
-            }); 
-
             List<CashFlow> cashFlows = calculator.generateCashFlows(
                 factors,
                 config.getCashFlowStartAsLocalDate(),
-                Calculator.getStartDatesBetween(
-                    config.getCashFlowStartAsLocalDate().getYear(),
-                    config.getCashFlowEndAsLocalDate().getYear(),
-                    PatternElement.Type.valueOf(config.getCashFlowFrequency().toUpperCase())
-                ),
+                endPoints,
                 config.isEndOfPeriod()
             );
 

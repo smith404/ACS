@@ -17,7 +17,6 @@ public class CashFlow extends PropertyObject {
     private LocalDate dueDate;
     private LocalDate SettlementDate;
     private String valuation;
-    private String status;
     private String CRE;
 
     public CashFlow(LocalDate incurredDate, double amount) {
