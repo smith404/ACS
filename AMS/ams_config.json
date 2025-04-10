@@ -1,0 +1,29 @@
+{
+    "lob": "2025-01-01",
+    "showPastFuture": true,
+    "cashFlowFrequency": "QUARTER",
+    "cashFlowStart": "2024-01-01",
+    "cashFlowEnd": "2026-12-31",
+    "amount": 1000,
+    "currency": "USD",
+    "toa": "A1100",
+    "duration": 360,
+    "calendar": true,
+    "contractDate": "2024-07-01",
+    "patternType": "INCR",
+    "factor": "earning",
+    "elements": [ {
+        "type": "QUARTER",
+        "initial": 0.1284,
+        "distribution": 0.2179
+    }, {
+        "type": "QUARTER",
+        "distribution": 0.2179
+    }, {
+        "type": "QUARTER",
+        "distribution": 0.2179
+    }, {
+        "type": "QUARTER",
+        "distribution": 0.2179
+    } ]
+}

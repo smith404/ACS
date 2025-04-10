@@ -5,7 +5,6 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -39,30 +38,46 @@ public class Calculator {
         return useCalendar;
     }
 
-    public static List<LocalDate> getQuarterEndDates(int year) {
-        return IntStream.rangeClosed(1, 4)
-                        .mapToObj(quarter -> LocalDate.of(year, quarter * 3, 1).withDayOfMonth(LocalDate.of(year, quarter * 3, 1).lengthOfMonth())) // Adjusted to include the first quarter
-                        .collect(Collectors.toList());
+    public static List<LocalDate> getEndDatesBetween(int startYear, int endYear, PatternElement.Type frequency) {
+        List<LocalDate> endDates = new ArrayList<>();
+        LocalDate currentDate = LocalDate.of(startYear, 1, 1);
+        LocalDate endDate = LocalDate.of(endYear, 12, 31);
+
+        while (!currentDate.isAfter(endDate)) {
+            switch (frequency) {
+                case DAY -> currentDate = currentDate.plusDays(1);
+                case WEEK -> currentDate = currentDate.plusWeeks(1);
+                case MONTH -> currentDate = currentDate.plusMonths(1);
+                case QUARTER -> currentDate = currentDate.plusMonths(3);
+                case YEAR -> currentDate = currentDate.plusYears(1);
+                default -> throw new IllegalArgumentException("Unsupported frequency type: " + frequency);
+            }
+            if (!currentDate.isAfter(endDate)) {
+                endDates.add(currentDate.minusDays(1));
+            }
+        }
+
+        return endDates;
     }
 
-    public static List<LocalDate> getQuarterEndDates(int startYear, int endYear) {
-        return IntStream.rangeClosed(startYear, endYear)
-                        .boxed()
-                        .flatMap(year -> getQuarterEndDates(year).stream())
-                        .collect(Collectors.toList());
-    }
+    public static List<LocalDate> getStartDatesBetween(int startYear, int endYear, PatternElement.Type frequency) {
+        List<LocalDate> startDates = new ArrayList<>();
+        LocalDate currentDate = LocalDate.of(startYear, 1, 1);
+        LocalDate endDate = LocalDate.of(endYear, 12, 31);
+        
+        while (!currentDate.isAfter(endDate)) {
+            startDates.add(currentDate);
+            switch (frequency) {
+                case DAY -> currentDate = currentDate.plusDays(1);
+                case WEEK -> currentDate = currentDate.plusWeeks(1);
+                case MONTH -> currentDate = currentDate.plusMonths(1);
+                case QUARTER -> currentDate = currentDate.plusMonths(3);
+                case YEAR -> currentDate = currentDate.plusYears(1);
+                default -> throw new IllegalArgumentException("Unsupported frequency type: " + frequency);
+            }
+        }
 
-    public static List<LocalDate> getMonthEndDates(int year) {
-        return IntStream.rangeClosed(1, 12)
-                        .mapToObj(month -> LocalDate.of(year, month, 1).withDayOfMonth(LocalDate.of(year, month, 1).lengthOfMonth()))
-                        .collect(Collectors.toList());
-    }
-
-    public static List<LocalDate> getMonthEndDates(int startYear, int endYear) {
-        return IntStream.rangeClosed(startYear, endYear)
-                        .boxed()
-                        .flatMap(year -> getMonthEndDates(year).stream())
-                        .collect(Collectors.toList());
+        return startDates;
     }
 
     private int precision = 6;
@@ -108,9 +123,7 @@ public class Calculator {
                       .map(factor -> new Factor(
                           factor.getDistribution(),
                           factor.getDate(),
-                          BigDecimal.valueOf(factor.getDistribution() * ultimateValue.getAmount())
-                                    .setScale(precision, RoundingMode.HALF_UP)
-                                    .doubleValue()
+                          factor.getDistribution() * ultimateValue.getAmount()
                       ))
                       .collect(Collectors.toList());
     }
@@ -127,7 +140,9 @@ public class Calculator {
         for (int i = 0; i < dates.size(); i++) {
             if (i!=0) startDate = dates.get(i-1);
             LocalDate endDate = dates.get(i);
-            double sum = sumValuesBetweenDates(factors, startDate, endDate);
+            double sum = BigDecimal.valueOf(sumValuesBetweenDates(factors, startDate, endDate))
+            .setScale(precision, RoundingMode.HALF_UP)
+            .doubleValue();
             cashFlows.add(new CashFlow(endDate, sum));
         }
         return cashFlows;

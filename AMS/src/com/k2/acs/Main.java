@@ -23,7 +23,7 @@ public class Main {
         // Create a Pattern object
         Pattern pattern = new Pattern();
         pattern.setType("INCR");
-        pattern.setDuration(360);
+        pattern.setDuration(365);
 
         // Add two PatternElements of type MONTH with a distribution of 0.5 each
         PatternElement element1 = new PatternElement(0.1284, 0.2179, PatternElement.Type.QUARTER);
@@ -36,53 +36,19 @@ public class Main {
         pattern.addElement(element4);
 
         // Use February 21, 2024, as the start date
-        LocalDate startDate = LocalDate.of(2024, 2, 21);
+        LocalDate startDate = LocalDate.of(2024, 7, 1);
 
         Calculator calculator = new Calculator(6, pattern);
-        Calculator.setUseCalendar(false);
+        Calculator.setUseCalendar(true);
 
         List<Factor> factors = calculator.calculateDailyFactors(startDate, Calculator.FactorType.EARNING);
 
         factors = calculator.applyUltimateValueToPattern(factors, ultimateValue);
         //factors.forEach(factor -> System.out.println(factor.toString()));
 
-        List<CashFlow> cashFlows = calculator.generateCashFlows(factors, LocalDate.of(2024, 1, 1), Calculator.getMonthEndDates(2024,2026));
+        List<CashFlow> cashFlows = calculator.generateCashFlows(factors, LocalDate.of(2024, 1, 1), Calculator.getStartDatesBetween(2024,2026, PatternElement.Type.QUARTER));
 
         cashFlows.forEach(cashFlow -> System.out.println(cashFlow.toString()));
-
-        // Create a Pattern object
-        Pattern riskPattern = new Pattern();
-        pattern.setType("SEAS");
-        pattern.setDuration(360);
-
-        // Add two PatternElements of type MONTH with a distribution of 0.5 each
-        PatternElement riskElement1 = new PatternElement(1, PatternElement.Type.MONTH);
-        PatternElement riskElement2 = new PatternElement(1, PatternElement.Type.MONTH);
-        PatternElement riskElement3 = new PatternElement(2, PatternElement.Type.MONTH);
-        PatternElement riskElement4 = new PatternElement(3, PatternElement.Type.MONTH);
-        PatternElement riskElement5 = new PatternElement(3, PatternElement.Type.MONTH);
-        PatternElement riskElement6 = new PatternElement(1, PatternElement.Type.MONTH);
-        PatternElement riskElement7 = new PatternElement(1, PatternElement.Type.MONTH);
-        PatternElement riskElement8 = new PatternElement(1, PatternElement.Type.MONTH);
-        PatternElement riskElement9 = new PatternElement(4, PatternElement.Type.MONTH);
-        PatternElement riskElement10 = new PatternElement(3, PatternElement.Type.MONTH);
-        PatternElement riskElement11 = new PatternElement(2, PatternElement.Type.MONTH);
-        PatternElement riskElement12 = new PatternElement(1, PatternElement.Type.MONTH);
-        riskPattern.addElement(riskElement1);
-        riskPattern.addElement(riskElement2);
-        riskPattern.addElement(riskElement3);
-        riskPattern.addElement(riskElement4);
-        riskPattern.addElement(riskElement5);
-        riskPattern.addElement(riskElement6);
-        riskPattern.addElement(riskElement7);
-        riskPattern.addElement(riskElement8);
-        riskPattern.addElement(riskElement9);
-        riskPattern.addElement(riskElement10);
-        riskPattern.addElement(riskElement11);
-        riskPattern.addElement(riskElement12);
-
-        List<Factor> newFactors = calculator.combineDailyFactors(pattern, riskPattern, startDate, FactorType.EARNING);
-        calculator.normalizeFactors(newFactors).forEach(factor -> System.out.println(factor.toString()));
 
     }
 }
