@@ -1,12 +1,17 @@
-import lombok.Data;
+package com.k2.acs;
+
+import java.util.Date;
 import java.util.List;
+
+import lombok.Data;
+
 import java.time.LocalDate;
 import java.time.ZoneId;
 
 @Data
 public class AmsConfig {
     private int precision = 6;
-    private Date lob;
+    private Date lbd;
     private boolean showPastFuture;
     private boolean endOfPeriod = false;
     private String cashFlowFrequency;
@@ -22,8 +27,8 @@ public class AmsConfig {
     private String factor;
     private List<Element> elements;
 
-    public LocalDate getLobAsLocalDate() {
-        return lob != null ? lob.toInstant().atZone(ZoneId.systemDefault()).toLocalDate() : null;
+    public LocalDate getLbdAsLocalDate() {
+        return lbd != null ? lbd.toInstant().atZone(ZoneId.systemDefault()).toLocalDate() : null;
     }
 
     public LocalDate getCashFlowStartAsLocalDate() {
@@ -41,7 +46,7 @@ public class AmsConfig {
     @Data
     public static class Element {
         private String type;
-        private Double initial;
-        private Double distribution;
+        private Double initial = 0.0;
+        private Double distribution = 0.0;
     }
 }

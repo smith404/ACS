@@ -135,15 +135,18 @@ public class Calculator {
                       .sum();
     }
 
-    public List<CashFlow> generateCashFlows(List<Factor> factors, LocalDate startDate, List<LocalDate> dates) {
+    public List<CashFlow> generateCashFlows(List<Factor> factors, LocalDate startDate, List<LocalDate> dates, boolean toEnd) {
         List<CashFlow> cashFlows = new ArrayList<>();
         for (int i = 0; i < dates.size(); i++) {
-            if (i!=0) startDate = dates.get(i-1);
-            LocalDate endDate = dates.get(i);
-            double sum = BigDecimal.valueOf(sumValuesBetweenDates(factors, startDate, endDate))
-            .setScale(precision, RoundingMode.HALF_UP)
-            .doubleValue();
-            cashFlows.add(new CashFlow(endDate, sum));
+            if (dates.get(i).isAfter(startDate.minusDays(1))) {
+                LocalDate endDate = dates.get(i);
+                double sum = BigDecimal.valueOf(sumValuesBetweenDates(factors, startDate, endDate))
+                    .setScale(precision, RoundingMode.HALF_UP)
+                    .doubleValue();
+                CashFlow cashFlow = new CashFlow(toEnd ? endDate : startDate, sum);
+                cashFlows.add(cashFlow);
+                startDate = endDate.plusDays(1);
+                }
         }
         return cashFlows;
     }
