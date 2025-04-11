@@ -135,17 +135,17 @@ public class Calculator {
                       .sum();
     }
 
-    public List<CashFlow> generateCashFlows(List<Factor> factors, LocalDate startDate, List<LocalDate> dates, boolean toEnd) {
+    public List<CashFlow> generateCashFlows(List<Factor> factors, LocalDate startDate, List<LocalDate> endDates, boolean toEnd) {
         List<CashFlow> cashFlows = new ArrayList<>();
-        for (int i = 0; i < dates.size(); i++) {
-            if (dates.get(i).isAfter(startDate.minusDays(1))) {
-                LocalDate endDate = dates.get(i);
-                double sum = BigDecimal.valueOf(sumValuesBetweenDates(factors, startDate, endDate))
+        for (int i = 0; i < endDates.size(); i++) {
+            if (endDates.get(i).isAfter(startDate.minusDays(1))) {
+                LocalDate currentEndDate = endDates.get(i);
+                double sum = BigDecimal.valueOf(sumValuesBetweenDates(factors, startDate, currentEndDate))
                     .setScale(precision, RoundingMode.HALF_UP)
                     .doubleValue();
-                CashFlow cashFlow = new CashFlow(toEnd ? endDate : startDate, sum);
+                CashFlow cashFlow = new CashFlow(toEnd ? currentEndDate : startDate, sum);
                 cashFlows.add(cashFlow);
-                startDate = endDate.plusDays(1);
+                startDate = currentEndDate.plusDays(1);
                 }
         }
         return cashFlows;
@@ -185,5 +185,11 @@ public class Calculator {
                           factor.getValue()
                       ))
                       .collect(Collectors.toList());
+    }
+
+    public double roundToPrecision(double value) {
+        return BigDecimal.valueOf(value)
+                         .setScale(precision, RoundingMode.HALF_UP)
+                         .doubleValue();
     }
 }

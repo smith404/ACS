@@ -9,6 +9,8 @@ import com.k2.acs.model.Calculator;
 import com.k2.acs.model.CashFlow;
 
 import java.io.File;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -67,16 +69,31 @@ public class Main {
                 config.isEndOfPeriod()
             );
 
-            cashFlows.forEach(cashFlow -> {
+            // Calculate the sum of cash flows before and after the lbd
+            LocalDate lbd = config.getLbdAsLocalDate();
+            double sumBeforeLbd = 0.0;
+            double sumAfterLbd = 0.0;
+
+            for (CashFlow cashFlow : cashFlows) {
                 cashFlow.setValuation("BASELINE");
                 cashFlow.setCRE(config.getToa());
                 if (cashFlow.getAmount() != 0) {
+                    if (cashFlow.getIncurredDate().isBefore(lbd)) {
+                        sumBeforeLbd += cashFlow.getAmount();
+                    } else {
+                        sumAfterLbd += cashFlow.getAmount();
+                    }
                     System.out.println(cashFlow.toString());
                 }
-            });
+            }
 
+            // Print the rounded sums
+            System.out.println("Sum of cash flows before LBD: " + calculator.roundToPrecision(sumBeforeLbd));
+            System.out.println("Sum of cash flows after LBD: " + calculator.roundToPrecision(sumAfterLbd));
+
+            
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("Error processing the configuration file: " + e.getMessage());
         }
     }
 }
