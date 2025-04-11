@@ -77,6 +77,8 @@ public class Main {
             for (CashFlow cashFlow : cashFlows) {
                 cashFlow.setValuation("BASELINE");
                 cashFlow.setCRE(config.getToa());
+                cashFlow.setCurrency(config.getCurrency());
+                cashFlow.addProperty("PATTERN_TYPE", config.getFactor());
                 if (cashFlow.getAmount() != 0) {
                     if (cashFlow.getIncurredDate().isBefore(lbd)) {
                         sumBeforeLbd += cashFlow.getAmount();

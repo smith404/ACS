@@ -19,4 +19,8 @@ public class UltimateValue extends PropertyObject {
         this.type = type;
         this.amount = amount;
     }
+
+    public UltimateValue(BestEstimateCashFlow becf) {
+        
+    }
 }

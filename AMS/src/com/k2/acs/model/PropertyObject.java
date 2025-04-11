@@ -6,6 +6,9 @@ import java.util.List;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
+import lombok.ToString;
+
+@ToString
 public abstract class PropertyObject {
     protected List<Pair<String, Object>> properties = new ArrayList<>();
 
