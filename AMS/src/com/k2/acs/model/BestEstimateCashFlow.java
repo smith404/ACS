@@ -73,7 +73,7 @@ public class BestEstimateCashFlow extends PropertyObject {
         sb.append(String.format("%n%-15s %-15s %-15s %-15s %-15s %-15s%n", "Amount", "Currency", "IncurredDate", "ReportedDate", "DueDate", "SettlementDate"));
         sb.append("------------------------------------------------------------------------------------------\n");
         for (CashFlow cashFlow : cashFlows) {
-            sb.append(String.format("%f\t%-15s %-15s %-15s %-15s %-15s%n",
+            sb.append(String.format("%15.5f %-15s %-15s %-15s %-15s %-15s%n",
                     cashFlow.getAmount(),
                     cashFlow.getCurrency(),
                     cashFlow.getIncurredDate(),

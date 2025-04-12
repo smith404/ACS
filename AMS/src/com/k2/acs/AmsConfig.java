@@ -25,7 +25,7 @@ public class AmsConfig {
     private String toa;
     private int duration;
     private boolean calendar;
-    private Date contractDate;
+    private Date insuredPeriodStartDate;
     private String patternType;
     private String factor;
     private List<Element> elements;
@@ -42,8 +42,8 @@ public class AmsConfig {
         return cashFlowEnd != null ? cashFlowEnd.toInstant().atZone(ZoneId.systemDefault()).toLocalDate() : null;
     }
 
-    public LocalDate getContractDateAsLocalDate() {
-        return contractDate != null ? contractDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate() : null;
+    public LocalDate getInsuredPeriodStartDateAsLocalDate() {
+        return insuredPeriodStartDate != null ? insuredPeriodStartDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate() : null;
     }
 
     @Data

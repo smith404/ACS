@@ -54,7 +54,7 @@ public class Main {
             }
 
             // Use the contract date from AmsConfig as the start date
-            LocalDate startDate = config.getContractDateAsLocalDate();
+            LocalDate startDate = config.getInsuredPeriodStartDateAsLocalDate();
 
             Calculator.setUseCalendar(config.isCalendar());
             Calculator calculator = new Calculator(config.getPrecision(), pattern);
@@ -98,7 +98,7 @@ public class Main {
             bestEstimateCashFlow.addProperty("CRE", config.getToa());
             bestEstimateCashFlow.addProperty("Factor", config.getFactor());
             bestEstimateCashFlow.loadCashFlows(cashFlows);
-            bestEstimateCashFlow.sortCashFlows(false);
+            bestEstimateCashFlow.sortCashFlows();
 
             if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
                 getLogger().info(bestEstimateCashFlow.toString());
