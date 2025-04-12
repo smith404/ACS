@@ -91,20 +91,20 @@ angular.module('app').controller('PatternController', function($http) {
   ctrl.getPatternBlocks = function() {
 
     let blocks = [];
-    let displayLevel = 0;
+    let writenElement = 0;
     ctrl.patternData.elements.forEach((element, index) => {
-      blocks = blocks.concat(ctrl.getElementBlocks(element, ctrl.patternData.identifier, index, displayLevel));
+      blocks = blocks.concat(ctrl.getElementBlocks(element, ctrl.patternData.identifier, index, writenElement));
       if (element.startDistribution && element.startDistribution !== 0) {
-        displayLevel += 1;
+        writenElement += 1;
       }
       if (element.distribution && element.distribution !== 0) {
-        displayLevel += 1;
+        writenElement += 1;
       }
     });
     return blocks;
   };
 
-  ctrl.getElementBlocks = function(element, patternId, elementNumber, displayLevel) {
+  ctrl.getElementBlocks = function(element, patternId, elementNumber, writenElement) {
     let blocks = [];
     if (element.startDistribution && element.startDistribution !== 0) {
       for (let index = 0; index < element.developmentPeriods; index++) {
@@ -114,7 +114,7 @@ angular.module('app').controller('PatternController', function($http) {
         let block = {
           pattern: patternId,
           elementNumber: elementNumber,
-          displayLevel: displayLevel,
+          writenElement: writenElement,
           startPoint: startPoint,
           endPoint: endPoint,
           proportion: element.startDistribution / element.developmentPeriods,
@@ -123,7 +123,7 @@ angular.module('app').controller('PatternController', function($http) {
         };
         blocks.push(block);
       }
-      displayLevel += 1;
+      writenElement += 1;
     }
     if (element.distribution && element.distribution !== 0) {
       for (let index = 0; index <= element.developmentPeriods; index++) {
@@ -138,7 +138,7 @@ angular.module('app').controller('PatternController', function($http) {
         let block = {
           pattern: patternId,
           elementNumber: elementNumber,
-          displayLevel: displayLevel,
+          writenElement: writenElement,
           startPoint: startPoint,
           endPoint: endPoint,
           proportion: element.distribution / factor,

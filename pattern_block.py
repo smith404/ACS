@@ -18,10 +18,10 @@ class BlockShape(str, Enum):
     LAST = "LAST"
 
 class PatternBlock:
-    def __init__(self, pattern: str, elementNumber: int = 0, displayLevel: int = 0, startPoint: int = 0, endPoint: int = 0, proportion: float = 0, value: float = 0, shape: BlockShape = BlockShape.LINEAR):
+    def __init__(self, pattern: str, elementNumber: int = 0, writenElement: int = 0, startPoint: int = 0, endPoint: int = 0, proportion: float = 0, value: float = 0, shape: BlockShape = BlockShape.LINEAR):
         self.pattern = pattern
         self.elementNumber = elementNumber
-        self.displayLevel = displayLevel
+        self.writenElement = writenElement
         self.startPoint = startPoint
         self.endPoint = endPoint
         self.proportion = proportion
@@ -55,7 +55,7 @@ class PatternBlock:
         return json.dumps({
             "pattern": self.pattern,
             "elementNumber": self.elementNumber,
-            "displayLevel": self.displayLevel,
+            "writenElement": self.writenElement,
             "startPoint": self.startPoint,
             "endPoint": self.endPoint,
             "proportion": self.proportion,
@@ -69,7 +69,7 @@ class PatternBlock:
         return cls(
             pattern=data['pattern'],
             elementNumber=data['elementNumber'],
-            displayLevel=data['displayLevel'],
+            writenElement=data['writenElement'],
             startPoint=data['startPoint'],
             endPoint=data['endPoint'],
             height=data['proportion'],
@@ -77,4 +77,4 @@ class PatternBlock:
         )
 
     def __str__(self) -> str:
-        return f"PatternBlock with Pattern: {self.pattern}, Element Number: {self.elementNumber}, Display Level: {self.displayLevel}, Start Point: {self.startPoint}, End Point: {self.endPoint}, Proportion: {self.proportion}, Ultimate Value: {self.ultimateValue}, Shape: {self.shape.name}"
+        return f"PatternBlock with Pattern: {self.pattern}, Element Number: {self.elementNumber}, Display Level: {self.writenElement}, Start Point: {self.startPoint}, End Point: {self.endPoint}, Proportion: {self.proportion}, Ultimate Value: {self.ultimateValue}, Shape: {self.shape.name}"

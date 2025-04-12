@@ -69,16 +69,16 @@ class PatternElement:
             print(f"({self.startOffset + (index * self.durationOffset)} , {(self.startOffset + ((index + 1) * self.durationOffset)) - 1} , {self.startDistribution / self.developmentPeriods})", end='\t')
         print()
 
-    def get_pattern_blocks(self, patternId: str, elementNumber: int = 0, displayLevel: int = 0) -> List['PatternBlock']:
+    def get_pattern_blocks(self, patternId: str, elementNumber: int = 0, writenElement: int = 0) -> List['PatternBlock']:
         blocks = []
         if self.startDistribution != None and self.startDistribution != 0:
             for index in range(self.developmentPeriods):
                 shape = BlockShape.FIRST
                 startPoint = self.startOffset + (index * self.durationOffset)
                 endPoint = self.startOffset + ((index + 1) * self.durationOffset) - 1
-                block = PatternBlock(patternId, elementNumber=elementNumber, displayLevel=displayLevel, startPoint=startPoint, endPoint=endPoint, proportion=self.startDistribution / self.developmentPeriods, value=0, shape=shape)
+                block = PatternBlock(patternId, elementNumber=elementNumber, writenElement=writenElement, startPoint=startPoint, endPoint=endPoint, proportion=self.startDistribution / self.developmentPeriods, value=0, shape=shape)
                 blocks.append(block)
-            displayLevel = displayLevel + 1
+            writenElement = writenElement + 1
         if self.distribution != None and self.distribution != 0:
             for index in range(0, self.developmentPeriods + 1):
                 shape = BlockShape.LINEAR
@@ -91,7 +91,7 @@ class PatternElement:
                         shape = BlockShape.DEC_PROP
                 startPoint = self.startOffset+(index * self.durationOffset)
                 endPoint = (self.startOffset+((index + 1) * self.durationOffset)) - 1
-                block = PatternBlock(patternId, elementNumber=elementNumber, displayLevel=displayLevel, startPoint=startPoint, endPoint=endPoint, proportion=self.distribution / factor, value=0, shape=shape)
+                block = PatternBlock(patternId, elementNumber=elementNumber, writenElement=writenElement, startPoint=startPoint, endPoint=endPoint, proportion=self.distribution / factor, value=0, shape=shape)
                 blocks.append(block)
         return sorted(blocks, key=lambda block: block.startPoint)
 

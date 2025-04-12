@@ -104,7 +104,7 @@ class PatternEvaluator:
         minPoint, maxPoint = PatternEvaluator.find_min_max_points(patternBlocks)
         width = maxPoint - minPoint
         if elementHeights is None:
-            largestHeightPerDisplayLevel = PatternEvaluator.find_largest_height_per_display_level(patternBlocks)
+            largestHeightPerDisplayLevel = PatternEvaluator.find_largest_height_per_display_writen_element(patternBlocks)
             elementHeights = cumulative_sum(scale_vector_to_sum(largestHeightPerDisplayLevel, (maxPoint - minPoint)*heightScale))
         height, svgElements = PatternEvaluator.generate_svg_elements(patternBlocks, latestWrittenElement, dayCut, elementHeights, preColour, colour, condition, showText, showValue)
         return f'<svg height="100%" width="100%" viewBox="0 0 {width+5} {height+5}" xmlns="http://www.w3.org/2000/svg">{"".join(svgElements)}</svg>'
@@ -117,16 +117,16 @@ class PatternEvaluator:
         height = 0
         for block in patternBlocks:
             blockColour = PatternEvaluator.determine_block_colour(block, latestWrittenElement, dayCut, preColour, colour, condition)
-            if block.displayLevel == 0:
-                elementHeight = elementHeights[block.displayLevel]
+            if block.writenElement == 0:
+                elementHeight = elementHeights[block.writenElement]
                 yAxis = 0
-                if elementHeights[block.displayLevel] > height:
-                    height = elementHeights[block.displayLevel]
+                if elementHeights[block.writenElement] > height:
+                    height = elementHeights[block.writenElement]
             else:
-                elementHeight = elementHeights[block.displayLevel]-elementHeights[block.displayLevel-1]
-                yAxis = elementHeights[block.displayLevel-1]
-                if elementHeights[block.displayLevel] > height:
-                    height = elementHeights[block.displayLevel]
+                elementHeight = elementHeights[block.writenElement]-elementHeights[block.writenElement-1]
+                yAxis = elementHeights[block.writenElement-1]
+                if elementHeights[block.writenElement] > height:
+                    height = elementHeights[block.writenElement]
             element = block.generate_polygon(blockColour, yAxis=yAxis, height=elementHeight, showText=showText, showValue=showValue)
             svgElements.append(element)
         return height, svgElements
@@ -177,11 +177,11 @@ class PatternEvaluator:
         return sum(block.proportion for block in patternBlocks)
 
     @staticmethod
-    def find_largest_height_per_display_level(patternBlocks: List[PatternBlock]) -> dict:
+    def find_largest_height_per_display_writen_element(patternBlocks: List[PatternBlock]) -> dict:
         largestHeights = {}
         for block in patternBlocks:
-            if block.displayLevel not in largestHeights or block.proportion > largestHeights[block.displayLevel]:
-                largestHeights[block.displayLevel] = block.proportion
+            if block.writenElement not in largestHeights or block.proportion > largestHeights[block.writenElement]:
+                largestHeights[block.writenElement] = block.proportion
         return largestHeights
 
     def __str__(self) -> str:

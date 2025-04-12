@@ -83,13 +83,13 @@ class Pattern:
 
     def get_all_pattern_blocks(self) -> List['PatternBlock']:
         blocks = []
-        displayLevel = 0
+        writenElement = 0
         for index, element in enumerate(self.elements):
-            blocks.extend(element.get_pattern_blocks(patternId=self.identifier, elementNumber=index, displayLevel=displayLevel))
+            blocks.extend(element.get_pattern_blocks(patternId=self.identifier, elementNumber=index, writenElement=writenElement))
             if element.startDistribution is not None and element.startDistribution != 0:
-                displayLevel += 1
+                writenElement += 1
             if element.distribution is not None and element.distribution != 0:
-                displayLevel += 1
+                writenElement += 1
         return blocks
 
     def display(self):
