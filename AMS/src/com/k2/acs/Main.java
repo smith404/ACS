@@ -12,14 +12,19 @@ import com.k2.acs.model.CashFlow;
 import java.io.File;
 import java.time.LocalDate;
 import java.util.List;
+
 import java.util.logging.Logger;
 
 public class Main {
-    private static Logger logger = Logger.getLogger(Main.class.getName());
+    private static final Logger logger = Logger.getLogger(Main.class.getName());
+
+    public static Logger getLogger() {
+        return logger;
+    }
 
     public static void main(String[] args) {
         if (args.length < 1) {
-            logger.warning("Please provide the path to the JSON configuration file as the first argument.");
+            getLogger().warning("Please provide the path to the JSON configuration file as the first argument.");
             return;
         }
 
@@ -51,8 +56,8 @@ public class Main {
             // Use the contract date from AmsConfig as the start date
             LocalDate startDate = config.getContractDateAsLocalDate();
 
-            Calculator calculator = new Calculator(config.getPrecision(), pattern);
             Calculator.setUseCalendar(config.isCalendar());
+            Calculator calculator = new Calculator(config.getPrecision(), pattern);
 
             List<Factor> factors = calculator.calculateDailyFactors(startDate, Calculator.FactorType.valueOf(config.getFactor().toUpperCase()));
 
@@ -88,25 +93,26 @@ public class Main {
                 }
             }
 
-            BestEstimateCashFlow bestEstimateCashFlow = new BestEstimateCashFlow(cashFlows);
+            BestEstimateCashFlow bestEstimateCashFlow = new BestEstimateCashFlow();
             bestEstimateCashFlow.addProperty("Valuation", "BASELINE");
             bestEstimateCashFlow.addProperty("CRE", config.getToa());
             bestEstimateCashFlow.addProperty("Factor", config.getFactor());
-            bestEstimateCashFlow.sortCashFlows();
+            bestEstimateCashFlow.loadCashFlows(cashFlows);
+            bestEstimateCashFlow.sortCashFlows(false);
 
-            if (logger.isLoggable(java.util.logging.Level.INFO)) {
-                logger.info(bestEstimateCashFlow.toString());
+            if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
+                getLogger().info(bestEstimateCashFlow.toString());
             }
 
             // Print the rounded sums
-            if (logger.isLoggable(java.util.logging.Level.INFO)) {
-                logger.info("Sum of cash flows before LBD: " + calculator.roundToPrecision(sumBeforeLbd));
-                logger.info("Sum of cash flows after LBD: " + calculator.roundToPrecision(sumAfterLbd));
+            if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
+                getLogger().info("Sum of cash flows before LBD: " + calculator.roundToPrecision(sumBeforeLbd));
+                getLogger().info("Sum of cash flows after LBD: " + calculator.roundToPrecision(sumAfterLbd));
                 }
 
             
         } catch (Exception e) {
-            logger.warning("Error processing the configuration file: " + e.getMessage());
+            getLogger().warning("Error processing the configuration file: " + e.getMessage());
         }
     }
 }

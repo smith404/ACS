@@ -9,13 +9,10 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = false)
 public class BestEstimateCashFlow extends PropertyObject {
     private List<CashFlow> cashFlows;
+    private boolean filterZero = true;
 
     public BestEstimateCashFlow() {
         cashFlows = new ArrayList<>();
-    }
-
-    public BestEstimateCashFlow(List<CashFlow> cashFlows) {
-        this.cashFlows = new ArrayList<>(cashFlows);
     }
 
     public double getTotalAmount() {
@@ -24,17 +21,28 @@ public class BestEstimateCashFlow extends PropertyObject {
                         .sum();
     }
 
-    public void loadCashFlows(List<CashFlow> cashFlows) {
+    public int loadCashFlows(List<CashFlow> cashFlows) {
         this.cashFlows.clear();
-        this.cashFlows.addAll(cashFlows);
+        if (filterZero) {
+            this.cashFlows.addAll(cashFlows.stream()
+                                           .filter(cashFlow -> cashFlow.getAmount() != 0)
+                                           .toList());
+        } else {
+            this.cashFlows.addAll(cashFlows);
+        }
+        return this.cashFlows.size();
     }
 
-    public void addCashFlow(CashFlow cashFlow) {
+    public boolean addCashFlow(CashFlow cashFlow) {
+        if (filterZero && cashFlow.getAmount() == 0) {
+            return false;
+        }
         this.cashFlows.add(cashFlow);
+        return true;
     }
 
-    public void removeCashFlow(CashFlow cashFlow) {
-        this.cashFlows.remove(cashFlow);
+    public boolean removeCashFlow(CashFlow cashFlow) {
+        return this.cashFlows.remove(cashFlow);
     }
 
     public void sortCashFlows(boolean ascending) {
@@ -65,7 +73,7 @@ public class BestEstimateCashFlow extends PropertyObject {
         sb.append(String.format("%n%-15s %-15s %-15s %-15s %-15s %-15s%n", "Amount", "Currency", "IncurredDate", "ReportedDate", "DueDate", "SettlementDate"));
         sb.append("------------------------------------------------------------------------------------------\n");
         for (CashFlow cashFlow : cashFlows) {
-            sb.append(String.format("%-15.2f %-15s %-15s %-15s %-15s %-15s%n",
+            sb.append(String.format("%f\t%-15s %-15s %-15s %-15s %-15s%n",
                     cashFlow.getAmount(),
                     cashFlow.getCurrency(),
                     cashFlow.getIncurredDate(),

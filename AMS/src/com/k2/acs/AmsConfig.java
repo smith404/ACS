@@ -3,12 +3,15 @@ package com.k2.acs;
 import java.util.Date;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import lombok.Data;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
 
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class AmsConfig {
     private int precision = 6;
     private Date lbd;

@@ -1,7 +1,7 @@
 {
     "lbd": "2025-01-01",
     "showPastFuture": true,
-    "precision": 2,
+    "precision": 3,
     "cashFlowFrequency": "quarter",
     "cashFlowStart": "2024-01-01",
     "cashFlowEnd": "2026-12-31",
@@ -13,6 +13,7 @@
     "contractDate": "2024-07-01",
     "patternType": "INCR",
     "factor": "earning",
+    "endOfPeriod": true,
     "elements": [ {
         "type": "QUARTER",
         "initial": 0.1284,
