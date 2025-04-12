@@ -15,9 +15,7 @@ public class CashFlow extends PropertyObject {
     private LocalDate incurredDate;
     private LocalDate reportedDate;
     private LocalDate dueDate;
-    private LocalDate SettlementDate;
-    private String valuation;
-    private String CRE;
+    private LocalDate settlementDate;
 
     public CashFlow(LocalDate incurredDate, double amount) {
         this.incurredDate = incurredDate;
@@ -32,8 +30,8 @@ public class CashFlow extends PropertyObject {
         if (this.dueDate == null) {
             this.dueDate = this.incurredDate.plusMonths(6);
         }
-        if (this.SettlementDate == null) {
-            this.SettlementDate = this.incurredDate.plusYears(1);
+        if (this.settlementDate == null) {
+            this.settlementDate = this.incurredDate.plusYears(1);
         }
     }
 }

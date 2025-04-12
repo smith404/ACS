@@ -28,5 +28,14 @@ public abstract class PropertyObject {
         }
         return null;
     }
- 
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("\nProperties:\n");
+        for (Pair<String, Object> pair : properties) {
+            sb.append(String.format("%-20s : %s%n", pair.getKey(), pair.getValue()));
+        }
+        return sb.toString();
+    }
 }

@@ -5,19 +5,21 @@ import com.k2.acs.model.UltimateValue;
 import com.k2.acs.model.Pattern;
 import com.k2.acs.model.PatternElement;
 import com.k2.acs.model.Factor;
+import com.k2.acs.model.BestEstimateCashFlow;
 import com.k2.acs.model.Calculator;
 import com.k2.acs.model.CashFlow;
 
 import java.io.File;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class Main {
+    private static Logger logger = Logger.getLogger(Main.class.getName());
+
     public static void main(String[] args) {
         if (args.length < 1) {
-            System.err.println("Please provide the path to the JSON configuration file as the first argument.");
+            logger.warning("Please provide the path to the JSON configuration file as the first argument.");
             return;
         }
 
@@ -75,8 +77,6 @@ public class Main {
             double sumAfterLbd = 0.0;
 
             for (CashFlow cashFlow : cashFlows) {
-                cashFlow.setValuation("BASELINE");
-                cashFlow.setCRE(config.getToa());
                 cashFlow.setCurrency(config.getCurrency());
                 cashFlow.addProperty("PATTERN_TYPE", config.getFactor());
                 if (cashFlow.getAmount() != 0) {
@@ -85,17 +85,28 @@ public class Main {
                     } else {
                         sumAfterLbd += cashFlow.getAmount();
                     }
-                    System.out.println(cashFlow.toString());
                 }
             }
 
+            BestEstimateCashFlow bestEstimateCashFlow = new BestEstimateCashFlow(cashFlows);
+            bestEstimateCashFlow.addProperty("Valuation", "BASELINE");
+            bestEstimateCashFlow.addProperty("CRE", config.getToa());
+            bestEstimateCashFlow.addProperty("Factor", config.getFactor());
+            bestEstimateCashFlow.sortCashFlows();
+
+            if (logger.isLoggable(java.util.logging.Level.INFO)) {
+                logger.info(bestEstimateCashFlow.toString());
+            }
+
             // Print the rounded sums
-            System.out.println("Sum of cash flows before LBD: " + calculator.roundToPrecision(sumBeforeLbd));
-            System.out.println("Sum of cash flows after LBD: " + calculator.roundToPrecision(sumAfterLbd));
+            if (logger.isLoggable(java.util.logging.Level.INFO)) {
+                logger.info("Sum of cash flows before LBD: " + calculator.roundToPrecision(sumBeforeLbd));
+                logger.info("Sum of cash flows after LBD: " + calculator.roundToPrecision(sumAfterLbd));
+                }
 
             
         } catch (Exception e) {
-            System.err.println("Error processing the configuration file: " + e.getMessage());
+            logger.warning("Error processing the configuration file: " + e.getMessage());
         }
     }
 }
