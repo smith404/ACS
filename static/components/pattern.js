@@ -1,8 +1,8 @@
 angular.module('app').component('pattern', {
   bindings: {
     patternData: '=',
-    onSliceChange: '&',
-    onSelectedSliceChange: '&'
+    onElementChange: '&',
+    onSelectedElementChange: '&'
   },
   controller: 'PatternController',
   template: `
@@ -17,16 +17,16 @@ angular.module('app').component('pattern', {
           <div class="col-sm-1">
             <input type="number" ng-model="$ctrl.patternData.duration" class="form-control" />
           </div>
-          <label class="col-sm-2 col-form-label">Latest Written Slice: {{$ctrl.selectedSlice}}</label>
+          <label class="col-sm-2 col-form-label">Latest Written Element: {{$ctrl.selectedElement}}</label>
           <div class="col-sm-2">
-            <input type="range" id="sliceRange" min="0" max="{{$ctrl.patternData.slices.length}}" ng-model="$ctrl.selectedSlice" ng-change="$ctrl.onSliderChange()">
+            <input type="range" id="elementRange" min="0" max="{{$ctrl.patternData.elements.length}}" ng-model="$ctrl.selectedElement" ng-change="$ctrl.onSliderChange()">
           </div>
         </div>
       </div>
     </div>
     <div class="row mt-3 mb-3">
       <div class="col-12">
-        <button class="btn btn-pond" ng-click="$ctrl.addSlice({distribution: 0, startDistribution: 0, duration: $ctrl.patternData.duration, startOffset: 0, durationOffset: 0, developmentPeriods: 0, weight: 0})" title="Add Slice">
+        <button class="btn btn-pond" ng-click="$ctrl.addElement({distribution: 0, startDistribution: 0, duration: $ctrl.patternData.duration, startOffset: 0, durationOffset: 0, developmentPeriods: 0, weight: 0})" title="Add Element">
           <i class="fas fa-plus-square"></i>
         </button>
         <button class="btn btn-pond" ng-click="$ctrl.distributeRemaining()" title="Distribute Remaining">
@@ -67,20 +67,20 @@ angular.module('app').component('pattern', {
         </label>
       </div>
     </div>
-    <div id="pattern-slices" class="row mt-1 border border-secondary" ng-repeat="slice in $ctrl.patternData.slices">
+    <div id="pattern-elements" class="row mt-1 border border-secondary" ng-repeat="element in $ctrl.patternData.elements">
       <div class="col-sm-11">
-        <pattern-slice 
-          distribution="slice.distribution" 
-          start-distribution="slice.startDistribution" 
-          duration="slice.duration" 
-          weight="slice.weight"
-          start-offset="slice.startOffset" 
-          duration-offset="slice.durationOffset" 
-          development-periods="slice.developmentPeriods">
-        </pattern-slice>
+        <pattern-element 
+          distribution="element.distribution" 
+          start-distribution="element.startDistribution" 
+          duration="element.duration" 
+          weight="element.weight"
+          start-offset="element.startOffset" 
+          duration-offset="element.durationOffset" 
+          development-periods="element.developmentPeriods">
+        </pattern-element>
       </div>
       <div class="col-sm-1 d-flex align-items-center">
-        <button class="btn btn-pond" ng-click="$ctrl.removeSlice($index)" title="Remove Slice" ng-disabled="$ctrl.patternData.slices.length === 1">
+        <button class="btn btn-pond" ng-click="$ctrl.removeElement($index)" title="Remove Element" ng-disabled="$ctrl.patternData.elements.length === 1">
           <i class="fas fa-minus-square"></i>
         </button>
       </div>
@@ -138,7 +138,7 @@ angular.module('app').component('pattern', {
             </tr>
           </thead>
           <tbody>
-            <tr ng-repeat="value in $ctrl.cumulativePatternValuesByTimeSlice">
+            <tr ng-repeat="value in $ctrl.cumulativePatternValuesByTimeElement">
               <td>{{ value.endPoint + 1 }}</td>
               <td>{{ value.value }}</td>
               <td>{{ value.cumulativeValue }}</td>

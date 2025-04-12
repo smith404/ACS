@@ -18,9 +18,9 @@ class BlockShape(str, Enum):
     LAST = "LAST"
 
 class PatternBlock:
-    def __init__(self, pattern: str, sliceNumber: int = 0, displayLevel: int = 0, startPoint: int = 0, endPoint: int = 0, proportion: float = 0, value: float = 0, shape: BlockShape = BlockShape.LINEAR):
+    def __init__(self, pattern: str, elementNumber: int = 0, displayLevel: int = 0, startPoint: int = 0, endPoint: int = 0, proportion: float = 0, value: float = 0, shape: BlockShape = BlockShape.LINEAR):
         self.pattern = pattern
-        self.sliceNumber = sliceNumber
+        self.elementNumber = elementNumber
         self.displayLevel = displayLevel
         self.startPoint = startPoint
         self.endPoint = endPoint
@@ -54,7 +54,7 @@ class PatternBlock:
     def to_json(self) -> str:
         return json.dumps({
             "pattern": self.pattern,
-            "sliceNumber": self.sliceNumber,
+            "elementNumber": self.elementNumber,
             "displayLevel": self.displayLevel,
             "startPoint": self.startPoint,
             "endPoint": self.endPoint,
@@ -68,7 +68,7 @@ class PatternBlock:
         data = json.loads(json_str)
         return cls(
             pattern=data['pattern'],
-            sliceNumber=data['sliceNumber'],
+            elementNumber=data['elementNumber'],
             displayLevel=data['displayLevel'],
             startPoint=data['startPoint'],
             endPoint=data['endPoint'],
@@ -77,4 +77,4 @@ class PatternBlock:
         )
 
     def __str__(self) -> str:
-        return f"PatternBlock with Pattern: {self.pattern}, Slice Number: {self.sliceNumber}, Display Level: {self.displayLevel}, Start Point: {self.startPoint}, End Point: {self.endPoint}, Proportion: {self.proportion}, Ultimate Value: {self.ultimateValue}, Shape: {self.shape.name}"
+        return f"PatternBlock with Pattern: {self.pattern}, Element Number: {self.elementNumber}, Display Level: {self.displayLevel}, Start Point: {self.startPoint}, End Point: {self.endPoint}, Proportion: {self.proportion}, Ultimate Value: {self.ultimateValue}, Shape: {self.shape.name}"

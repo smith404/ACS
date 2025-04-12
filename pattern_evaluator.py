@@ -32,43 +32,43 @@ class PatternEvaluator:
     def get_pattern_blocks_between(self, startPoint: int, endPoint: int) -> List[PatternBlock]:
         return [block for block in self.patternBlocks if startPoint <= block.startPoint < endPoint]
 
-    def evaluate_written_blocks(self, latestWrittenSlice: int) -> List[PatternBlock]:
-        return [block for block in self.patternBlocks if block.sliceNumber < latestWrittenSlice]
+    def evaluate_written_blocks(self, latestWrittenElement: int) -> List[PatternBlock]:
+        return [block for block in self.patternBlocks if block.elementNumber < latestWrittenElement]
 
-    def evaluate_unwritten_blocks(self, latestWrittenSlice: int) -> List[PatternBlock]:
-        return [block for block in self.patternBlocks if block.sliceNumber >= latestWrittenSlice]
+    def evaluate_unwritten_blocks(self, latestWrittenElement: int) -> List[PatternBlock]:
+        return [block for block in self.patternBlocks if block.elementNumber >= latestWrittenElement]
 
-    def evaluate_lic_blocks(self, latestWrittenSlice: int) -> List[PatternBlock]:
-        endPointOfLatestSlice = self.get_earliest_start_point_of_slice(latestWrittenSlice)
-        return [block for block in self.patternBlocks if block.sliceNumber < latestWrittenSlice and block.endPoint < endPointOfLatestSlice]
+    def evaluate_lic_blocks(self, latestWrittenElement: int) -> List[PatternBlock]:
+        endPointOfLatestElement = self.get_earliest_start_point_of_element(latestWrittenElement)
+        return [block for block in self.patternBlocks if block.elementNumber < latestWrittenElement and block.endPoint < endPointOfLatestElement]
 
-    def evaluate_lrc_blocks(self, latestWrittenSlice: int) -> List[PatternBlock]:
-        endPointOfLatestSlice = self.get_earliest_start_point_of_slice(latestWrittenSlice)
-        return [block for block in self.patternBlocks if block.sliceNumber >= latestWrittenSlice and block.endPoint >= endPointOfLatestSlice]
+    def evaluate_lrc_blocks(self, latestWrittenElement: int) -> List[PatternBlock]:
+        endPointOfLatestElement = self.get_earliest_start_point_of_element(latestWrittenElement)
+        return [block for block in self.patternBlocks if block.elementNumber >= latestWrittenElement and block.endPoint >= endPointOfLatestElement]
 
-    def evaluate_upr_blocks(self, latestWrittenSlice: int) -> List[PatternBlock]:
-        endPointOfLatestSlice = self.get_earliest_start_point_of_slice(latestWrittenSlice)
-        return [block for block in self.patternBlocks if block.endPoint >= endPointOfLatestSlice]
+    def evaluate_upr_blocks(self, latestWrittenElement: int) -> List[PatternBlock]:
+        endPointOfLatestElement = self.get_earliest_start_point_of_element(latestWrittenElement)
+        return [block for block in self.patternBlocks if block.endPoint >= endPointOfLatestElement]
 
-    def get_earliest_start_point_of_slice(self, sliceNumber: int) -> Optional[int]:
-        if sliceNumber > max((block.sliceNumber for block in self.patternBlocks)):
-            # Special case that we can call this beyond the last slice for LIC, LRC and UPR
-            sliceNumber = max((block.sliceNumber for block in self.patternBlocks))
-            return self.get_earliest_end_point_of_slice(sliceNumber) + 1
-        sliceBlocks = [block for block in self.patternBlocks if block.sliceNumber == sliceNumber]
-        return min((block.startPoint for block in sliceBlocks), default=None)
+    def get_earliest_start_point_of_element(self, elementNumber: int) -> Optional[int]:
+        if elementNumber > max((block.elementNumber for block in self.patternBlocks)):
+            # Special case that we can call this beyond the last element for LIC, LRC and UPR
+            elementNumber = max((block.elementNumber for block in self.patternBlocks))
+            return self.get_earliest_end_point_of_element(elementNumber) + 1
+        elementBlocks = [block for block in self.patternBlocks if block.elementNumber == elementNumber]
+        return min((block.startPoint for block in elementBlocks), default=None)
 
-    def get_latest_start_point_of_slice(self, sliceNumber: int) -> Optional[int]:
-        sliceBlocks = [block for block in self.patternBlocks if block.sliceNumber == sliceNumber]
-        return max((block.startPoint for block in sliceBlocks), default=None)
+    def get_latest_start_point_of_element(self, elementNumber: int) -> Optional[int]:
+        elementBlocks = [block for block in self.patternBlocks if block.elementNumber == elementNumber]
+        return max((block.startPoint for block in elementBlocks), default=None)
 
-    def get_earliest_end_point_of_slice(self, sliceNumber: int) -> Optional[int]:
-        sliceBlocks = [block for block in self.patternBlocks if block.sliceNumber == sliceNumber]
-        return min((block.endPoint for block in sliceBlocks), default=None)
+    def get_earliest_end_point_of_element(self, elementNumber: int) -> Optional[int]:
+        elementBlocks = [block for block in self.patternBlocks if block.elementNumber == elementNumber]
+        return min((block.endPoint for block in elementBlocks), default=None)
 
-    def get_latest_end_point_of_slice(self, sliceNumber: int) -> Optional[int]:
-        sliceBlocks = [block for block in self.patternBlocks if block.sliceNumber == sliceNumber]
-        return max((block.endPoint for block in sliceBlocks), default=None)
+    def get_latest_end_point_of_element(self, elementNumber: int) -> Optional[int]:
+        elementBlocks = [block for block in self.patternBlocks if block.elementNumber == elementNumber]
+        return max((block.endPoint for block in elementBlocks), default=None)
 
     def save_to_file(self, filename: str):
         with open(filename, 'w') as file:
@@ -100,45 +100,45 @@ class PatternEvaluator:
             return cls(patternBlocks)
 
     @staticmethod
-    def create_svg(patternBlocks: List[PatternBlock], latestWrittenSlice: Optional[int] = None, dayCut: Optional[int] = None, sliceHeights: dict[int, int] = None, heightScale: float = 0.7, preColour: str = "white", colour: str = "lightblue", condition: str = "or", showText: bool = True, showValue: bool = False) -> str:
+    def create_svg(patternBlocks: List[PatternBlock], latestWrittenElement: Optional[int] = None, dayCut: Optional[int] = None, elementHeights: dict[int, int] = None, heightScale: float = 0.7, preColour: str = "white", colour: str = "lightblue", condition: str = "or", showText: bool = True, showValue: bool = False) -> str:
         minPoint, maxPoint = PatternEvaluator.find_min_max_points(patternBlocks)
         width = maxPoint - minPoint
-        if sliceHeights is None:
+        if elementHeights is None:
             largestHeightPerDisplayLevel = PatternEvaluator.find_largest_height_per_display_level(patternBlocks)
-            sliceHeights = cumulative_sum(scale_vector_to_sum(largestHeightPerDisplayLevel, (maxPoint - minPoint)*heightScale))
-        height, svgElements = PatternEvaluator.generate_svg_elements(patternBlocks, latestWrittenSlice, dayCut, sliceHeights, preColour, colour, condition, showText, showValue)
+            elementHeights = cumulative_sum(scale_vector_to_sum(largestHeightPerDisplayLevel, (maxPoint - minPoint)*heightScale))
+        height, svgElements = PatternEvaluator.generate_svg_elements(patternBlocks, latestWrittenElement, dayCut, elementHeights, preColour, colour, condition, showText, showValue)
         return f'<svg height="100%" width="100%" viewBox="0 0 {width+5} {height+5}" xmlns="http://www.w3.org/2000/svg">{"".join(svgElements)}</svg>'
 
     @staticmethod
-    def generate_svg_elements(patternBlocks: List[PatternBlock], latestWrittenSlice: Optional[int], dayCut: Optional[int], sliceHeights: dict[int, int], preColour: str, colour: str, condition: str, showText: bool, showValue: bool) -> Tuple[int, List[str]]:
+    def generate_svg_elements(patternBlocks: List[PatternBlock], latestWrittenElement: Optional[int], dayCut: Optional[int], elementHeights: dict[int, int], preColour: str, colour: str, condition: str, showText: bool, showValue: bool) -> Tuple[int, List[str]]:
         svgElements = []
-        sliceHeight = 0
+        elementHeight = 0
         yAxis = 0
         height = 0
         for block in patternBlocks:
-            blockColour = PatternEvaluator.determine_block_colour(block, latestWrittenSlice, dayCut, preColour, colour, condition)
+            blockColour = PatternEvaluator.determine_block_colour(block, latestWrittenElement, dayCut, preColour, colour, condition)
             if block.displayLevel == 0:
-                sliceHeight = sliceHeights[block.displayLevel]
+                elementHeight = elementHeights[block.displayLevel]
                 yAxis = 0
-                if sliceHeights[block.displayLevel] > height:
-                    height = sliceHeights[block.displayLevel]
+                if elementHeights[block.displayLevel] > height:
+                    height = elementHeights[block.displayLevel]
             else:
-                sliceHeight = sliceHeights[block.displayLevel]-sliceHeights[block.displayLevel-1]
-                yAxis = sliceHeights[block.displayLevel-1]
-                if sliceHeights[block.displayLevel] > height:
-                    height = sliceHeights[block.displayLevel]
-            element = block.generate_polygon(blockColour, yAxis=yAxis, height=sliceHeight, showText=showText, showValue=showValue)
+                elementHeight = elementHeights[block.displayLevel]-elementHeights[block.displayLevel-1]
+                yAxis = elementHeights[block.displayLevel-1]
+                if elementHeights[block.displayLevel] > height:
+                    height = elementHeights[block.displayLevel]
+            element = block.generate_polygon(blockColour, yAxis=yAxis, height=elementHeight, showText=showText, showValue=showValue)
             svgElements.append(element)
         return height, svgElements
 
     @staticmethod
-    def determine_block_colour(block: PatternBlock, latestWrittenSlice: Optional[int], dayCut: Optional[int], preColour: str, colour: str, condition: str) -> str:
+    def determine_block_colour(block: PatternBlock, latestWrittenElement: Optional[int], dayCut: Optional[int], preColour: str, colour: str, condition: str) -> str:
         blockColour = preColour
         if condition == "t":
-            if (latestWrittenSlice is not None and block.sliceNumber < latestWrittenSlice):
+            if (latestWrittenElement is not None and block.elementNumber < latestWrittenElement):
                 blockColour = colour
         if condition == "b":
-            if (latestWrittenSlice is not None and block.sliceNumber >= latestWrittenSlice):
+            if (latestWrittenElement is not None and block.elementNumber >= latestWrittenElement):
                 blockColour = colour
         if condition == "l":
             if (dayCut is not None and block.startPoint < dayCut):
@@ -147,16 +147,16 @@ class PatternEvaluator:
             if (dayCut is not None and block.startPoint >= dayCut):
                 blockColour = colour
         elif condition == "tl":
-            if (latestWrittenSlice is not None and block.sliceNumber < latestWrittenSlice) and (dayCut is not None and block.startPoint < dayCut):
+            if (latestWrittenElement is not None and block.elementNumber < latestWrittenElement) and (dayCut is not None and block.startPoint < dayCut):
                 blockColour = colour
         elif condition == "tr":
-            if (latestWrittenSlice is not None and block.sliceNumber < latestWrittenSlice) and (dayCut is not None and block.startPoint >= dayCut):
+            if (latestWrittenElement is not None and block.elementNumber < latestWrittenElement) and (dayCut is not None and block.startPoint >= dayCut):
                 blockColour = colour
         elif condition == "bl":
-            if (latestWrittenSlice is not None and block.sliceNumber >= latestWrittenSlice) and (dayCut is not None and block.startPoint < dayCut):
+            if (latestWrittenElement is not None and block.elementNumber >= latestWrittenElement) and (dayCut is not None and block.startPoint < dayCut):
                 blockColour = colour
         elif condition == "br":
-            if (latestWrittenSlice is not None and block.sliceNumber >= latestWrittenSlice) and (dayCut is not None and block.startPoint >= dayCut):
+            if (latestWrittenElement is not None and block.elementNumber >= latestWrittenElement) and (dayCut is not None and block.startPoint >= dayCut):
                 blockColour = colour
         return blockColour
 

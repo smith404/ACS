@@ -1,4 +1,4 @@
-angular.module('app').controller('PatternSliceController', function() {
+angular.module('app').controller('PatternElementController', function() {
   let ctrl = this;
 
   ctrl.$onInit = function() {

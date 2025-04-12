@@ -5,7 +5,7 @@ angular.module('app').controller('MainController', ['$http', function($http) {
         $http.get('/pattern/load/my_test_pattern')
             .then(function(response) {
                 ctrl.patternData = response.data;
-                ctrl.maxSlice = ctrl.patternData.slices.length;
+                ctrl.maxElement = ctrl.patternData.elements.length;
             }, function(error) {
                 console.error('Error loading pattern data:', error);
             });
@@ -15,20 +15,20 @@ angular.module('app').controller('MainController', ['$http', function($http) {
         $http.get('/pattern/new')
             .then(function(response) {
                 ctrl.patternData = response.data;
-                ctrl.maxSlice = ctrl.patternData.slices.length;
+                ctrl.maxElement = ctrl.patternData.elements.length;
             }, function(error) {
                 console.error('Error creating pattern:', error);
             });
     };
-    ctrl.onSliceChange = function() {
-        ctrl.maxSlice = ctrl.patternData.slices.length;
+    ctrl.onElementChange = function() {
+        ctrl.maxElement = ctrl.patternData.elements.length;
     };
 
-    ctrl.onSelectedSliceChange = function(selectedSlice) {
-        ctrl.selectedSlice = selectedSlice;
+    ctrl.onSelectedElementChange = function(selectedElement) {
+        ctrl.selectedElement = selectedElement;
     };
 
-    ctrl.selectedSlice = 0;
+    ctrl.selectedElement = 0;
     ctrl.initPatternData();
 
     

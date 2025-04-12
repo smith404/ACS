@@ -1,4 +1,4 @@
-angular.module('app').component('patternSlice', {
+angular.module('app').component('patternElement', {
   bindings: {
     distribution: '=',
     startDistribution: '=',
@@ -8,7 +8,7 @@ angular.module('app').component('patternSlice', {
     durationOffset: '=',
     developmentPeriods: '='
   },
-  controller: 'PatternSliceController',
+  controller: 'PatternElementController',
   template: `
     <div class="form-group row align-items-center">
       <label class="col-sm-1 col-form-label">Start Distribution:</label>

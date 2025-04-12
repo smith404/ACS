@@ -3,7 +3,7 @@ angular.module('app').controller('PatternController', function($http) {
 
   ctrl.onSliderChange = function() {
     ctrl.generateSvgs();
-    ctrl.onSelectedSliceChange({ selectedSlice: ctrl.selectedSlice });
+    ctrl.onSelectedElementChange({ selectedElement: ctrl.selectedElement });
   };
 
   ctrl.onViewModelChange = function() {
@@ -11,7 +11,7 @@ angular.module('app').controller('PatternController', function($http) {
   };
 
   ctrl.$onInit = function() {
-    ctrl.selectedSlice = 0;
+    ctrl.selectedElement = 0;
     ctrl.ultimateValue = 0;
     ctrl.viewMode = 'written';
 
@@ -23,68 +23,68 @@ angular.module('app').controller('PatternController', function($http) {
     ctrl.lrcSVG = "";
     ctrl.uprSVG = "";
 
-    ctrl.patternValuesByTimeSlice = [];
-    ctrl.cumulativePatternValuesByTimeSlice = [];
+    ctrl.patternValuesByTimeElement = [];
+    ctrl.cumulativePatternValuesByTimeElement = [];
   };
 
-  ctrl.addSlice = function(slice) {
-    ctrl.patternData.slices.push(slice);
-    ctrl.alignSlicePeriods();
-    ctrl.onSliceChange();
+  ctrl.addElement = function(element) {
+    ctrl.patternData.elements.push(element);
+    ctrl.alignElementPeriods();
+    ctrl.onElementChange();
   };
 
-  ctrl.removeSlice = function(index) {
-    ctrl.patternData.slices.splice(index, 1);
-    ctrl.alignSlicePeriods();
-    ctrl.onSliceChange();
+  ctrl.removeElement = function(index) {
+    ctrl.patternData.elements.splice(index, 1);
+    ctrl.alignElementPeriods();
+    ctrl.onElementChange();
   };
 
   ctrl.setDuration = function(duration) {
     ctrl.patternData.duration = duration;
     ctrl.patternData.patternData.duration = duration;
-    ctrl.patternData.slices.forEach(function(slice) {
-      slice.patternData.duration = duration;
+    ctrl.patternData.elements.forEach(function(element) {
+      element.patternData.duration = duration;
     });
   };
 
-  ctrl.alignSlicePeriods = function(developmentPeriods = null) {
+  ctrl.alignElementPeriods = function(developmentPeriods = null) {
     if (developmentPeriods === null || developmentPeriods === 0) {
-      developmentPeriods = ctrl.patternData.slices.length;
+      developmentPeriods = ctrl.patternData.elements.length;
     }
-    ctrl.patternData.slices.forEach((slice, index) => {
-      slice.developmentPeriods = developmentPeriods;
-      slice.weight = (1 / ctrl.patternData.slices.length);
-      slice.durationOffset = ctrl.patternData.duration / developmentPeriods;
-      slice.startOffset = index * (ctrl.patternData.duration / developmentPeriods);
+    ctrl.patternData.elements.forEach((element, index) => {
+      element.developmentPeriods = developmentPeriods;
+      element.weight = (1 / ctrl.patternData.elements.length);
+      element.durationOffset = ctrl.patternData.duration / developmentPeriods;
+      element.startOffset = index * (ctrl.patternData.duration / developmentPeriods);
     });
   };
 
   ctrl.distributeRemaining = function() {
-    let totalDistribution = ctrl.patternData.slices.reduce((sum, slice) => sum + slice.distribution + slice.startDistribution, 0);
+    let totalDistribution = ctrl.patternData.elements.reduce((sum, element) => sum + element.distribution + element.startDistribution, 0);
     if (totalDistribution < 1) {
       let remaining = 1 - totalDistribution;
-      ctrl.patternData.slices.forEach(slice => {
-        slice.distribution += (remaining / ctrl.patternData.slices.length);
+      ctrl.patternData.elements.forEach(element => {
+        element.distribution += (remaining / ctrl.patternData.elements.length);
       });
     }
   };
 
   ctrl.checkDistribution = function() {
-    let totalDistribution = ctrl.patternData.slices.reduce((sum, slice) => sum + slice.distribution + slice.startDistribution, 0);
+    let totalDistribution = ctrl.patternData.elements.reduce((sum, element) => sum + element.distribution + element.startDistribution, 0);
     let result = totalDistribution === 1;
     alert("Distribution check: " + (result ? "Valid" : "Invalid"));
   };
 
   ctrl.clearStartDistributions = function() {
-    ctrl.patternData.slices.forEach(slice => {
-      slice.startDistribution = 0;
+    ctrl.patternData.elements.forEach(element => {
+      element.startDistribution = 0;
     });
   };
 
   ctrl.clearDistributions = function() {
-    ctrl.patternData.slices.forEach(slice => {
-      slice.startDistribution = 0;
-      slice.distribution = 0;
+    ctrl.patternData.elements.forEach(element => {
+      element.startDistribution = 0;
+      element.distribution = 0;
     });
   };
 
@@ -92,57 +92,57 @@ angular.module('app').controller('PatternController', function($http) {
 
     let blocks = [];
     let displayLevel = 0;
-    ctrl.patternData.slices.forEach((slice, index) => {
-      blocks = blocks.concat(ctrl.getSliceBlocks(slice, ctrl.patternData.identifier, index, displayLevel));
-      if (slice.startDistribution && slice.startDistribution !== 0) {
+    ctrl.patternData.elements.forEach((element, index) => {
+      blocks = blocks.concat(ctrl.getElementBlocks(element, ctrl.patternData.identifier, index, displayLevel));
+      if (element.startDistribution && element.startDistribution !== 0) {
         displayLevel += 1;
       }
-      if (slice.distribution && slice.distribution !== 0) {
+      if (element.distribution && element.distribution !== 0) {
         displayLevel += 1;
       }
     });
     return blocks;
   };
 
-  ctrl.getSliceBlocks = function(slice, patternId, sliceNumber, displayLevel) {
+  ctrl.getElementBlocks = function(element, patternId, elementNumber, displayLevel) {
     let blocks = [];
-    if (slice.startDistribution && slice.startDistribution !== 0) {
-      for (let index = 0; index < slice.developmentPeriods; index++) {
+    if (element.startDistribution && element.startDistribution !== 0) {
+      for (let index = 0; index < element.developmentPeriods; index++) {
         let shape = 'FIRST';
-        let startPoint = slice.startOffset + (index * slice.durationOffset);
-        let endPoint = slice.startOffset + ((index + 1) * slice.durationOffset) - 1;
+        let startPoint = element.startOffset + (index * element.durationOffset);
+        let endPoint = element.startOffset + ((index + 1) * element.durationOffset) - 1;
         let block = {
           pattern: patternId,
-          sliceNumber: sliceNumber,
+          elementNumber: elementNumber,
           displayLevel: displayLevel,
           startPoint: startPoint,
           endPoint: endPoint,
-          proportion: slice.startDistribution / slice.developmentPeriods,
-          value: ctrl.ultimateValue * (slice.startDistribution / slice.developmentPeriods),
+          proportion: element.startDistribution / element.developmentPeriods,
+          value: ctrl.ultimateValue * (element.startDistribution / element.developmentPeriods),
           shape: shape
         };
         blocks.push(block);
       }
       displayLevel += 1;
     }
-    if (slice.distribution && slice.distribution !== 0) {
-      for (let index = 0; index <= slice.developmentPeriods; index++) {
+    if (element.distribution && element.distribution !== 0) {
+      for (let index = 0; index <= element.developmentPeriods; index++) {
         let shape = 'LINEAR';
-        let factor = slice.developmentPeriods;
-        if (index === 0 || index === slice.developmentPeriods) {
+        let factor = element.developmentPeriods;
+        if (index === 0 || index === element.developmentPeriods) {
           factor *= 2;
           shape = index === 0 ? 'INC_PROP' : 'DEC_PROP';
         }
-        let startPoint = slice.startOffset + (index * slice.durationOffset);
-        let endPoint = slice.startOffset + ((index + 1) * slice.durationOffset) - 1;
+        let startPoint = element.startOffset + (index * element.durationOffset);
+        let endPoint = element.startOffset + ((index + 1) * element.durationOffset) - 1;
         let block = {
           pattern: patternId,
-          sliceNumber: sliceNumber,
+          elementNumber: elementNumber,
           displayLevel: displayLevel,
           startPoint: startPoint,
           endPoint: endPoint,
-          proportion: slice.distribution / factor,
-          value: ctrl.ultimateValue * (slice.distribution / factor),
+          proportion: element.distribution / factor,
+          value: ctrl.ultimateValue * (element.distribution / factor),
           shape: shape
         };
         blocks.push(block);
@@ -161,7 +161,7 @@ angular.module('app').controller('PatternController', function($http) {
 
   ctrl.generateSvg = function(patternType) {
     let patternBlocks = ctrl.getPatternBlocks();
-    let url = '/svg/generate?type=' + patternType + "&lw=" + ctrl.selectedSlice;
+    let url = '/svg/generate?type=' + patternType + "&lw=" + ctrl.selectedElement;
     url = ctrl.showText ? url + '&text=true' : url;
     if (patternType !== 'full') {
       url = url + '&val=true';
@@ -183,51 +183,51 @@ angular.module('app').controller('PatternController', function($http) {
   {
     let blocks = ctrl.getPatternBlocks();
 
-    ctrl.patternValuesByTimeSlice = ctrl.sumValuesBySliceEndPoint(blocks);    
-    ctrl.cumulativePatternValuesByTimeSlice = ctrl.getCumulativeValues(ctrl.patternValuesByTimeSlice);
+    ctrl.patternValuesByTimeElement = ctrl.sumValuesByElementEndPoint(blocks);    
+    ctrl.cumulativePatternValuesByTimeElement = ctrl.getCumulativeValues(ctrl.patternValuesByTimeElement);
 
-    let selectedSlice = ctrl.selectedSlice;
-    let esp = ctrl.getEarliestStartPointOfSlice(blocks, selectedSlice);
+    let selectedElement = ctrl.selectedElement;
+    let esp = ctrl.getEarliestStartPointOfElement(blocks, selectedElement);
 
-    ctrl.writtenValue = ctrl.evaluateWrittenBlocks(blocks, selectedSlice).toFixed(4);
-    ctrl.unwrittenValue = ctrl.evaluateUnwrittenBlocks(blocks, selectedSlice).toFixed(4);
-    ctrl.lic = ctrl.evaluateLICBlocks(blocks, selectedSlice, esp).toFixed(4);
-    ctrl.lrc = ctrl.evaluateLRCBlocks(blocks, selectedSlice, esp).toFixed(4);
+    ctrl.writtenValue = ctrl.evaluateWrittenBlocks(blocks, selectedElement).toFixed(4);
+    ctrl.unwrittenValue = ctrl.evaluateUnwrittenBlocks(blocks, selectedElement).toFixed(4);
+    ctrl.lic = ctrl.evaluateLICBlocks(blocks, selectedElement, esp).toFixed(4);
+    ctrl.lrc = ctrl.evaluateLRCBlocks(blocks, selectedElement, esp).toFixed(4);
     ctrl.upr = ctrl.evaluateUPRBlocks(blocks, esp).toFixed(4);
   } 
 
-  ctrl.getEarliestStartPointOfSlice = function(blocks, sliceNumber) {
-    if (sliceNumber >= ctrl.patternData.slices.length) {
-      return ctrl.getEarliestEndPointOfSlice(blocks, sliceNumber - 1) + 1;
+  ctrl.getEarliestStartPointOfElement = function(blocks, elementNumber) {
+    if (elementNumber >= ctrl.patternData.elements.length) {
+      return ctrl.getEarliestEndPointOfElement(blocks, elementNumber - 1) + 1;
     }
     else {
-      let sliceBlocks = blocks.filter(block => block.sliceNumber === sliceNumber);
-      return sliceBlocks.reduce((min, block) => Math.min(min, block.startPoint), Number.MAX_VALUE);
+      let elementBlocks = blocks.filter(block => block.elementNumber === elementNumber);
+      return elementBlocks.reduce((min, block) => Math.min(min, block.startPoint), Number.MAX_VALUE);
       }
   };
 
-  ctrl.getEarliestEndPointOfSlice = function(blocks, sliceNumber) {
-    let sliceBlocks = blocks.filter(block => block.sliceNumber === sliceNumber);
-    return sliceBlocks.reduce((min, block) => Math.min(min, block.endPoint), Number.MAX_VALUE) + 1;
+  ctrl.getEarliestEndPointOfElement = function(blocks, elementNumber) {
+    let elementBlocks = blocks.filter(block => block.elementNumber === elementNumber);
+    return elementBlocks.reduce((min, block) => Math.min(min, block.endPoint), Number.MAX_VALUE) + 1;
   };
 
-  ctrl.evaluateWrittenBlocks = function(blocks, sliceNumber) {
-    let filterBlocks = blocks.filter(block => block.sliceNumber < sliceNumber);
+  ctrl.evaluateWrittenBlocks = function(blocks, elementNumber) {
+    let filterBlocks = blocks.filter(block => block.elementNumber < elementNumber);
     return filterBlocks.reduce((sum, block) => sum + block.value, 0);
   };
 
-  ctrl.evaluateUnwrittenBlocks = function(blocks, sliceNumber) {
-    let filterBlocks = blocks.filter(block => block.sliceNumber >= sliceNumber);
+  ctrl.evaluateUnwrittenBlocks = function(blocks, elementNumber) {
+    let filterBlocks = blocks.filter(block => block.elementNumber >= elementNumber);
     return filterBlocks.reduce((sum, block) => sum + block.value, 0);
   };
 
-  ctrl.evaluateLICBlocks = function(blocks, sliceNumber, esp) {
-    let filterBlocks = blocks.filter(block => block.sliceNumber < sliceNumber && block.endPoint < esp);
+  ctrl.evaluateLICBlocks = function(blocks, elementNumber, esp) {
+    let filterBlocks = blocks.filter(block => block.elementNumber < elementNumber && block.endPoint < esp);
     return filterBlocks.reduce((sum, block) => sum + block.value, 0);
   };
 
-  ctrl.evaluateLRCBlocks = function(blocks, sliceNumber, esp) {
-    let filterBlocks = blocks.filter(block => block.sliceNumber < sliceNumber && block.endPoint >= esp);
+  ctrl.evaluateLRCBlocks = function(blocks, elementNumber, esp) {
+    let filterBlocks = blocks.filter(block => block.elementNumber < elementNumber && block.endPoint >= esp);
     return filterBlocks.reduce((sum, block) => sum + block.value, 0);
   };
 
@@ -236,7 +236,7 @@ angular.module('app').controller('PatternController', function($http) {
     return filterBlocks.reduce((sum, block) => sum + block.value, 0);
   };
 
-  ctrl.sumValuesBySliceEndPoint = function(blocks) {
+  ctrl.sumValuesByElementEndPoint = function(blocks) {
     let sumByEndPoint = {};
 
     blocks.forEach(block => {

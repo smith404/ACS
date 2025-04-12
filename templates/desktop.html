@@ -12,10 +12,10 @@
     <script>
         angular.module('app', []);
     </script>
-    <script src="{{ url_for('static', filename='components/patternSlice.js')}}"></script>
+    <script src="{{ url_for('static', filename='components/patternElement.js')}}"></script>
     <script src="{{ url_for('static', filename='components/pattern.js')}}"></script>
     <script src="{{ url_for('static', filename='controllers/patternController.js')}}"></script>
-    <script src="{{ url_for('static', filename='controllers/patternSliceController.js')}}"></script>
+    <script src="{{ url_for('static', filename='controllers/patternElementController.js')}}"></script>
 </head>
 <body>
     <div class="container-fluid" ng-controller="MainController as ctrl">
@@ -23,16 +23,11 @@
             <main role="main" class="col">
                 <header>
                     <h1>Pattern Engine for Realtime Visualization</h1>
-                    <nav>
-                        <ul>
-                            <li><a href="/assets">Data Assets</a></li>
-                        </ul>
-                    </nav>
                 </header>
                 <pattern 
                     pattern-data="ctrl.patternData"
-                    on-slice-change="ctrl.onSliceChange()"
-                    on-selected-slice-change="ctrl.onSelectedSliceChange(selectedSlice)">
+                    on-element-change="ctrl.onElementChange()"
+                    on-selected-element-change="ctrl.onSelectedElementChange(selectedElement)">
                 </pattern>
             </main>
         </div>
