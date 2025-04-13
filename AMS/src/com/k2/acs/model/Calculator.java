@@ -6,10 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.k2.acs.Main;
-import java.util.logging.Logger;
-
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -91,8 +87,6 @@ public class Calculator {
     public Calculator(int precision, Pattern pattern) {
         this.precision = precision;
         this.pattern = pattern;
-        
-        System.out.println("Precision: " + precision);
     }
 
     public static int getDaysForType(PatternElement.Type type) {

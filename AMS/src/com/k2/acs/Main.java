@@ -10,7 +10,9 @@ import com.k2.acs.model.Calculator;
 import com.k2.acs.model.CashFlow;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import java.util.logging.Logger;
@@ -108,9 +110,35 @@ public class Main {
             if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
                 getLogger().info("Sum of cash flows before LBD: " + calculator.roundToPrecision(sumBeforeLbd));
                 getLogger().info("Sum of cash flows after LBD: " + calculator.roundToPrecision(sumAfterLbd));
+            }
+
+            // Read and parse csp.csv into a list of Pattern.Unit objects
+            String csvFilePath = "csp.csv"; // Adjust the path as needed
+            try (FileInputStream csvInputStream = new FileInputStream(csvFilePath)) {
+                List<Pattern.Unit> units = new ArrayList<>(pattern.parseUnitsFromStream(csvInputStream, true, ","));
+                Pattern.Unit.validate(units);
+                for (Pattern.Unit unit : units) {
+                    if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
+                        getLogger().info(unit.toString());
+                    }
+                }
+                units = Pattern.Unit.convertQuartersToMonths(units);
+                for (Pattern.Unit unit : units) {
+                    if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
+                        getLogger().info(unit.toString());
+                    }
+                }
+                units = Pattern.Unit.convertMonthsToQuarters(units);
+                for (Pattern.Unit unit : units) {
+                    if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
+                        getLogger().info(unit.toString());
+                    }
                 }
 
-            
+            } catch (Exception e) {
+                getLogger().warning("Error reading or parsing csp.csv: " + e.getMessage());
+            }
+
         } catch (Exception e) {
             getLogger().warning("Error processing the configuration file: " + e.getMessage());
         }
