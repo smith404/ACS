@@ -1,0 +1,27 @@
+[
+    {
+        "type": "D",
+        "dayCount": "1",
+        "factor": "0.1284"
+    },
+    {
+        "type": "Q",
+        "dayCount": "1",
+        "factor": "0.2179"
+    },
+    {
+        "type": "Q",
+        "dayCount": "2",
+        "factor": "0.2179"
+    },
+    {
+        "type": "Q",
+        "dayCount": "3",
+        "factor": "0.2179"
+    },
+    {
+        "type": "Q",
+        "dayCount": "4",
+        "factor": "0.2179"
+    }
+]

@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 
 import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Data
 @NoArgsConstructor
@@ -35,6 +37,11 @@ public class ClosingSteeringParameter {
                          })
                          .toList();
         }
+    }
+
+    public static List<ClosingSteeringParameter> parseFromJsonStream(InputStream inputStream) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.readValue(inputStream, new TypeReference<List<ClosingSteeringParameter>>() {});
     }
 
     public static void validate(List<ClosingSteeringParameter> closingSteeringParameters) {
