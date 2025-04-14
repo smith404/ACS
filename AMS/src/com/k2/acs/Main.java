@@ -8,6 +8,7 @@ import com.k2.acs.model.Factor;
 import com.k2.acs.model.BestEstimateCashFlow;
 import com.k2.acs.model.Calculator;
 import com.k2.acs.model.CashFlow;
+import com.k2.acs.model.ClosingSteeringParameter;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -112,24 +113,24 @@ public class Main {
                 getLogger().info("Sum of cash flows after LBD: " + calculator.roundToPrecision(sumAfterLbd));
             }
 
-            // Read and parse csp.csv into a list of Pattern.Unit objects
+            // Read and parse csp.csv into a list of ClosingSteeringParameter objects
             String csvFilePath = "csp.csv"; // Adjust the path as needed
             try (FileInputStream csvInputStream = new FileInputStream(csvFilePath)) {
-                List<Pattern.Unit> units = new ArrayList<>(pattern.parseUnitsFromStream(csvInputStream, true, ","));
-                Pattern.Unit.validate(units);
-                for (Pattern.Unit unit : units) {
+                List<ClosingSteeringParameter> units = new ArrayList<>(ClosingSteeringParameter.parseUnitsFromStream(csvInputStream, true, ","));
+                ClosingSteeringParameter.validate(units);
+                for (ClosingSteeringParameter unit : units) {
                     if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
                         getLogger().info(unit.toString());
                     }
                 }
-                units = Pattern.Unit.convertQuartersToMonths(units);
-                for (Pattern.Unit unit : units) {
+                units = ClosingSteeringParameter.convertQuartersToMonths(units);
+                for (ClosingSteeringParameter unit : units) {
                     if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
                         getLogger().info(unit.toString());
                     }
                 }
-                units = Pattern.Unit.convertMonthsToQuarters(units);
-                for (Pattern.Unit unit : units) {
+                units = ClosingSteeringParameter.convertMonthsToQuarters(units);
+                for (ClosingSteeringParameter unit : units) {
                     if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
                         getLogger().info(unit.toString());
                     }
