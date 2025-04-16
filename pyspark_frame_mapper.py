@@ -53,7 +53,7 @@ class FrameMapper:
         mapper_path = f"{self.mapper_directory}/{self.mapper}"
         if (self.dbutils):
             config_path = self.dbutils.fs.head(mapper_path)
-            self.config = json.loads(config_path)
+            self.mapping = json.loads(config_path)
         else:
             with open(mapper_path, 'r') as file:
                 self.mapping = json.load(file)
