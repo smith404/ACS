@@ -9,6 +9,7 @@
 
 import argparse
 from enum import Enum
+from io import StringIO
 import json  # Import json module
 import yaml  # Import yaml module
 import uuid  # Import uuid module
@@ -38,7 +39,7 @@ class FrameMapper:
         if environment:
             config_filename = f'config-{environment}.yaml'
         config_path = os.path.join(config_home, config_filename)
-        if (self.dbutils and self.dbutils.fs.ls(config_path)):
+        if (self.dbutils):
             config_path = self.dbutils.fs.head(config_path)
             self.config = yaml.safe_load(config_path)
         else:
@@ -50,7 +51,7 @@ class FrameMapper:
         if not self.mapper.endswith('.json'):
             self.mapper += '.json'
         mapper_path = f"{self.mapper_directory}/{self.mapper}"
-        if (self.dbutils and self.dbutils.fs.ls(mapper_path)):
+        if (self.dbutils):
             config_path = self.dbutils.fs.head(mapper_path)
             self.config = json.loads(config_path)
         else:
@@ -93,23 +94,37 @@ class FrameMapper:
         return value
 
     def process_transforms(self):
-        from_asset_path = self.get_mappping_property("from_asset_path")
-        if from_asset_path:
-            df = self.spark.read.format("parquet").option("header", "true").load(from_asset_path)
-            transforms = self.mapping.get('transforms', [])
-            df = self.apply_transforms(transforms, df)
-            to_asset_path = self.get_mappping_property("to_asset_path")
-            if to_asset_path:
-                compression = self.config.get('compression', 'none')  # Get compression from config
-                df.write.format("parquet").mode("overwrite").option("compression", compression).save(to_asset_path)
+        try:
+            from_asset_path = self.get_mappping_property("from_asset_path")
+            log_str = StringIO()
+            log_str.write(json.dumps(self.mapping, indent=4))
+            status_signal_path = os.path.dirname(from_asset_path) + "/status.FAILURE"
+            if from_asset_path:
+                df = self.spark.read.format("parquet").option("header", "true").load(from_asset_path)
+                transforms = self.mapping.get('transforms', [])
+                df = self.apply_transforms(transforms, df, log_str)
+                to_asset_path = self.get_mappping_property("to_asset_path")
+                if to_asset_path:
+                    compression = self.config.get('compression', 'none')  # Get compression from config
+                    df.write.format("parquet").mode("overwrite").option("compression", compression).save(to_asset_path)
+                    status_signal_path = os.path.dirname(to_asset_path) + "/status.SUCCESS"
+        except Exception as e:
+            log_str.write(f"Error processing transforms: {e}")
+        finally:
+            log_str.close()
+            if (self.dbutils):
+                self.dbutils.fs.put(status_signal_path, contents=log_str.getvalue(), overwrite=True)
+            else:
+                with open(status_signal_path, 'w') as file:
+                    file.write(log_str.getvalue())
 
-    def apply_transforms(self, transforms, df):
+    def apply_transforms(self, transforms, df, log_str=None):
         if isinstance(transforms, list):
             for transform in transforms:
-                df = self.apply_transform(transform, df)
+                df = self.apply_transform(transform, df, log_str)
         return df
 
-    def apply_transform(self, transform, df):
+    def apply_transform(self, transform, df, log_str=None):
         transform_type = transform.get('transform_type')
         if transform_type:
             method_name = f"transfrom_type_{transform_type}"
@@ -117,22 +132,22 @@ class FrameMapper:
             if callable(method):
                  return method(transform, df)
             else:
-                print(f"No method found for transform type: {transform_type}")
+                log_str.write(f"No method found for transform type: {transform_type}")
                 return df
 
-    def transfrom_type_rename_columns(self, mapping, df):
+    def transfrom_type_rename_columns(self, mapping, df, log_str=None):
         columns = mapping.get("columns", [])
         for column in columns:
             df = df.withColumnRenamed(column.get("source_column"), column.get("target_column"))
         return df
 
-    def transfrom_type_drop_columns(self, mapping, df):
+    def transfrom_type_drop_columns(self, mapping, df, log_str=None):
         columns = mapping.get("columns", [])
         for column in columns:
             df = df.drop(column)
         return df
 
-    def transfrom_type_set_columns(self, mapping, df):
+    def transfrom_type_set_columns(self, mapping, df, log_str=None):
         columns = mapping.get("columns", [])
         for column in columns:
             trim = column.get("trim", False)
@@ -150,14 +165,14 @@ class FrameMapper:
                 df = df.withColumn(column.get("source_column"), sf.lit(value))
         return df
 
-    def transfrom_type_simplemap(self, mapping, df):
+    def transfrom_type_simplemap(self, mapping, df, log_str=None):
         columns = mapping.get("columns", [])
         for column in columns:
             for key, value in mapping.get("mapping").items():
                 df = df.withColumn(column, sf.when(sf.col(column) == key, sf.lit(value)).otherwise(sf.col(column)))
         return df
 
-    def transfrom_type_select(self, mapping, df):
+    def transfrom_type_select(self, mapping, df, log_str=None):
         df = df.select(mapping.get("columns"))
         filters = mapping.get("filters", [])
         if filters:
@@ -170,7 +185,7 @@ class FrameMapper:
                     df = df.filter(condition_expr)
         return df   
     
-    def transfrom_type_select_expression(self, mapping, df):
+    def transfrom_type_select_expression(self, mapping, df, log_str=None):
         df = df.selectExpr(mapping.get("columns"))
         filters = mapping.get("filters", [])
         if filters:
@@ -183,7 +198,7 @@ class FrameMapper:
                     df = df.filter(condition_expr)
         return df   
     
-    def transfrom_type_group_by(self, mapping, df):
+    def transfrom_type_group_by(self, mapping, df, log_str=None):
         aggregations = mapping.get('aggregations', [])
         if isinstance(aggregations, list):
             agg_exprs = []
@@ -193,11 +208,11 @@ class FrameMapper:
                 if callable(method):
                     agg_exprs.append(method(agg.get('source_column')).alias(agg.get('target_column')))
                 else:
-                    print(f"No aggregation method found for: {method_name}")
+                    log_str.write(f"No aggregation method found for: {method_name}")
             df = df.groupBy(mapping.get('columns')).agg(*agg_exprs)
         return df
 
-    def transfrom_type_update_columns(self, mapping, df):
+    def transfrom_type_update_columns(self, mapping, df, log_str=None):
         columns = mapping.get("columns", [])
         for column in columns:
             condition_expr = self.build_condition_expr(column.get("conditions", []))
@@ -240,7 +255,7 @@ class FrameMapper:
         else:
             return None
 
-    def transfrom_type_split_column(self, mapping, df):
+    def transfrom_type_split_column(self, mapping, df, log_str=None):
         source_column = mapping.get("source_column")
         delimiter = mapping.get("delimiter")
         target_columns = mapping.get("target_columns", [])
@@ -250,7 +265,7 @@ class FrameMapper:
                 df = df.withColumn(target_column, split_col.getItem(idx))
         return df
 
-    def transfrom_type_merge_columns(self, mapping, df):
+    def transfrom_type_merge_columns(self, mapping, df, log_str=None):
         target_column = mapping.get("target_column")
         delimiter = mapping.get("delimiter")
         source_columns = mapping.get("source_columns", [])
@@ -259,7 +274,7 @@ class FrameMapper:
             df = df.withColumn(target_column, merged_col)
         return df
 
-    def transfrom_type_set_column_type(self, mapping, df):
+    def transfrom_type_set_column_type(self, mapping, df, log_str=None):
         columns = mapping.get("columns", [])
         for column in columns:
             col_name = column.get("column")
@@ -289,20 +304,20 @@ class FrameMapper:
                 df = df.withColumn(col_name, sf.row_number().over(window_spec))
         return df
 
-    def transfrom_type_copy_columns(self, mapping, df):
+    def transfrom_type_copy_columns(self, mapping, df, log_str=None):
         columns = mapping.get("columns", [])
         for column in columns:
             df = df.withColumn(column.get("target_column"), sf.col(column.get("source_column")))
         return df
 
-    def transfrom_type_trim_columns(self, mapping, df):
+    def transfrom_type_trim_columns(self, mapping, df, log_str=None):
         columns = mapping.get("columns", [])
         for column in columns:
             if dict(df.dtypes).get(column) == "string":
                 df = df.withColumn(column, sf.trim(sf.col(column)))
         return df
 
-    def transfrom_type_transpose_columns(self, mapping, df):
+    def transfrom_type_transpose_columns(self, mapping, df, log_str=None):
         id_column = mapping.get("id_column")
         value_columns = mapping.get("value_columns", [])
         if id_column and value_columns:
@@ -321,7 +336,7 @@ class FrameMapper:
             )      
         return df
 
-    def transfrom_type_map(self, mapping, df):
+    def transfrom_type_map(self, mapping, df, log_str=None):
         columns = mapping.get("columns", )
         map_dict = mapping.get("mapping", {})
         default_value = mapping.get("default_value", None)
