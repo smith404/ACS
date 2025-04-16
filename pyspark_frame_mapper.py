@@ -95,9 +95,13 @@ class FrameMapper:
 
     def process_transforms(self):
         try:
-            from_asset_path = self.get_mappping_property("from_asset_path")
+            start_time = datetime.now()
             log_str = StringIO()
+            log_str.write(f"Start Time: {start_time}\n") 
+            from_asset_path = self.get_mappping_property("from_asset_path")
+            log_str.write("Running with configuration:\n")
             log_str.write(json.dumps(self.mapping, indent=4))
+            log_str.write("\n")
             status_signal_path = os.path.dirname(from_asset_path) + "/status.FAILURE"
             if from_asset_path:
                 df = self.spark.read.format("parquet").option("header", "true").load(from_asset_path)
@@ -109,14 +113,16 @@ class FrameMapper:
                     df.write.format("parquet").mode("overwrite").option("compression", compression).save(to_asset_path)
                     status_signal_path = os.path.dirname(to_asset_path) + "/status.SUCCESS"
         except Exception as e:
-            log_str.write(f"Error processing transforms: {e}")
+            log_str.write(f"Error processing transforms: {e}\n")
         finally:
-            log_str.close()
+            end_time = datetime.now()
+            log_str.write(f"End Time: {end_time}\n")            
             if (self.dbutils):
                 self.dbutils.fs.put(status_signal_path, contents=log_str.getvalue(), overwrite=True)
             else:
                 with open(status_signal_path, 'w') as file:
                     file.write(log_str.getvalue())
+            log_str.close()
 
     def apply_transforms(self, transforms, df, log_str=None):
         if isinstance(transforms, list):
@@ -132,7 +138,7 @@ class FrameMapper:
             if callable(method):
                  return method(transform, df)
             else:
-                log_str.write(f"No method found for transform type: {transform_type}")
+                log_str.write(f"No method found for transform type: {transform_type}\n")
                 return df
 
     def transfrom_type_rename_columns(self, mapping, df, log_str=None):
@@ -208,7 +214,7 @@ class FrameMapper:
                 if callable(method):
                     agg_exprs.append(method(agg.get('source_column')).alias(agg.get('target_column')))
                 else:
-                    log_str.write(f"No aggregation method found for: {method_name}")
+                    log_str.write(f"No aggregation method found for: {method_name}\n")
             df = df.groupBy(mapping.get('columns')).agg(*agg_exprs)
         return df
 
