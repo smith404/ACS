@@ -7,6 +7,7 @@ import java.time.LocalDate;
 public class Factor {
     private double distribution;
     private LocalDate date;
+    private int developmentPeriod;
     private double value;
 
     public Factor(double distribution, LocalDate date, double value) {

@@ -11,6 +11,8 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 
 public class Calculator {
+    private static final int DEFAULT_PRECISION = 6;
+
     public enum FactorType {
         WRITING,
         EARNING
@@ -81,7 +83,7 @@ public class Calculator {
         return startDates;
     }
 
-    private int precision = 6;
+    private int precision = DEFAULT_PRECISION;
     private Pattern pattern = null;
 
     public Calculator(int precision, Pattern pattern) {
@@ -126,7 +128,7 @@ public class Calculator {
                           factor.getDate(),
                           factor.getDistribution() * ultimateValue.getAmount()
                       ))
-                      .collect(Collectors.toList());
+                      .toList();
     }
 
     public double sumValuesBetweenDates(List<Factor> factors, LocalDate startDate, LocalDate endDate) {
@@ -168,7 +170,6 @@ public class Calculator {
                 factor1.getValue() * factor2.getValue()
             ));
         }
-
         return combinedFactors;
     }
 
@@ -185,7 +186,7 @@ public class Calculator {
                           factor.getDate(),
                           factor.getValue()
                       ))
-                      .collect(Collectors.toList());
+                      .toList();
     }
 
     public double roundToPrecision(double value) {

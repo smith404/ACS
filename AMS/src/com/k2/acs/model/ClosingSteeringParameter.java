@@ -12,13 +12,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import lombok.AllArgsConstructor;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.k2.acs.model.PatternElement.Type;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class ClosingSteeringParameter {
 
     public static List<ClosingSteeringParameter> parseUnitsFromStream(InputStream inputStream, boolean hasHeaderLine, String delimiter) throws IOException {
@@ -27,13 +26,14 @@ public class ClosingSteeringParameter {
                          .skip(hasHeaderLine ? 1 : 0)
                          .map(line -> {
                              String[] parts = line.split(delimiter);
-                             if (parts.length != 3) {
+                             if (parts.length != 4) {
                                  throw new IllegalArgumentException("Invalid line format: " + line);
                              }
                              char unitType = parts[0].charAt(0);
-                             int unitTypeCount = Integer.parseInt(parts[1]);
+                             int unitIndex = Integer.parseInt(parts[1]);
                              double factor = Double.parseDouble(parts[2]);
-                             return new ClosingSteeringParameter(unitType, unitTypeCount, factor);
+                             int duration = Integer.parseInt(parts[3]);
+                             return new ClosingSteeringParameter(unitType, unitIndex, factor, duration);
                          })
                          .toList();
         }
@@ -63,16 +63,16 @@ public class ClosingSteeringParameter {
             throw new IllegalArgumentException("Invalid cannot mix 'M' and 'Q' ClosingSteeringParameters.");
         }
         for (ClosingSteeringParameter closingSteeringParameter : closingSteeringParameters) {
-            if (closingSteeringParameter.getCspType() == 'D' && (closingSteeringParameter.getCspTypeCount() - 1) % 90 != 0) {
-                throw new IllegalArgumentException("Invalid cspTypeCount for 'D' when 'Q' is present.");
+            if (closingSteeringParameter.getCspType() == 'D' && (closingSteeringParameter.getCspIndex() - 1) % 90 != 0) {
+                throw new IllegalArgumentException("Invalid cspIndex for 'D' when 'Q' is present.");
             }
         }
     }
 
     private static void validateMClosingSteeringParameters(List<ClosingSteeringParameter> closingSteeringParameters) {
         for (ClosingSteeringParameter closingSteeringParameter : closingSteeringParameters) {
-            if (closingSteeringParameter.getCspType() == 'D' && (closingSteeringParameter.getCspTypeCount() - 1) % 30 != 0) {
-                throw new IllegalArgumentException("Invalid cspTypeCount for 'D' when 'M' is present.");
+            if (closingSteeringParameter.getCspType() == 'D' && (closingSteeringParameter.getCspIndex() - 1) % 30 != 0) {
+                throw new IllegalArgumentException("Invalid cspIndex for 'D' when 'M' is present.");
             }
         }
     }
@@ -84,7 +84,10 @@ public class ClosingSteeringParameter {
             if (closingSteeringParameter.getCspType() == 'Q') {
                 int mCounter = 1;
                 for (int i = 0; i < 3; i++) {
-                    newClosingSteeringParameters.add(new ClosingSteeringParameter('M', (((closingSteeringParameter.cspTypeCount-1) * 3) + mCounter++), closingSteeringParameter.getFactor()/3));
+                    newClosingSteeringParameters.add(new ClosingSteeringParameter('M',
+                        (((closingSteeringParameter.cspIndex-1) * 3) + mCounter++),
+                        closingSteeringParameter.getFactor()/3, 
+                        closingSteeringParameter.getDuration()));
                 }
             } else {
                 newClosingSteeringParameters.add(closingSteeringParameter);
@@ -93,7 +96,7 @@ public class ClosingSteeringParameter {
 
         closingSteeringParameters.clear();
         closingSteeringParameters.addAll(newClosingSteeringParameters);
-        closingSteeringParameters.sort((u1, u2) -> Integer.compare(u1.getCspTypeCount(), u2.getCspTypeCount())); // Sort by cspTypeCount
+        closingSteeringParameters.sort((u1, u2) -> Integer.compare(u1.getCspIndex(), u2.getCspIndex())); // Sort by cspIndex
         return closingSteeringParameters;
     }
 
@@ -103,7 +106,7 @@ public class ClosingSteeringParameter {
 
         for (ClosingSteeringParameter closingSteeringParameter : closingSteeringParameters) {
             if (closingSteeringParameter.getCspType() == 'M') {
-                int quarterIndex = (closingSteeringParameter.getCspTypeCount() - 1) / 3;
+                int quarterIndex = (closingSteeringParameter.getCspIndex() - 1) / 3;
                 groupedByQuarter
                     .computeIfAbsent(quarterIndex, k -> new ArrayList<>())
                     .add(closingSteeringParameter);
@@ -118,16 +121,53 @@ public class ClosingSteeringParameter {
                 throw new IllegalArgumentException("Cannot convert months to quarters: incomplete quarter data.");
             }
             double totalFactor = monthClosingSteeringParameters.stream().mapToDouble(ClosingSteeringParameter::getFactor).sum();
-            newClosingSteeringParameters.add(new ClosingSteeringParameter('Q', entry.getKey() + 1, totalFactor));
+            newClosingSteeringParameters.add(new ClosingSteeringParameter('Q', 
+                                                    entry.getKey() + 1,
+                                                    totalFactor,
+                                                    monthClosingSteeringParameters.get(0).getDuration()));
         }
 
         closingSteeringParameters.clear();
         closingSteeringParameters.addAll(newClosingSteeringParameters);
-        closingSteeringParameters.sort((u1, u2) -> Integer.compare(u1.getCspTypeCount(), u2.getCspTypeCount())); // Sort by cspTypeCount
+        closingSteeringParameters.sort((u1, u2) -> Integer.compare(u1.getCspIndex(), u2.getCspIndex())); // Sort by cspIndex
         return closingSteeringParameters;
     }
 
     private char cspType;
-    private int cspTypeCount;
+    private int cspIndex;
     private double factor;
+    private int duration;
+    private int startPoint;
+    private int endPoint;
+
+    public ClosingSteeringParameter(char cspType, int cspIndex, double factor, int duration) {
+        this.cspType = cspType;
+        this.cspIndex = cspIndex;
+        this.factor = factor;
+        this.duration = duration;
+
+        switch (cspType) {
+            case 'Y' -> {
+            this.startPoint = ((cspIndex - 1) * Calculator.getDaysForType(Type.YEAR)) + 1;
+            this.endPoint = (cspIndex * Calculator.getDaysForType(Type.YEAR));
+            }
+            case 'Q' -> {
+            this.startPoint = ((cspIndex - 1) * Calculator.getDaysForType(Type.QUARTER)) + 1;
+            this.endPoint = (cspIndex * Calculator.getDaysForType(Type.QUARTER));
+            }
+            case 'M' -> {
+            this.startPoint = ((cspIndex - 1) * Calculator.getDaysForType(Type.MONTH)) + 1;
+            this.endPoint = (cspIndex * Calculator.getDaysForType(Type.MONTH));
+            }
+            case 'W' -> {
+            this.startPoint = ((cspIndex - 1) * Calculator.getDaysForType(Type.WEEK)) + 1;
+            this.endPoint = (cspIndex * Calculator.getDaysForType(Type.WEEK));
+            }
+            case 'D' -> {
+            this.startPoint = cspIndex;
+            this.endPoint = cspIndex;
+            }
+            default -> throw new IllegalArgumentException("Invalid cspType: " + cspType);
+        }
+    }
 }
