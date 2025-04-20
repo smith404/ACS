@@ -113,21 +113,31 @@ public class Main {
                 getLogger().info("Sum of cash flows after LBD: " + calculator.roundToPrecision(sumAfterLbd));
             }
 
-            String csvFilePath = "csp2.csv";
+            String csvFilePath = "csp.csv";
             try (FileInputStream csvInputStream = new FileInputStream(csvFilePath)) {
                 List<ClosingSteeringParameter> units = new ArrayList<>(ClosingSteeringParameter.parseUnitsFromStream(csvInputStream, true, ","));
                 ClosingSteeringParameter.validate(units);
+
                 for (ClosingSteeringParameter unit : units) {
                     if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
                         getLogger().info(unit.toString());
                     }
                 }
+
+                List<PatternElement> patternElements = ClosingSteeringParameter.toPatternElements(units);
+                for (PatternElement patternElement : patternElements) {
+                    if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
+                        getLogger().info(patternElement.toString());
+                    }
+                }
+
                 units = ClosingSteeringParameter.convertQuartersToMonths(units);
                 for (ClosingSteeringParameter unit : units) {
                     if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
                         getLogger().info(unit.toString());
                     }
                 }
+
                 units = ClosingSteeringParameter.convertMonthsToQuarters(units);
                 for (ClosingSteeringParameter unit : units) {
                     if (getLogger().isLoggable(java.util.logging.Level.INFO)) {

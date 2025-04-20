@@ -133,6 +133,47 @@ public class ClosingSteeringParameter {
         return closingSteeringParameters;
     }
 
+    public static List<PatternElement> toPatternElements(List<ClosingSteeringParameter> closingSteeringParameters) {
+        Map<Integer, ClosingSteeringParameter> startPointMap = new HashMap<>();
+        closingSteeringParameters.stream()
+            .filter(csp -> csp.getCspType() != 'D')
+            .forEach(csp -> startPointMap.put(csp.getStartPoint(), csp));
+
+        return closingSteeringParameters.stream()
+                .filter(csp -> csp.getCspType() != 'D')
+                .map(csp -> {
+                    String type;
+                    if (csp.getCspType() == 'Y') {
+                        type = "YEAR";
+                    } else if (csp.getCspType() == 'Q') {
+                        type = "QUARTER";
+                    } else if (csp.getCspType() == 'M') {
+                        type = "MONTH";
+                    } else if (csp.getCspType() == 'W') {
+                        type = "WEEK";
+                    } else {
+                        type = "DAY";
+                    }
+
+                    double initialDistribution = 0;
+                    ClosingSteeringParameter matchingD = closingSteeringParameters.stream()
+                            .filter(d -> d.getCspType() == 'D' && d.getStartPoint() == csp.getStartPoint())
+                            .findFirst()
+                            .orElse(null);
+
+                    if (matchingD != null) {
+                        initialDistribution = matchingD.getFactor();
+                    }
+
+                    return new PatternElement(
+                        initialDistribution,
+                        csp.getFactor(),
+                        PatternElement.Type.valueOf(type)
+                    );
+                })
+                .toList();
+    }
+
     private char cspType;
     private int cspIndex;
     private double factor;

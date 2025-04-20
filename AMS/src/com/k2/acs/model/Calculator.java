@@ -92,10 +92,10 @@ public class Calculator {
     }
 
     public static int getDaysForType(PatternElement.Type type) {
-        return getDaysForType(type, LocalDate.now());
+        return typeToDaysMap.getOrDefault(type, 0);
     }
 
-    public static int getDaysForType(PatternElement.Type type, LocalDate startDate) {
+    public static int getDaysForTypeWithCalendar(PatternElement.Type type, LocalDate startDate) {
         if ((type == PatternElement.Type.MONTH || type == PatternElement.Type.QUARTER || type == PatternElement.Type.YEAR) && useCalendar) {
             LocalDate endDate = switch (type) {
                 case MONTH -> startDate.plusMonths(1);
@@ -116,7 +116,7 @@ public class Calculator {
                 case EARNING -> element.generateEarningFactors(startDate);
             };
             allFactors.addAll(factors);
-            startDate = startDate.plusDays(Calculator.getDaysForType(element.getType(), startDate)); 
+            startDate = startDate.plusDays(Calculator.getDaysForTypeWithCalendar(element.getType(), startDate)); 
         }
         return allFactors;
     }
