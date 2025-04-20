@@ -113,8 +113,7 @@ public class Main {
                 getLogger().info("Sum of cash flows after LBD: " + calculator.roundToPrecision(sumAfterLbd));
             }
 
-            // Read and parse csp.csv into a list of ClosingSteeringParameter objects
-            String csvFilePath = "csp.csv"; // Adjust the path as needed
+            String csvFilePath = "csp2.csv";
             try (FileInputStream csvInputStream = new FileInputStream(csvFilePath)) {
                 List<ClosingSteeringParameter> units = new ArrayList<>(ClosingSteeringParameter.parseUnitsFromStream(csvInputStream, true, ","));
                 ClosingSteeringParameter.validate(units);

@@ -124,9 +124,10 @@ public class Calculator {
     public List<Factor> applyUltimateValueToPattern(List<Factor> factors, UltimateValue ultimateValue) {
         return factors.stream()
                       .map(factor -> new Factor(
-                          factor.getDistribution(),
-                          factor.getDate(),
-                          factor.getDistribution() * ultimateValue.getAmount()
+                            factor.getOriginDate(),
+                            factor.getDistribution(),
+                            factor.getDate(),
+                            factor.getDistribution() * ultimateValue.getAmount()
                       ))
                       .toList();
     }
@@ -165,6 +166,7 @@ public class Calculator {
             Factor factor1 = factors1.get(i);
             Factor factor2 = factors2.get(i);
             combinedFactors.add(new Factor(
+                factor1.getOriginDate(),
                 factor1.getDistribution() * factor2.getDistribution(),
                 factor1.getDate(),
                 factor1.getValue() * factor2.getValue()
@@ -182,6 +184,7 @@ public class Calculator {
         }
         return factors.stream()
                       .map(factor -> new Factor(
+                        factor.getOriginDate(),
                           factor.getDistribution() / totalDistribution,
                           factor.getDate(),
                           factor.getValue()

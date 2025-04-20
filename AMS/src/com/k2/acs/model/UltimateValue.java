@@ -21,6 +21,6 @@ public class UltimateValue extends PropertyObject {
     }
 
     public UltimateValue(BestEstimateCashFlow becf) {
-        
+        throw new UnsupportedOperationException("Constructor not implemented");
     }
 }

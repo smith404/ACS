@@ -26,11 +26,11 @@ public class PatternElement {
         return new PatternElement(initialDistribution, totalDistribution, type);
     }
 
+    private Pattern parentPattern;
     private final String uuid = UUID.randomUUID().toString(); // Generate UUID on creation
+    private Type type;
     private double distribution = 0;
     private double initialDistribution = 0;
-    private Type type;
-    private Pattern parentPattern;
 
     public PatternElement(double initialDistribution, double distribution, Type type) {
         this.initialDistribution = initialDistribution;
@@ -44,15 +44,16 @@ public class PatternElement {
     }
 
     public List<Factor> generateWritingFactors(LocalDate startDate) {
+        LocalDate originDate = startDate;
         int elementDays = Calculator.getDaysForType(this.type, startDate);
         List<Factor> factors = new ArrayList<>();
         double factorDistribution = this.distribution / elementDays; 
 
         for (int i = 0; i < elementDays; i++) {
             if (i == 0) {
-                factors.add(new Factor(factorDistribution + this.initialDistribution, startDate.plusDays(i)));
+                factors.add(new Factor(originDate, factorDistribution + this.initialDistribution, startDate.plusDays(i)));
             } else {
-                factors.add(new Factor(factorDistribution, startDate.plusDays(i)));
+                factors.add(new Factor(originDate, factorDistribution, startDate.plusDays(i)));
             }
         }
 
@@ -60,6 +61,7 @@ public class PatternElement {
     }
 
     public List<Factor> generateEarningFactors(LocalDate startDate) {
+        LocalDate originDate = startDate;
         int elementDays = Calculator.getDaysForType(this.type, startDate);
         int contractDurationDays = parentPattern.getDuration();
         List<Factor> factors = new ArrayList<>();
@@ -68,11 +70,11 @@ public class PatternElement {
 
         for (int i = 0; i < elementDays + contractDurationDays; i++) {
             if (i < elementDays) {
-                factors.add(new Factor((factorDistribution/2) + initialFactorDistribution, startDate.plusDays(i)));
+                factors.add(new Factor(originDate, (factorDistribution/2) + initialFactorDistribution, startDate.plusDays(i)));
             } else if (i < contractDurationDays) {
-                factors.add(new Factor(factorDistribution + initialFactorDistribution, startDate.plusDays(i)));
+                factors.add(new Factor(originDate, factorDistribution + initialFactorDistribution, startDate.plusDays(i)));
             } else {
-                factors.add(new Factor((factorDistribution/2) , startDate.plusDays(i)));
+                factors.add(new Factor(originDate, (factorDistribution/2) , startDate.plusDays(i)));
             }
         }
 
