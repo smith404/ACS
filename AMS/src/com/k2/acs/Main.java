@@ -8,11 +8,8 @@ import com.k2.acs.model.BestEstimateCashFlow;
 import com.k2.acs.model.Calculator;
 import com.k2.acs.model.CashFlow;
 import com.k2.acs.model.ClosingSteeringParameters;
-import com.k2.acs.model.SteeringParameter;
 
-import java.io.FileInputStream;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 import java.util.logging.Logger;
@@ -46,6 +43,7 @@ public class Main {
             }
         } catch (Exception e) {
             getLogger().warning("Error processing the configuration file: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

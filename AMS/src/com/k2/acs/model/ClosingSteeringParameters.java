@@ -106,15 +106,6 @@ public class ClosingSteeringParameters {
         }
     }
 
-    public void parseFromJsonStream(InputStream inputStream) throws CSPException {
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            steeringParameters = objectMapper.readValue(inputStream, new TypeReference<List<SteeringParameter>>() {});
-        } catch (Exception e) {
-            throw new CSPException("Error parsing JSON: " + e.getMessage(), e);
-        }
-    }
-
     public void validate() {
         boolean hasQ = steeringParameters.stream().anyMatch(steeringParameter -> steeringParameter.getCspType() == 'Q');
         boolean hasM = steeringParameters.stream().anyMatch(steeringParameter -> steeringParameter.getCspType() == 'M');

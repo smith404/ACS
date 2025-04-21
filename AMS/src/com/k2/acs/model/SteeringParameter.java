@@ -20,27 +20,45 @@ public class SteeringParameter {
         this.cspIndex = cspIndex;
         this.factor = factor;
         this.duration = duration;
+    }
 
+    public int getStartPoint() {
         switch (cspType) {
             case 'Y' -> {
-            this.startPoint = ((cspIndex - 1) * Calculator.getDaysForType(Type.YEAR)) + 1;
-            this.endPoint = (cspIndex * Calculator.getDaysForType(Type.YEAR));
+                return ((cspIndex - 1) * Calculator.getDaysForType(Type.YEAR)) + 1;
             }
             case 'Q' -> {
-            this.startPoint = ((cspIndex - 1) * Calculator.getDaysForType(Type.QUARTER)) + 1;
-            this.endPoint = (cspIndex * Calculator.getDaysForType(Type.QUARTER));
+                return ((cspIndex - 1) * Calculator.getDaysForType(Type.QUARTER)) + 1;
             }
             case 'M' -> {
-            this.startPoint = ((cspIndex - 1) * Calculator.getDaysForType(Type.MONTH)) + 1;
-            this.endPoint = (cspIndex * Calculator.getDaysForType(Type.MONTH));
+                return ((cspIndex - 1) * Calculator.getDaysForType(Type.MONTH)) + 1;
             }
             case 'W' -> {
-            this.startPoint = ((cspIndex - 1) * Calculator.getDaysForType(Type.WEEK)) + 1;
-            this.endPoint = (cspIndex * Calculator.getDaysForType(Type.WEEK));
+                return ((cspIndex - 1) * Calculator.getDaysForType(Type.WEEK)) + 1;
             }
             case 'D' -> {
-            this.startPoint = cspIndex;
-            this.endPoint = cspIndex;
+                return cspIndex;
+            }
+            default -> throw new IllegalArgumentException("Invalid cspType: " + cspType);
+        }
+    }   
+
+    public int getEndPoint() {
+        switch (cspType) {
+            case 'Y' -> {
+                return (cspIndex * Calculator.getDaysForType(Type.YEAR));
+            }
+            case 'Q' -> {
+                return (cspIndex * Calculator.getDaysForType(Type.QUARTER));
+            }
+            case 'M' -> {
+                return(cspIndex * Calculator.getDaysForType(Type.MONTH));
+            }
+            case 'W' -> {
+                return (cspIndex * Calculator.getDaysForType(Type.WEEK));
+            }
+            case 'D' -> {
+                return cspIndex;
             }
             default -> throw new IllegalArgumentException("Invalid cspType: " + cspType);
         }
