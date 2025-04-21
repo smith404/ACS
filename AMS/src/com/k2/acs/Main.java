@@ -1,6 +1,5 @@
 package com.k2.acs;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.k2.acs.model.UltimateValue;
 import com.k2.acs.model.Pattern;
 import com.k2.acs.model.PatternElement;
@@ -8,9 +7,9 @@ import com.k2.acs.model.Factor;
 import com.k2.acs.model.BestEstimateCashFlow;
 import com.k2.acs.model.Calculator;
 import com.k2.acs.model.CashFlow;
-import com.k2.acs.model.ClosingSteeringParameter;
+import com.k2.acs.model.ClosingSteeringParameters;
+import com.k2.acs.model.SteeringParameter;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -32,125 +31,93 @@ public class Main {
         }
 
         try {
-            // Parse the JSON file into an AmsConfig object
             String configFilePath = args[0];
-            ObjectMapper objectMapper = new ObjectMapper();
-            AmsConfig config = objectMapper.readValue(new File(configFilePath), AmsConfig.class);
+            AmsConfig config = AmsConfig.parseConfig(configFilePath);
+            UltimateValue ultimateValue = createUltimateValue(config);
+            Pattern pattern = createPattern(config);
+            List<Factor> factors = calculateFactors(config, pattern, ultimateValue);
+            List<CashFlow> cashFlows = generateCashFlows(config, factors);
+            processCashFlows(config, cashFlows);
 
-            // Create an UltimateValue object using AmsConfig
-            UltimateValue ultimateValue = new UltimateValue(UltimateValue.Type.PREMIUM, config.getAmount());
-            ultimateValue.addProperty("TOA", config.getToa());
-
-            // Create a Pattern object using AmsConfig
-            Pattern pattern = new Pattern();
-            pattern.setType(config.getPatternType());
-            pattern.setDuration(config.getDuration());
-
-            // Add PatternElements from AmsConfig
-            for (AmsConfig.Element element : config.getElements()) {
-                PatternElement patternElement = new PatternElement(
-                    element.getInitial(),
-                    element.getDistribution(),
-                    PatternElement.Type.valueOf(element.getType())
-                );
-                pattern.addElement(patternElement);
-            }
-
-            // Use the contract date from AmsConfig as the start date
-            LocalDate startDate = config.getInsuredPeriodStartDateAsLocalDate();
-
-            Calculator.setUseCalendar(config.isCalendar());
-            Calculator calculator = new Calculator(config.getPrecision(), pattern);
-
-            List<Factor> factors = calculator.calculateDailyFactors(startDate, Calculator.FactorType.valueOf(config.getFactor().toUpperCase()));
-
-            factors = calculator.applyUltimateValueToPattern(factors, ultimateValue);
-
-            List<LocalDate> endPoints =  Calculator.getEndDatesBetween(
-                    config.getCashFlowStartAsLocalDate().getYear(),
-                    config.getCashFlowEndAsLocalDate().getYear(),
-                    PatternElement.Type.valueOf(config.getCashFlowFrequency().toUpperCase())
-                );
-
-            List<CashFlow> cashFlows = calculator.generateCashFlows(
-                factors,
-                config.getCashFlowStartAsLocalDate(),
-                endPoints,
-                config.isEndOfPeriod()
-            );
-
-            // Calculate the sum of cash flows before and after the lbd
-            LocalDate lbd = config.getLbdAsLocalDate();
-            double sumBeforeLbd = 0.0;
-            double sumAfterLbd = 0.0;
-
-            for (CashFlow cashFlow : cashFlows) {
-                cashFlow.setCurrency(config.getCurrency());
-                cashFlow.addProperty("PATTERN_TYPE", config.getFactor());
-                if (cashFlow.getAmount() != 0) {
-                    if (cashFlow.getIncurredDate().isBefore(lbd)) {
-                        sumBeforeLbd += cashFlow.getAmount();
-                    } else {
-                        sumAfterLbd += cashFlow.getAmount();
-                    }
-                }
-            }
-
-            BestEstimateCashFlow bestEstimateCashFlow = new BestEstimateCashFlow();
-            bestEstimateCashFlow.addProperty("Valuation", "BASELINE");
-            bestEstimateCashFlow.addProperty("CRE", config.getToa());
-            bestEstimateCashFlow.addProperty("Factor", config.getFactor());
-            bestEstimateCashFlow.loadCashFlows(cashFlows);
-            bestEstimateCashFlow.sortCashFlows();
-
+            ClosingSteeringParameters csp = new ClosingSteeringParameters();
+            csp.parseFromCsvFile("csp.csv");
             if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
-                getLogger().info(bestEstimateCashFlow.toString());
+                getLogger().info(String.format("Closing Steering Parameters: %s", csp));
             }
-
-            // Print the rounded sums
-            if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
-                getLogger().info("Sum of cash flows before LBD: " + calculator.roundToPrecision(sumBeforeLbd));
-                getLogger().info("Sum of cash flows after LBD: " + calculator.roundToPrecision(sumAfterLbd));
-            }
-
-            String csvFilePath = "csp.csv";
-            try (FileInputStream csvInputStream = new FileInputStream(csvFilePath)) {
-                List<ClosingSteeringParameter> units = new ArrayList<>(ClosingSteeringParameter.parseUnitsFromStream(csvInputStream, true, ","));
-                ClosingSteeringParameter.validate(units);
-
-                for (ClosingSteeringParameter unit : units) {
-                    if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
-                        getLogger().info(unit.toString());
-                    }
-                }
-
-                List<PatternElement> patternElements = ClosingSteeringParameter.toPatternElements(units);
-                for (PatternElement patternElement : patternElements) {
-                    if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
-                        getLogger().info(patternElement.toString());
-                    }
-                }
-
-                units = ClosingSteeringParameter.convertQuartersToMonths(units);
-                for (ClosingSteeringParameter unit : units) {
-                    if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
-                        getLogger().info(unit.toString());
-                    }
-                }
-
-                units = ClosingSteeringParameter.convertMonthsToQuarters(units);
-                for (ClosingSteeringParameter unit : units) {
-                    if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
-                        getLogger().info(unit.toString());
-                    }
-                }
-
-            } catch (Exception e) {
-                getLogger().warning("Error reading or parsing csp.csv: " + e.getMessage());
-            }
-
         } catch (Exception e) {
             getLogger().warning("Error processing the configuration file: " + e.getMessage());
+        }
+    }
+
+    private static UltimateValue createUltimateValue(AmsConfig config) {
+        UltimateValue ultimateValue = new UltimateValue(UltimateValue.Type.PREMIUM, config.getAmount());
+        ultimateValue.addProperty("TOA", config.getToa());
+        return ultimateValue;
+    }
+
+    private static Pattern createPattern(AmsConfig config) {
+        Pattern pattern = new Pattern();
+        pattern.setType(config.getPatternType());
+        pattern.setDuration(config.getDuration());
+        for (AmsConfig.Element element : config.getElements()) {
+            PatternElement patternElement = new PatternElement(
+                element.getInitial(),
+                element.getDistribution(),
+                PatternElement.Type.valueOf(element.getType())
+            );
+            pattern.addElement(patternElement);
+        }
+        return pattern;
+    }
+
+    private static List<Factor> calculateFactors(AmsConfig config, Pattern pattern, UltimateValue ultimateValue) {
+        LocalDate startDate = config.getInsuredPeriodStartDateAsLocalDate();
+        Calculator.setUseCalendar(config.isCalendar());
+        Calculator calculator = new Calculator(config.getPrecision(), pattern);
+        List<Factor> factors = calculator.calculateDailyFactors(startDate, Calculator.FactorType.valueOf(config.getFactor().toUpperCase()));
+        return calculator.applyUltimateValueToPattern(factors, ultimateValue);
+    }
+
+    private static List<CashFlow> generateCashFlows(AmsConfig config, List<Factor> factors) {
+        Calculator calculator = new Calculator(config.getPrecision(), new Pattern());
+        List<LocalDate> endPoints = Calculator.getEndDatesBetween(
+            config.getCashFlowStartAsLocalDate().getYear(),
+            config.getCashFlowEndAsLocalDate().getYear(),
+            PatternElement.Type.valueOf(config.getCashFlowFrequency().toUpperCase())
+        );
+        return calculator.generateCashFlows(
+            factors,
+            config.getCashFlowStartAsLocalDate(),
+            endPoints,
+            config.isEndOfPeriod()
+        );
+    }
+
+    private static void processCashFlows(AmsConfig config, List<CashFlow> cashFlows) {
+        LocalDate lbd = config.getLbdAsLocalDate();
+        double sumBeforeLbd = 0.0;
+        double sumAfterLbd = 0.0;
+        for (CashFlow cashFlow : cashFlows) {
+            cashFlow.setCurrency(config.getCurrency());
+            cashFlow.addProperty("PATTERN_TYPE", config.getFactor());
+            if (cashFlow.getAmount() != 0) {
+                if (cashFlow.getIncurredDate().isBefore(lbd)) {
+                    sumBeforeLbd += cashFlow.getAmount();
+                } else {
+                    sumAfterLbd += cashFlow.getAmount();
+                }
+            }
+        }
+        BestEstimateCashFlow bestEstimateCashFlow = new BestEstimateCashFlow();
+        bestEstimateCashFlow.addProperty("Valuation", "BASELINE");
+        bestEstimateCashFlow.addProperty("CRE", config.getToa());
+        bestEstimateCashFlow.addProperty("Factor", config.getFactor());
+        bestEstimateCashFlow.loadCashFlows(cashFlows);
+        bestEstimateCashFlow.sortCashFlows();
+        if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
+            getLogger().info(bestEstimateCashFlow.toString());
+            getLogger().info("Sum of cash flows before LBD: " + sumBeforeLbd);
+            getLogger().info("Sum of cash flows after LBD: " + sumAfterLbd);
         }
     }
 }
