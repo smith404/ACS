@@ -12,8 +12,6 @@ public class SteeringParameter {
     private int cspIndex;
     private double factor;
     private int duration;
-    private int startPoint;
-    private int endPoint;
 
     public SteeringParameter(char cspType, int cspIndex, double factor, int duration) {
         this.cspType = cspType;
