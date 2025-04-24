@@ -6,20 +6,20 @@ import java.time.LocalDate;
 
 @Data
 public class Factor {
-    private LocalDate originDate;
+    private LocalDate incurredDate;
     private double distribution;
-    private LocalDate date;
+    private LocalDate exposureDate;
     private int developmentPeriod;
     private double value;
 
-    public Factor(LocalDate originDate, double distribution, LocalDate date, double value) {
-        this.originDate = originDate;
+    public Factor(LocalDate incurredDate, double distribution, LocalDate exposureDate, double value) {
+        this.incurredDate = incurredDate;
         this.distribution = distribution;
-        this.date = date;
+        this.exposureDate = exposureDate;
         this.value = value;
     }
 
-    public Factor(LocalDate originDate, double distribution, LocalDate date) {
-        this(originDate, distribution, date, 0);
+    public Factor(LocalDate incurredDate, double distribution, LocalDate exposureDate) {
+        this(incurredDate, distribution, exposureDate, 0);
     }
 }

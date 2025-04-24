@@ -123,9 +123,9 @@ public class Calculator {
     public List<Factor> applyUltimateValueToPattern(List<Factor> factors, UltimateValue ultimateValue) {
         return factors.stream()
                       .map(factor -> new Factor(
-                            factor.getOriginDate(),
+                            factor.getIncurredDate(),
                             factor.getDistribution(),
-                            factor.getDate(),
+                            factor.getExposureDate(),
                             factor.getDistribution() * ultimateValue.getAmount()
                       ))
                       .toList();
@@ -133,7 +133,7 @@ public class Calculator {
 
     public double sumValuesBetweenDates(List<Factor> factors, LocalDate startDate, LocalDate endDate) {
         return factors.stream()
-                      .filter(factor -> !factor.getDate().isBefore(startDate) && !factor.getDate().isAfter(endDate))
+                      .filter(factor -> !factor.getExposureDate().isBefore(startDate) && !factor.getExposureDate().isAfter(endDate))
                       .mapToDouble(Factor::getValue)
                       .sum();
     }
@@ -165,9 +165,9 @@ public class Calculator {
             Factor factor1 = factors1.get(i);
             Factor factor2 = factors2.get(i);
             combinedFactors.add(new Factor(
-                factor1.getOriginDate(),
+                factor1.getIncurredDate(),
                 factor1.getDistribution() * factor2.getDistribution(),
-                factor1.getDate(),
+                factor1.getExposureDate(),
                 factor1.getValue() * factor2.getValue()
             ));
         }
@@ -183,9 +183,9 @@ public class Calculator {
         }
         return factors.stream()
                       .map(factor -> new Factor(
-                        factor.getOriginDate(),
+                        factor.getIncurredDate(),
                           factor.getDistribution() / totalDistribution,
-                          factor.getDate(),
+                          factor.getExposureDate(),
                           factor.getValue()
                       ))
                       .toList();
