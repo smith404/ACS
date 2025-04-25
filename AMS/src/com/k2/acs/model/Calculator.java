@@ -201,30 +201,84 @@ public class Calculator {
         List<ExposureMatrixEntry> matrix = new ArrayList<>();
 
         for (int i = 0; i < incurredDateBuckets.size(); i++) {
-            LocalDate incurredStart = i == 0 ? startDate : incurredDateBuckets.get(i - 1).plusDays(1);
+            LocalDate incurredStart = getStartDate(startDate, incurredDateBuckets, i);
             LocalDate incurredEnd = incurredDateBuckets.get(i);
 
             for (int j = 0; j < exposureDateBuckets.size(); j++) {
-                LocalDate exposureStart = j == 0 ? startDate : exposureDateBuckets.get(j - 1).plusDays(1);
+                LocalDate exposureStart = getStartDate(startDate, exposureDateBuckets, j);
                 LocalDate exposureEnd = exposureDateBuckets.get(j);
 
-                double sum = factors.stream()
-                    .filter(factor -> !factor.getIncurredDate().isBefore(incurredStart) && !factor.getIncurredDate().isAfter(incurredEnd))
-                    .filter(factor -> !factor.getExposureDate().isBefore(exposureStart) && !factor.getExposureDate().isAfter(exposureEnd))
-                    .mapToDouble(Factor::getValue)
-                    .sum();
+                double sum = calculateSum(factors, incurredStart, incurredEnd, exposureStart, exposureEnd);
 
-                matrix.add(new ExposureMatrixEntry(
-                    toEnd ? incurredEnd : incurredStart,
-                    toEnd ? exposureEnd : exposureStart,
-                    roundToPrecision(sum)));
-                if (sum != 0) {
-                    System.out.println("Incurred: " + incurredStart + " - " + incurredEnd + ", Exposure: " + exposureStart + " - " + exposureEnd + ", Sum: " + sum);
-                }
+                addMatrixEntry(matrix, toEnd, incurredStart, incurredEnd, exposureStart, exposureEnd, sum);
             }
         }
 
         return matrix;
+    }
+
+    private LocalDate getStartDate(LocalDate startDate, List<LocalDate> buckets, int index) {
+        return index == 0 ? startDate : buckets.get(index - 1).plusDays(1);
+    }
+
+    private double calculateSum(List<Factor> factors, LocalDate incurredStart, LocalDate incurredEnd, LocalDate exposureStart, LocalDate exposureEnd) {
+        return factors.stream()
+                      .filter(factor -> isWithinRange(factor.getIncurredDate(), incurredStart, incurredEnd))
+                      .filter(factor -> isWithinRange(factor.getExposureDate(), exposureStart, exposureEnd))
+                      .mapToDouble(Factor::getValue)
+                      .sum();
+    }
+
+    private boolean isWithinRange(LocalDate date, LocalDate start, LocalDate end) {
+        return !date.isBefore(start) && !date.isAfter(end);
+    }
+
+    private void addMatrixEntry(List<ExposureMatrixEntry> matrix, boolean toEnd, LocalDate incurredStart, LocalDate incurredEnd, LocalDate exposureStart, LocalDate exposureEnd, double sum) {
+        if (sum == 0) {
+            return;
+        }
+        matrix.add(new ExposureMatrixEntry(
+            toEnd ? incurredEnd : incurredStart,
+            toEnd ? exposureEnd : exposureStart,
+            roundToPrecision(sum)));
+    }
+
+    public static String generateExposureMatrixTable(List<ExposureMatrixEntry> entries) {
+        // Extract unique buckets for x-axis and y-axis
+        List<LocalDate> exposureDateBuckets = entries.stream()
+                                                     .map(ExposureMatrixEntry::exposureDateBucket)
+                                                     .distinct()
+                                                     .sorted()
+                                                     .toList();
+        List<LocalDate> incurredDateBuckets = entries.stream()
+                                                     .map(ExposureMatrixEntry::incurredDateBucket)
+                                                     .distinct()
+                                                     .sorted()
+                                                     .toList();
+
+        // Build the table header
+        StringBuilder table = new StringBuilder();
+        table.append("Incurred \\ Exposure");
+        for (LocalDate exposureDate : exposureDateBuckets) {
+            table.append("\t").append(exposureDate);
+        }
+        table.append("\n");
+
+        // Populate the table rows
+        for (LocalDate incurredDate : incurredDateBuckets) {
+            table.append(incurredDate);
+            for (LocalDate exposureDate : exposureDateBuckets) {
+                double sum = entries.stream()
+                                    .filter(entry -> entry.incurredDateBucket().equals(incurredDate) &&
+                                                     entry.exposureDateBucket().equals(exposureDate))
+                                    .mapToDouble(ExposureMatrixEntry::sum)
+                                    .sum();
+                table.append("\t").append(sum);
+            }
+            table.append("\n");
+        }
+
+        return table.toString();
     }
 }
 
