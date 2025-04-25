@@ -36,11 +36,28 @@ public class Main {
             List<CashFlow> cashFlows = generateCashFlows(config, factors);
             processCashFlows(config, cashFlows);
 
-            ClosingSteeringParameters csp = new ClosingSteeringParameters();
-            csp.parseFromCsvFile("csp.csv");
-            if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
-                getLogger().info(String.format("Closing Steering Parameters: %s", csp));
-            }
+            List<LocalDate> endPoints = Calculator.getEndDatesBetween(
+                config.getCashFlowStartAsLocalDate().getYear(),
+                config.getCashFlowEndAsLocalDate().getYear(),
+                PatternElement.Type.valueOf(config.getCashFlowFrequency().toUpperCase())
+            );
+    
+            Calculator calculator = new Calculator(config.getPrecision(), pattern);
+            List<Calculator.ExposureMatrixEntry> exposureMatrix = calculator.generateExposureMatrix(factors,
+                                                                                config.getLbdAsLocalDate(), 
+                                                                                endPoints, 
+                                                                                endPoints, 
+                                                                                false);
+            
+            //if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
+            //    getLogger().info("Exposure Matrix: " + exposureMatrix);
+            //}   
+
+            //ClosingSteeringParameters csp = new ClosingSteeringParameters();
+            //csp.parseFromCsvFile("csp.csv");
+            //if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
+            //    getLogger().info(String.format("Closing Steering Parameters: %s", csp));
+            //}
         } catch (Exception e) {
             getLogger().warning("Error processing the configuration file: " + e.getMessage());
             e.printStackTrace();

@@ -5,21 +5,27 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.Getter;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 
 public class Calculator {
-    private static final int DEFAULT_PRECISION = 6;
+
+    public record ExposureMatrixEntry(LocalDate incurredDateBucket, LocalDate exposureDateBucket, double sum)
+    {
+    }
 
     public enum FactorType {
         WRITING,
         EARNING
     }
 
-    private static final Map<PatternElement.Type, Integer> typeToDaysMap = new EnumMap<>(PatternElement.Type.class);
+    @Getter
     private static boolean useCalendar = false;
 
+    private static final Map<PatternElement.Type, Integer> typeToDaysMap = new EnumMap<>(PatternElement.Type.class);
     static {
         typeToDaysMap.put(PatternElement.Type.DAY, 1);
         typeToDaysMap.put(PatternElement.Type.WEEK, 7);
@@ -27,17 +33,12 @@ public class Calculator {
         typeToDaysMap.put(PatternElement.Type.QUARTER, 90);
         typeToDaysMap.put(PatternElement.Type.YEAR, 360);
     }
-
     public static void updateTypeToDays(PatternElement.Type type, int days) {
         typeToDaysMap.put(type, days);
     }
 
     public static void setUseCalendar(boolean useCalendar) {
         Calculator.useCalendar = useCalendar;
-    }
-
-    public static boolean isUseCalendar() {
-        return useCalendar;
     }
 
     public static List<LocalDate> getEndDatesBetween(int startYear, int endYear, PatternElement.Type frequency) {
@@ -82,8 +83,8 @@ public class Calculator {
         return startDates;
     }
 
-    private int precision = DEFAULT_PRECISION;
-    private Pattern pattern = null;
+    private final int precision;
+    private final Pattern pattern;
 
     public Calculator(int precision, Pattern pattern) {
         this.precision = precision;
@@ -140,16 +141,15 @@ public class Calculator {
 
     public List<CashFlow> generateCashFlows(List<Factor> factors, LocalDate startDate, List<LocalDate> endDates, boolean toEnd) {
         List<CashFlow> cashFlows = new ArrayList<>();
-        for (int i = 0; i < endDates.size(); i++) {
-            if (endDates.get(i).isAfter(startDate.minusDays(1))) {
-                LocalDate currentEndDate = endDates.get(i);
-                double sum = BigDecimal.valueOf(sumValuesBetweenDates(factors, startDate, currentEndDate))
-                    .setScale(precision, RoundingMode.HALF_UP)
-                    .doubleValue();
-                CashFlow cashFlow = new CashFlow(toEnd ? currentEndDate : startDate, sum);
+        for (LocalDate endDate : endDates)
+        {
+            if (endDate.isAfter(startDate.minusDays(1)))
+            {
+                double sum = roundToPrecision(sumValuesBetweenDates(factors, startDate, endDate));
+                CashFlow cashFlow = new CashFlow(toEnd ? endDate : startDate, sum);
                 cashFlows.add(cashFlow);
-                startDate = currentEndDate.plusDays(1);
-                }
+                startDate = endDate.plusDays(1);
+            }
         }
         return cashFlows;
     }
@@ -196,4 +196,35 @@ public class Calculator {
                          .setScale(precision, RoundingMode.HALF_UP)
                          .doubleValue();
     }
+
+    public List<ExposureMatrixEntry> generateExposureMatrix(List<Factor> factors, LocalDate startDate, List<LocalDate> incurredDateBuckets, List<LocalDate> exposureDateBuckets, boolean toEnd) {
+        List<ExposureMatrixEntry> matrix = new ArrayList<>();
+
+        for (int i = 0; i < incurredDateBuckets.size(); i++) {
+            LocalDate incurredStart = i == 0 ? startDate : incurredDateBuckets.get(i - 1).plusDays(1);
+            LocalDate incurredEnd = incurredDateBuckets.get(i);
+
+            for (int j = 0; j < exposureDateBuckets.size(); j++) {
+                LocalDate exposureStart = j == 0 ? startDate : exposureDateBuckets.get(j - 1).plusDays(1);
+                LocalDate exposureEnd = exposureDateBuckets.get(j);
+
+                double sum = factors.stream()
+                    .filter(factor -> !factor.getIncurredDate().isBefore(incurredStart) && !factor.getIncurredDate().isAfter(incurredEnd))
+                    .filter(factor -> !factor.getExposureDate().isBefore(exposureStart) && !factor.getExposureDate().isAfter(exposureEnd))
+                    .mapToDouble(Factor::getValue)
+                    .sum();
+
+                matrix.add(new ExposureMatrixEntry(
+                    toEnd ? incurredEnd : incurredStart,
+                    toEnd ? exposureEnd : exposureStart,
+                    roundToPrecision(sum)));
+                if (sum != 0) {
+                    System.out.println("Incurred: " + incurredStart + " - " + incurredEnd + ", Exposure: " + exposureStart + " - " + exposureEnd + ", Sum: " + sum);
+                }
+            }
+        }
+
+        return matrix;
+    }
 }
+
