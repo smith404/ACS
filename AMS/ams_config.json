@@ -1,7 +1,7 @@
 {
     "lbd": "2025-01-01",
     "showPastFuture": true,
-    "precision": 20,
+    "precision": 6,
     "cashFlowFrequency": "quarter",
     "cashFlowStart": "2024-01-01",
     "cashFlowEnd": "2026-12-31",

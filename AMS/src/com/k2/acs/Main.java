@@ -50,7 +50,7 @@ public class Main {
                                                                                 false);
             
             if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
-                getLogger().info("\n" + Calculator.generateExposureMatrixTable(exposureMatrix));
+                getLogger().info("\n" + calculator.generateExposureMatrixTable(exposureMatrix));
             }   
             //ClosingSteeringParameters csp = new ClosingSteeringParameters();
             //csp.parseFromCsvFile("csp.csv");

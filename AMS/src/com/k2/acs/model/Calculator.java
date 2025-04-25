@@ -243,7 +243,7 @@ public class Calculator {
             roundToPrecision(sum)));
     }
 
-    public static String generateExposureMatrixTable(List<ExposureMatrixEntry> entries) {
+    public String generateExposureMatrixTable(List<ExposureMatrixEntry> entries) {
         // Extract unique buckets for x-axis and y-axis
         List<LocalDate> exposureDateBuckets = entries.stream()
                                                      .map(ExposureMatrixEntry::exposureDateBucket)
@@ -258,7 +258,7 @@ public class Calculator {
 
         // Build the table header
         StringBuilder table = new StringBuilder();
-        table.append("Incurred \\ Exposure");
+        table.append("Inc x Exp");
         for (LocalDate exposureDate : exposureDateBuckets) {
             table.append("\t").append(exposureDate);
         }
@@ -273,7 +273,7 @@ public class Calculator {
                                                      entry.exposureDateBucket().equals(exposureDate))
                                     .mapToDouble(ExposureMatrixEntry::sum)
                                     .sum();
-                table.append("\t").append(sum);
+                table.append("\t").append(roundToPrecision(sum));
             }
             table.append("\n");
         }
