@@ -2,6 +2,7 @@ package com.k2.acs.model;
 
 import java.time.LocalDate;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -279,6 +280,53 @@ public class Calculator {
         }
 
         return table.toString();
+    }
+
+    public String summarizeExposureMatrix(List<ExposureMatrixEntry> entries) {
+        // Extract unique buckets for x-axis and y-axis
+        List<LocalDate> exposureDateBuckets = entries.stream()
+                                                     .map(ExposureMatrixEntry::exposureDateBucket)
+                                                     .distinct()
+                                                     .sorted()
+                                                     .toList();
+        List<LocalDate> incurredDateBuckets = entries.stream()
+                                                     .map(ExposureMatrixEntry::incurredDateBucket)
+                                                     .distinct()
+                                                     .sorted()
+                                                     .toList();
+
+        // Initialize sums
+        Map<LocalDate, Double> columnSums = new HashMap<>();
+        Map<LocalDate, Double> rowSums = new HashMap<>();
+        double totalSum = 0;
+
+        // Calculate row and column sums
+        for (LocalDate incurredDate : incurredDateBuckets) {
+            double rowSum = 0;
+            for (LocalDate exposureDate : exposureDateBuckets) {
+                double value = entries.stream()
+                                      .filter(entry -> entry.incurredDateBucket().equals(incurredDate) &&
+                                                       entry.exposureDateBucket().equals(exposureDate))
+                                      .mapToDouble(ExposureMatrixEntry::sum)
+                                      .sum();
+                rowSum += value;
+                columnSums.put(exposureDate, columnSums.getOrDefault(exposureDate, 0.0) + value);
+            }
+            rowSums.put(incurredDate, rowSum);
+            totalSum += rowSum;
+        }
+
+        // Build summary output
+        StringBuilder summary = new StringBuilder();
+        summary.append("Row Sums:\n");
+        rowSums.forEach((incurredDate, sum) -> summary.append(incurredDate).append(": ").append(roundToPrecision(sum)).append("\n"));
+
+        summary.append("\nColumn Sums:\n");
+        columnSums.forEach((exposureDate, sum) -> summary.append(exposureDate).append(": ").append(roundToPrecision(sum)).append("\n"));
+
+        summary.append("\nTotal Sum: ").append(roundToPrecision(totalSum));
+
+        return summary.toString();
     }
 }
 
