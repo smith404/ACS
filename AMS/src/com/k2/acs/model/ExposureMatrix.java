@@ -8,7 +8,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.Data;
+
 public class ExposureMatrix {
+
+    public enum ExposureType {
+        INCURRED,
+        REPORTED,
+        DUE,
+        SETTLED
+    }
+
     public static List<LocalDate> getEndDatesBetween(int startYear, int endYear, PatternElement.Type frequency) {
         List<LocalDate> endDates = new ArrayList<>();
         LocalDate currentDate = LocalDate.of(startYear, 1, 1);
@@ -51,7 +61,19 @@ public class ExposureMatrix {
         return startDates;
     }
 
-    public record ExposureMatrixEntry(LocalDate incurredDateBucket, LocalDate exposureDateBucket, double sum) {
+    @Data
+    public static class ExposureMatrixEntry {
+        private final LocalDate incurredDateBucket;
+        private final LocalDate exposureDateBucket;
+        private final double sum;
+        private ExposureType exposureType;
+
+        public ExposureMatrixEntry(LocalDate incurredDateBucket, LocalDate exposureDateBucket, double sum) {
+            this.incurredDateBucket = incurredDateBucket;
+            this.exposureDateBucket = exposureDateBucket;
+            this.sum = sum;
+            this.exposureType = ExposureType.INCURRED;
+        }
     }
 
     private final int precision;
@@ -123,12 +145,12 @@ public class ExposureMatrix {
     public String generateExposureMatrixTable() {
         // Extract unique buckets for x-axis and y-axis
         List<LocalDate> exposureDateBuckets = entries.stream()
-                                                     .map(ExposureMatrixEntry::exposureDateBucket)
+                                                     .map(ExposureMatrixEntry::getExposureDateBucket)
                                                      .distinct()
                                                      .sorted()
                                                      .toList();
         List<LocalDate> incurredDateBuckets = entries.stream()
-                                                     .map(ExposureMatrixEntry::incurredDateBucket)
+                                                     .map(ExposureMatrixEntry::getIncurredDateBucket)
                                                      .distinct()
                                                      .sorted()
                                                      .toList();
@@ -146,9 +168,9 @@ public class ExposureMatrix {
             table.append(incurredDate);
             for (LocalDate exposureDate : exposureDateBuckets) {
                 double sum = entries.stream()
-                                    .filter(entry -> entry.incurredDateBucket().equals(incurredDate) &&
-                                                     entry.exposureDateBucket().equals(exposureDate))
-                                    .mapToDouble(ExposureMatrixEntry::sum)
+                                    .filter(entry -> entry.getIncurredDateBucket().equals(incurredDate) &&
+                                                     entry.getExposureDateBucket().equals(exposureDate))
+                                    .mapToDouble(ExposureMatrixEntry::getSum)
                                     .sum();
                 table.append(",").append(roundToPrecision(sum));
             }
@@ -161,12 +183,12 @@ public class ExposureMatrix {
     public String summarizeExposureMatrix() {
         // Extract unique buckets for x-axis and y-axis
         List<LocalDate> exposureDateBuckets = entries.stream()
-                                                     .map(ExposureMatrixEntry::exposureDateBucket)
+                                                     .map(ExposureMatrixEntry::getExposureDateBucket)
                                                      .distinct()
                                                      .sorted()
                                                      .toList();
         List<LocalDate> incurredDateBuckets = entries.stream()
-                                                     .map(ExposureMatrixEntry::incurredDateBucket)
+                                                     .map(ExposureMatrixEntry::getIncurredDateBucket)
                                                      .distinct()
                                                      .sorted()
                                                      .toList();
@@ -181,9 +203,9 @@ public class ExposureMatrix {
             double rowSum = 0;
             for (LocalDate exposureDate : exposureDateBuckets) {
                 double value = entries.stream()
-                                      .filter(entry -> entry.incurredDateBucket().equals(incurredDate) &&
-                                                       entry.exposureDateBucket().equals(exposureDate))
-                                      .mapToDouble(ExposureMatrixEntry::sum)
+                                      .filter(entry -> entry.getIncurredDateBucket().equals(incurredDate) &&
+                                                       entry.getExposureDateBucket().equals(exposureDate))
+                                      .mapToDouble(ExposureMatrixEntry::getSum)
                                       .sum();
                 rowSum += value;
                 columnSums.put(exposureDate, columnSums.getOrDefault(exposureDate, 0.0) + value);
