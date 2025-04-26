@@ -45,7 +45,7 @@ public class PatternElement {
 
     public List<Factor> generateWritingFactors(LocalDate startDate) {
         LocalDate originDate = startDate;
-        int elementDays = Calculator.getDaysForTypeWithCalendar(this.type, startDate);
+        int elementDays = FactorCalculator.getDaysForTypeWithCalendar(this.type, startDate);
         List<Factor> factors = new ArrayList<>();
         double factorDistribution = this.distribution / elementDays; 
 
@@ -62,7 +62,7 @@ public class PatternElement {
 
     public List<Factor> generateEarningFactors(LocalDate startDate) {
         LocalDate originDate = startDate;
-        int elementDays = Calculator.getDaysForTypeWithCalendar(this.type, startDate);
+        int elementDays = FactorCalculator.getDaysForTypeWithCalendar(this.type, startDate);
         int contractDurationDays = parentPattern.getDuration();
         List<Factor> factors = new ArrayList<>();
         double factorDistribution = this.distribution / (contractDurationDays); 
@@ -82,7 +82,7 @@ public class PatternElement {
     }
 
     public int getLength() {
-        return Calculator.getDaysForType(this.type);
+        return FactorCalculator.getDaysForType(this.type);
     }
 
     public enum Type {

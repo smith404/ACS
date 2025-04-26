@@ -5,9 +5,9 @@ import com.k2.acs.model.Pattern;
 import com.k2.acs.model.PatternElement;
 import com.k2.acs.model.Factor;
 import com.k2.acs.model.BestEstimateCashFlow;
-import com.k2.acs.model.Calculator;
+import com.k2.acs.model.FactorCalculator;
 import com.k2.acs.model.CashFlow;
-import com.k2.acs.model.ClosingSteeringParameters;
+import com.k2.acs.model.ExposureMatrix;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -36,28 +36,18 @@ public class Main {
             List<CashFlow> cashFlows = generateCashFlows(config, factors);
             processCashFlows(config, cashFlows);
 
-            List<LocalDate> endPoints = Calculator.getEndDatesBetween(
+            List<LocalDate> endPoints = FactorCalculator.getEndDatesBetween(
                 config.getCashFlowStartAsLocalDate().getYear(),
                 config.getCashFlowEndAsLocalDate().getYear(),
                 PatternElement.Type.valueOf(config.getCashFlowFrequency().toUpperCase())
             );
     
-            Calculator calculator = new Calculator(config.getPrecision(), pattern);
-            List<Calculator.ExposureMatrixEntry> exposureMatrix = calculator.generateExposureMatrix(factors,
-                                                                                config.getLbdAsLocalDate(), 
-                                                                                endPoints, 
-                                                                                endPoints, 
-                                                                                false);
+            ExposureMatrix exposureMatrix = new ExposureMatrix(factors, config.getCashFlowStartAsLocalDate(), endPoints, endPoints, config.getPrecision(), config.isEndOfPeriod());
             
             if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
-                getLogger().info("\n" + calculator.generateExposureMatrixTable(exposureMatrix));
-                getLogger().info("\n" + calculator.summarizeExposureMatrix(exposureMatrix));
+                getLogger().info("\n" + exposureMatrix.generateExposureMatrixTable());
+                getLogger().info("\n" + exposureMatrix.summarizeExposureMatrix());
             }   
-            //ClosingSteeringParameters csp = new ClosingSteeringParameters();
-            //csp.parseFromCsvFile("csp.csv");
-            //if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
-            //    getLogger().info(String.format("Closing Steering Parameters: %s", csp));
-            //}
         } catch (Exception e) {
             getLogger().warning("Error processing the configuration file: " + e.getMessage());
             e.printStackTrace();
@@ -87,20 +77,20 @@ public class Main {
 
     private static List<Factor> calculateFactors(AmsConfig config, Pattern pattern, UltimateValue ultimateValue) {
         LocalDate startDate = config.getInsuredPeriodStartDateAsLocalDate();
-        Calculator.setUseCalendar(config.isCalendar());
-        Calculator calculator = new Calculator(config.getPrecision(), pattern);
-        List<Factor> factors = calculator.calculateDailyFactors(startDate, Calculator.FactorType.valueOf(config.getFactor().toUpperCase()));
-        return calculator.applyUltimateValueToPattern(factors, ultimateValue);
+        FactorCalculator.setUseCalendar(config.isCalendar());
+        FactorCalculator factorCalculator = new FactorCalculator(config.getPrecision(), pattern);
+        List<Factor> factors = factorCalculator.calculateDailyFactors(startDate, FactorCalculator.FactorType.valueOf(config.getFactor().toUpperCase()));
+        return factorCalculator.applyUltimateValueToPattern(factors, ultimateValue);
     }
 
     private static List<CashFlow> generateCashFlows(AmsConfig config, List<Factor> factors) {
-        Calculator calculator = new Calculator(config.getPrecision(), new Pattern());
-        List<LocalDate> endPoints = Calculator.getEndDatesBetween(
+        FactorCalculator factorCalculator = new FactorCalculator(config.getPrecision(), new Pattern());
+        List<LocalDate> endPoints = FactorCalculator.getEndDatesBetween(
             config.getCashFlowStartAsLocalDate().getYear(),
             config.getCashFlowEndAsLocalDate().getYear(),
             PatternElement.Type.valueOf(config.getCashFlowFrequency().toUpperCase())
         );
-        return calculator.generateCashFlows(
+        return factorCalculator.generateCashFlows(
             factors,
             config.getCashFlowStartAsLocalDate(),
             endPoints,
