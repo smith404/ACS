@@ -30,19 +30,29 @@ public class Main {
         try {
             String configFilePath = args[0];
             AmsConfig config = AmsConfig.parseConfig(configFilePath);
-            UltimateValue ultimateValue = createUltimateValue(config);
-            Pattern pattern = createPattern(config);
-            List<Factor> factors = calculateFactors(config, pattern, ultimateValue);
-            List<CashFlow> cashFlows = generateCashFlows(config, factors);
-            processCashFlows(config, cashFlows);
 
-            List<LocalDate> endPoints = FactorCalculator.getEndDatesBetween(
+            Pattern pattern = createPattern(config);
+
+            UltimateValue ultimateValue = new UltimateValue(UltimateValue.Type.PREMIUM, config.getAmount());
+            ultimateValue.addProperty("TOA", config.getToa());
+
+            FactorCalculator factorCalculator = new FactorCalculator(config.getPrecision(), pattern);
+            FactorCalculator.setUseCalendar(config.isCalendar());
+
+            factorCalculator.calculateDailyFactors(config.getInsuredPeriodStartDateAsLocalDate(), FactorCalculator.FactorType.valueOf(config.getFactorType().toUpperCase()));
+            factorCalculator.applyUltimateValueToPattern(ultimateValue);
+
+            List<LocalDate> endPoints = ExposureMatrix.getEndDatesBetween(
                 config.getCashFlowStartAsLocalDate().getYear(),
                 config.getCashFlowEndAsLocalDate().getYear(),
                 PatternElement.Type.valueOf(config.getCashFlowFrequency().toUpperCase())
             );
+
+            List<CashFlow> cashFlows = factorCalculator.generateCashFlows(config.getInsuredPeriodStartDateAsLocalDate(), endPoints, config.isEndOfPeriod());
+            processCashFlows(config, cashFlows);
+
     
-            ExposureMatrix exposureMatrix = new ExposureMatrix(factors, config.getCashFlowStartAsLocalDate(), endPoints, endPoints, config.getPrecision(), config.isEndOfPeriod());
+            ExposureMatrix exposureMatrix = new ExposureMatrix(factorCalculator.getAllFactors(), config.getCashFlowStartAsLocalDate(), endPoints, endPoints, config.getPrecision(), config.isEndOfPeriod());
             
             if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
                 getLogger().info("\n" + exposureMatrix.generateExposureMatrixTable());
@@ -52,12 +62,6 @@ public class Main {
             getLogger().warning("Error processing the configuration file: " + e.getMessage());
             e.printStackTrace();
         }
-    }
-
-    private static UltimateValue createUltimateValue(AmsConfig config) {
-        UltimateValue ultimateValue = new UltimateValue(UltimateValue.Type.PREMIUM, config.getAmount());
-        ultimateValue.addProperty("TOA", config.getToa());
-        return ultimateValue;
     }
 
     private static Pattern createPattern(AmsConfig config) {
@@ -75,36 +79,13 @@ public class Main {
         return pattern;
     }
 
-    private static List<Factor> calculateFactors(AmsConfig config, Pattern pattern, UltimateValue ultimateValue) {
-        LocalDate startDate = config.getInsuredPeriodStartDateAsLocalDate();
-        FactorCalculator.setUseCalendar(config.isCalendar());
-        FactorCalculator factorCalculator = new FactorCalculator(config.getPrecision(), pattern);
-        List<Factor> factors = factorCalculator.calculateDailyFactors(startDate, FactorCalculator.FactorType.valueOf(config.getFactor().toUpperCase()));
-        return factorCalculator.applyUltimateValueToPattern(factors, ultimateValue);
-    }
-
-    private static List<CashFlow> generateCashFlows(AmsConfig config, List<Factor> factors) {
-        FactorCalculator factorCalculator = new FactorCalculator(config.getPrecision(), new Pattern());
-        List<LocalDate> endPoints = FactorCalculator.getEndDatesBetween(
-            config.getCashFlowStartAsLocalDate().getYear(),
-            config.getCashFlowEndAsLocalDate().getYear(),
-            PatternElement.Type.valueOf(config.getCashFlowFrequency().toUpperCase())
-        );
-        return factorCalculator.generateCashFlows(
-            factors,
-            config.getCashFlowStartAsLocalDate(),
-            endPoints,
-            config.isEndOfPeriod()
-        );
-    }
-
     private static void processCashFlows(AmsConfig config, List<CashFlow> cashFlows) {
         LocalDate lbd = config.getLbdAsLocalDate();
         double sumBeforeLbd = 0.0;
         double sumAfterLbd = 0.0;
         for (CashFlow cashFlow : cashFlows) {
             cashFlow.setCurrency(config.getCurrency());
-            cashFlow.addProperty("PATTERN_TYPE", config.getFactor());
+            cashFlow.addProperty("PATTERN_TYPE", config.getFactorType());
             if (cashFlow.getAmount() != 0) {
                 if (cashFlow.getIncurredDate().isBefore(lbd)) {
                     sumBeforeLbd += cashFlow.getAmount();
@@ -113,10 +94,11 @@ public class Main {
                 }
             }
         }
+
         BestEstimateCashFlow bestEstimateCashFlow = new BestEstimateCashFlow();
         bestEstimateCashFlow.addProperty("Valuation", "BASELINE");
         bestEstimateCashFlow.addProperty("CRE", config.getToa());
-        bestEstimateCashFlow.addProperty("Factor", config.getFactor());
+        bestEstimateCashFlow.addProperty("Factor", config.getFactorType());
         bestEstimateCashFlow.loadCashFlows(cashFlows);
         bestEstimateCashFlow.sortCashFlows();
         if (getLogger().isLoggable(java.util.logging.Level.INFO)) {

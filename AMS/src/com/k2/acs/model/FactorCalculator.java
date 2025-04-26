@@ -37,48 +37,6 @@ public class FactorCalculator {
         FactorCalculator.useCalendar = useCalendar;
     }
 
-    public static List<LocalDate> getEndDatesBetween(int startYear, int endYear, PatternElement.Type frequency) {
-        List<LocalDate> endDates = new ArrayList<>();
-        LocalDate currentDate = LocalDate.of(startYear, 1, 1);
-        LocalDate endDate = LocalDate.of(endYear, 12, 31);
-
-        while (!currentDate.isAfter(endDate)) {
-            switch (frequency) {
-                case DAY -> currentDate = currentDate.plusDays(1);
-                case WEEK -> currentDate = currentDate.plusWeeks(1);
-                case MONTH -> currentDate = currentDate.plusMonths(1);
-                case QUARTER -> currentDate = currentDate.plusMonths(3);
-                case YEAR -> currentDate = currentDate.plusYears(1);
-                default -> throw new IllegalArgumentException("Unsupported frequency type: " + frequency);
-            }
-            if (!currentDate.isAfter(endDate)) {
-                endDates.add(currentDate.minusDays(1));
-            }
-        }
-
-        return endDates;
-    }
-
-    public static List<LocalDate> getStartDatesBetween(int startYear, int endYear, PatternElement.Type frequency) {
-        List<LocalDate> startDates = new ArrayList<>();
-        LocalDate currentDate = LocalDate.of(startYear, 1, 1);
-        LocalDate endDate = LocalDate.of(endYear, 12, 31);
-        
-        while (!currentDate.isAfter(endDate)) {
-            startDates.add(currentDate);
-            switch (frequency) {
-                case DAY -> currentDate = currentDate.plusDays(1);
-                case WEEK -> currentDate = currentDate.plusWeeks(1);
-                case MONTH -> currentDate = currentDate.plusMonths(1);
-                case QUARTER -> currentDate = currentDate.plusMonths(3);
-                case YEAR -> currentDate = currentDate.plusYears(1);
-                default -> throw new IllegalArgumentException("Unsupported frequency type: " + frequency);
-            }
-        }
-
-        return startDates;
-    }
-
     public static int getDaysForType(PatternElement.Type type) {
         return typeToDaysMap.getOrDefault(type, 0);
     }
@@ -99,6 +57,9 @@ public class FactorCalculator {
     private final int precision;
     private final Pattern pattern;
 
+    @Getter
+    private List<Factor> allFactors;
+
     public FactorCalculator(int precision, Pattern pattern) {
         this.precision = precision;
         this.pattern = pattern;
@@ -111,7 +72,7 @@ public class FactorCalculator {
     }
 
     public List<Factor> calculateDailyFactors(LocalDate startDate, FactorType factorType) {
-        List<Factor> allFactors = new ArrayList<>();
+        allFactors = new ArrayList<>();
         for (PatternElement element : pattern.getElements()) {
             List<Factor> factors = switch (factorType) {
                 case WRITING -> element.generateWritingFactors(startDate);
@@ -123,31 +84,40 @@ public class FactorCalculator {
         return allFactors;
     }
 
-    public List<Factor> applyUltimateValueToPattern(List<Factor> factors, UltimateValue ultimateValue) {
-        return factors.stream()
-                      .map(factor -> new Factor(
-                            factor.getIncurredDate(),
-                            factor.getDistribution(),
-                            factor.getExposureDate(),
-                            factor.getDistribution() * ultimateValue.getAmount()
-                      ))
-                      .toList();
+    public void applyUltimateValueToPattern(UltimateValue ultimateValue) {
+        if (allFactors == null) {
+            throw new IllegalStateException("allFactors must not be null before applying the ultimate value.");
+        }
+        allFactors = allFactors.stream()
+                               .map(factor -> new Factor(
+                                     factor.getIncurredDate(),
+                                     factor.getDistribution(),
+                                     factor.getExposureDate(),
+                                     factor.getDistribution() * ultimateValue.getAmount()
+                               ))
+                               .toList();
     }
 
     public double sumValuesBetweenDates(List<Factor> factors, LocalDate startDate, LocalDate endDate) {
+        if (allFactors == null) {
+            throw new IllegalStateException("allFactors must not be null before summing values.");
+        }
         return factors.stream()
                       .filter(factor -> !factor.getExposureDate().isBefore(startDate) && !factor.getExposureDate().isAfter(endDate))
                       .mapToDouble(Factor::getValue)
                       .sum();
     }
 
-    public List<CashFlow> generateCashFlows(List<Factor> factors, LocalDate startDate, List<LocalDate> endDates, boolean toEnd) {
+    public List<CashFlow> generateCashFlows(LocalDate startDate, List<LocalDate> endDates, boolean toEnd) {
+        if (allFactors == null) {
+            throw new IllegalStateException("allFactors must not be null before generating cash flws.");
+        }
         List<CashFlow> cashFlows = new ArrayList<>();
         for (LocalDate endDate : endDates)
         {
             if (endDate.isAfter(startDate.minusDays(1)))
             {
-                double sum = roundToPrecision(sumValuesBetweenDates(factors, startDate, endDate));
+                double sum = roundToPrecision(sumValuesBetweenDates(allFactors, startDate, endDate));
                 CashFlow cashFlow = new CashFlow(toEnd ? endDate : startDate, sum);
                 cashFlows.add(cashFlow);
                 startDate = endDate.plusDays(1);

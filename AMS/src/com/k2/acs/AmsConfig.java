@@ -38,7 +38,7 @@ public class AmsConfig {
     private boolean calendar;
     private Date insuredPeriodStartDate;
     private String patternType;
-    private String factor;
+    private String factorType;
     private List<Element> elements;
 
     public LocalDate getLbdAsLocalDate() {

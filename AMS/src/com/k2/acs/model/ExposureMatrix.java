@@ -1,6 +1,5 @@
 package com.k2.acs.model;
 
-import com.k2.acs.model.FactorCalculator;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -10,6 +9,48 @@ import java.util.List;
 import java.util.Map;
 
 public class ExposureMatrix {
+    public static List<LocalDate> getEndDatesBetween(int startYear, int endYear, PatternElement.Type frequency) {
+        List<LocalDate> endDates = new ArrayList<>();
+        LocalDate currentDate = LocalDate.of(startYear, 1, 1);
+        LocalDate endDate = LocalDate.of(endYear, 12, 31);
+
+        while (!currentDate.isAfter(endDate)) {
+            switch (frequency) {
+                case DAY -> currentDate = currentDate.plusDays(1);
+                case WEEK -> currentDate = currentDate.plusWeeks(1);
+                case MONTH -> currentDate = currentDate.plusMonths(1);
+                case QUARTER -> currentDate = currentDate.plusMonths(3);
+                case YEAR -> currentDate = currentDate.plusYears(1);
+                default -> throw new IllegalArgumentException("Unsupported frequency type: " + frequency);
+            }
+            if (!currentDate.isAfter(endDate)) {
+                endDates.add(currentDate.minusDays(1));
+            }
+        }
+
+        return endDates;
+    }
+
+    public static List<LocalDate> getStartDatesBetween(int startYear, int endYear, PatternElement.Type frequency) {
+        List<LocalDate> startDates = new ArrayList<>();
+        LocalDate currentDate = LocalDate.of(startYear, 1, 1);
+        LocalDate endDate = LocalDate.of(endYear, 12, 31);
+        
+        while (!currentDate.isAfter(endDate)) {
+            startDates.add(currentDate);
+            switch (frequency) {
+                case DAY -> currentDate = currentDate.plusDays(1);
+                case WEEK -> currentDate = currentDate.plusWeeks(1);
+                case MONTH -> currentDate = currentDate.plusMonths(1);
+                case QUARTER -> currentDate = currentDate.plusMonths(3);
+                case YEAR -> currentDate = currentDate.plusYears(1);
+                default -> throw new IllegalArgumentException("Unsupported frequency type: " + frequency);
+            }
+        }
+
+        return startDates;
+    }
+
     public record ExposureMatrixEntry(LocalDate incurredDateBucket, LocalDate exposureDateBucket, double sum) {
     }
 
