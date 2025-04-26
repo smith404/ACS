@@ -3,11 +3,11 @@ package com.k2.acs;
 import com.k2.acs.model.UltimateValue;
 import com.k2.acs.model.Pattern;
 import com.k2.acs.model.PatternElement;
-import com.k2.acs.model.Factor;
 import com.k2.acs.model.BestEstimateCashFlow;
 import com.k2.acs.model.FactorCalculator;
 import com.k2.acs.model.CashFlow;
 import com.k2.acs.model.ExposureMatrix;
+import lombok.Getter;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -15,11 +15,8 @@ import java.util.List;
 import java.util.logging.Logger;
 
 public class Main {
+    @Getter
     private static final Logger logger = Logger.getLogger(Main.class.getName());
-
-    public static Logger getLogger() {
-        return logger;
-    }
 
     public static void main(String[] args) {
         if (args.length < 1) {
