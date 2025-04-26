@@ -70,25 +70,6 @@ public class ClosingSteeringParameters {
         return steeringParameters;
     }
 
-    public static List<SteeringParameter> parseUnitsFromStream(InputStream inputStream, boolean hasHeaderLine, String delimiter) throws IOException {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-            return reader.lines()
-                         .skip(hasHeaderLine ? 1 : 0)
-                         .map(line -> {
-                             String[] parts = line.split(delimiter);
-                             if (parts.length != 4) {
-                                 throw new IllegalArgumentException("Invalid line format: " + line);
-                             }
-                             char unitType = parts[0].charAt(0);
-                             int unitIndex = Integer.parseInt(parts[1]);
-                             double factor = Double.parseDouble(parts[2]);
-                             int duration = Integer.parseInt(parts[3]);
-                             return new SteeringParameter(unitType, unitIndex, factor, duration);
-                         })
-                         .toList();
-        }
-    }
-
     private List<SteeringParameter> steeringParameters;
     private String name;
     private boolean scenario;
@@ -96,10 +77,29 @@ public class ClosingSteeringParameters {
 
     public void parseFromCsvFile(String csvFilePath) throws CSPException {
         try (FileInputStream csvInputStream = new FileInputStream(csvFilePath)) {
-            steeringParameters = new ArrayList<>(ClosingSteeringParameters.parseUnitsFromStream(csvInputStream, true, ","));
-            validate();
+            parseUnitsFromStream(csvInputStream, true, ",");
         } catch (Exception e) {
             throw new CSPException("Error reading CSV: " + e.getMessage(), e);
+        }
+    }
+
+    public void parseUnitsFromStream(InputStream inputStream, boolean hasHeaderLine, String delimiter) throws IOException {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+            steeringParameters = reader.lines()
+                                .skip(hasHeaderLine ? 1 : 0)
+                                .map(line -> {
+                                    String[] parts = line.split(delimiter);
+                                    if (parts.length != 4) {
+                                        throw new IllegalArgumentException("Invalid line format: " + line);
+                                    }
+                                    char unitType = parts[0].charAt(0);
+                                    int unitIndex = Integer.parseInt(parts[1]);
+                                    double factor = Double.parseDouble(parts[2]);
+                                    int duration = Integer.parseInt(parts[3]);
+                                    return new SteeringParameter(unitType, unitIndex, factor, duration);
+                                })
+                                .toList();
+            validate();
         }
     }
 
