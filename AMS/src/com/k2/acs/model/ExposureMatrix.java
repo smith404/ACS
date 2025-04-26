@@ -143,7 +143,6 @@ public class ExposureMatrix {
     }
 
     public String generateExposureMatrixTable() {
-        // Extract unique buckets for x-axis and y-axis
         List<LocalDate> exposureDateBuckets = entries.stream()
                                                      .map(ExposureMatrixEntry::getExposureDateBucket)
                                                      .distinct()
@@ -155,7 +154,6 @@ public class ExposureMatrix {
                                                      .sorted()
                                                      .toList();
 
-        // Build the table header
         StringBuilder table = new StringBuilder();
         table.append("Exp x Inc");
         for (LocalDate exposureDate : exposureDateBuckets) {
@@ -193,12 +191,10 @@ public class ExposureMatrix {
                                                      .sorted()
                                                      .toList();
 
-        // Initialize sums
         Map<LocalDate, Double> columnSums = new HashMap<>();
         Map<LocalDate, Double> rowSums = new HashMap<>();
         double totalSum = 0;
 
-        // Calculate row and column sums
         for (LocalDate incurredDate : incurredDateBuckets) {
             double rowSum = 0;
             for (LocalDate exposureDate : exposureDateBuckets) {
@@ -214,7 +210,6 @@ public class ExposureMatrix {
             totalSum += rowSum;
         }
 
-        // Build summary output
         StringBuilder summary = new StringBuilder();
         summary.append("Row Sums:\n");
         rowSums.forEach((incurredDate, sum) -> summary.append(incurredDate).append(": ").append(roundToPrecision(sum)).append("\n"));

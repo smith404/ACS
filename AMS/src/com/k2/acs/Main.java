@@ -40,16 +40,15 @@ public class Main {
             factorCalculator.applyUltimateValueToPattern(ultimateValue);
 
             List<LocalDate> endPoints = ExposureMatrix.getEndDatesBetween(
-                config.getCashFlowStartAsLocalDate().getYear(),
-                config.getCashFlowEndAsLocalDate().getYear(),
+                factorCalculator.getEarliestExposureDate().getYear(),
+                factorCalculator.getLatestExposureDate().getYear(),
                 PatternElement.Type.valueOf(config.getCashFlowFrequency().toUpperCase())
             );
 
-            List<CashFlow> cashFlows = factorCalculator.generateCashFlows(config.getInsuredPeriodStartDateAsLocalDate(), endPoints, config.isEndOfPeriod());
-            processCashFlows(config, cashFlows);
-
+            //List<CashFlow> cashFlows = factorCalculator.generateCashFlows(config.getInsuredPeriodStartDateAsLocalDate(), endPoints, config.isEndOfPeriod());
+            //processCashFlows(config, cashFlows);
     
-            ExposureMatrix exposureMatrix = new ExposureMatrix(factorCalculator.getAllFactors(), config.getCashFlowStartAsLocalDate(), endPoints, endPoints, config.getPrecision(), config.isEndOfPeriod());
+            ExposureMatrix exposureMatrix = new ExposureMatrix(factorCalculator.getAllFactors(), factorCalculator.getEarliestExposureDate(), endPoints, endPoints, config.getPrecision(), config.isEndOfPeriod());
             
             if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
                 getLogger().info("\n" + exposureMatrix.generateExposureMatrixTable());
