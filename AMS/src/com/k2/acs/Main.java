@@ -52,7 +52,9 @@ public class Main {
             
             if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
                 getLogger().info("\n" + exposureMatrix.generateExposureMatrixTable());
-                getLogger().info("\n" + exposureMatrix.summarizeExposureMatrix());
+                //getLogger().info("\n" + exposureMatrix.summarizeExposureMatrix());
+                getLogger().info("\n" + exposureMatrix.getExposureBuckets());
+                getLogger().info("\n" + exposureMatrix.getIncurredBuckets());
             }   
         } catch (Exception e) {
             getLogger().warning("Error processing the configuration file: " + e.getMessage());

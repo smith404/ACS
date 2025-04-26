@@ -221,4 +221,20 @@ public class ExposureMatrix {
 
         return summary.toString();
     }
+
+    public List<LocalDate> getExposureBuckets() {
+        return entries.stream()
+                      .map(ExposureMatrixEntry::getExposureDateBucket)
+                      .distinct()
+                      .sorted()
+                      .toList();
+    }
+
+    public List<LocalDate> getIncurredBuckets() {
+        return entries.stream()
+                      .map(ExposureMatrixEntry::getIncurredDateBucket)
+                      .distinct()
+                      .sorted()
+                      .toList();
+    }
 }
