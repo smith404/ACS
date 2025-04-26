@@ -48,11 +48,10 @@ public class Main {
             //List<CashFlow> cashFlows = factorCalculator.generateCashFlows(config.getInsuredPeriodStartDateAsLocalDate(), endPoints, config.isEndOfPeriod());
             //processCashFlows(config, cashFlows);
     
-            ExposureMatrix exposureMatrix = new ExposureMatrix(factorCalculator.getAllFactors(), factorCalculator.getEarliestExposureDate(), endPoints, endPoints, config.getPrecision(), config.isEndOfPeriod());
+            ExposureMatrix exposureMatrix = new ExposureMatrix(factorCalculator.getAllFactors(), config.getInsuredPeriodStartDateAsLocalDate(), endPoints, endPoints, config.getPrecision(), config.isEndOfPeriod());
             
             if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
                 getLogger().info("\n" + exposureMatrix.generateExposureMatrixTable());
-                //getLogger().info("\n" + exposureMatrix.summarizeExposureMatrix());
                 getLogger().info("\n" + exposureMatrix.getExposureBuckets());
                 getLogger().info("\n" + exposureMatrix.getIncurredBuckets());
             }   
