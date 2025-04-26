@@ -110,7 +110,7 @@ public class FactorCalculator {
 
     public List<CashFlow> generateCashFlows(LocalDate startDate, List<LocalDate> endDates, boolean toEnd) {
         if (allFactors == null) {
-            throw new IllegalStateException("allFactors must not be null before generating cash flws.");
+            throw new IllegalStateException("allFactors must not be null before generating cash flows.");
         }
         List<CashFlow> cashFlows = new ArrayList<>();
         for (LocalDate endDate : endDates)
@@ -146,14 +146,18 @@ public class FactorCalculator {
         return combinedFactors;
     }
 
-    public List<Factor> normalizeFactors(List<Factor> factors) {
-        double totalDistribution = factors.stream()
+    public void normalizeFactors() {
+        if (allFactors == null) {
+            throw new IllegalStateException("allFactors must not be null before normalization.");
+        }
+        double totalDistribution = allFactors.stream()
                                    .mapToDouble(Factor::getDistribution)
                                    .sum();
         if (totalDistribution == 0) {
             throw new IllegalArgumentException("Total value of factors cannot be zero for normalization.");
         }
-        return factors.stream()
+
+        allFactors =  allFactors.stream()
                       .map(factor -> new Factor(
                         factor.getIncurredDate(),
                           factor.getDistribution() / totalDistribution,
@@ -163,4 +167,43 @@ public class FactorCalculator {
                       .toList();
     }
 
+    public LocalDate getEarliestIncurredDate() {
+        if (allFactors == null || allFactors.isEmpty()) {
+            throw new IllegalStateException("allFactors must not be null or empty.");
+        }
+        return allFactors.stream()
+                         .map(Factor::getIncurredDate)
+                         .min(LocalDate::compareTo)
+                         .orElseThrow(() -> new IllegalStateException("Unable to determine the earliest incurred date."));
+    }
+
+    public LocalDate getLatestIncurredDate() {
+        if (allFactors == null || allFactors.isEmpty()) {
+            throw new IllegalStateException("allFactors must not be null or empty.");
+        }
+        return allFactors.stream()
+                         .map(Factor::getIncurredDate)
+                         .max(LocalDate::compareTo)
+                         .orElseThrow(() -> new IllegalStateException("Unable to determine the latest incurred date."));
+    }
+
+    public LocalDate getEarliestExposureDate() {
+        if (allFactors == null || allFactors.isEmpty()) {
+            throw new IllegalStateException("allFactors must not be null or empty.");
+        }
+        return allFactors.stream()
+                         .map(Factor::getExposureDate)
+                         .min(LocalDate::compareTo)
+                         .orElseThrow(() -> new IllegalStateException("Unable to determine the earliest exposure date."));
+    }
+
+    public LocalDate getLatestExposureDate() {
+        if (allFactors == null || allFactors.isEmpty()) {
+            throw new IllegalStateException("allFactors must not be null or empty.");
+        }
+        return allFactors.stream()
+                         .map(Factor::getExposureDate)
+                         .max(LocalDate::compareTo)
+                         .orElseThrow(() -> new IllegalStateException("Unable to determine the latest exposure date."));
+    }
 }
