@@ -11,8 +11,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 
-public class FactorCalculator {
-
+public class FactorCalculator implements DateCriteriaSummable {
     public enum FactorType {
         WRITING,
         EARNING
@@ -205,5 +204,26 @@ public class FactorCalculator {
                          .map(Factor::getExposureDate)
                          .max(LocalDate::compareTo)
                          .orElseThrow(() -> new IllegalStateException("Unable to determine the latest exposure date."));
+    }
+
+    @Override
+    public double getSumByDateCriteria(LocalDate date, 
+                                       String incurredDateComparison, 
+                                       String exposureDateComparison) {
+        return allFactors.stream()
+                         .filter(factor -> compareDates(factor.getIncurredDate(), date, incurredDateComparison) &&
+                                           compareDates(factor.getExposureDate(), date, exposureDateComparison))
+                         .mapToDouble(Factor::getValue)
+                         .sum();
+    }
+
+    private boolean compareDates(LocalDate bucketDate, LocalDate targetDate, String comparison) {
+        return switch (comparison) {
+            case "<" -> bucketDate.isBefore(targetDate);
+            case "<=" -> !bucketDate.isAfter(targetDate);
+            case ">" -> bucketDate.isAfter(targetDate);
+            case ">=" -> !bucketDate.isBefore(targetDate);
+            default -> throw new IllegalArgumentException("Invalid comparison operator: " + comparison);
+        };
     }
 }

@@ -10,7 +10,7 @@ import java.util.Map;
 
 import lombok.Data;
 
-public class ExposureMatrix {
+public class ExposureMatrix implements DateCriteriaSummable {
 
     public enum ExposureType {
         INCURRED,
@@ -236,5 +236,26 @@ public class ExposureMatrix {
                       .distinct()
                       .sorted()
                       .toList();
+    }
+
+    @Override
+    public double getSumByDateCriteria(LocalDate date, 
+                                       String incurredDateComparison, 
+                                       String exposureDateComparison) {
+        return entries.stream()
+                      .filter(entry -> compareDates(entry.getIncurredDateBucket(), date, incurredDateComparison) &&
+                                       compareDates(entry.getExposureDateBucket(), date, exposureDateComparison))
+                      .mapToDouble(ExposureMatrixEntry::getSum)
+                      .sum();
+    }
+
+    private boolean compareDates(LocalDate bucketDate, LocalDate targetDate, String comparison) {
+        return switch (comparison) {
+            case "<" -> bucketDate.isBefore(targetDate);
+            case "<=" -> !bucketDate.isAfter(targetDate);
+            case ">" -> bucketDate.isAfter(targetDate);
+            case ">=" -> !bucketDate.isBefore(targetDate);
+            default -> throw new IllegalArgumentException("Invalid comparison operator: " + comparison);
+        };
     }
 }
