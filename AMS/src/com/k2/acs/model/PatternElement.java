@@ -27,7 +27,7 @@ public class PatternElement {
     }
 
     private Pattern parentPattern;
-    private final String uuid = UUID.randomUUID().toString(); // Generate UUID on creation
+    private final String uuid = UUID.randomUUID().toString();
     private Type type;
     private double distribution = 0;
     private double initialDistribution = 0;

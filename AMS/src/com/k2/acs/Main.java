@@ -69,7 +69,7 @@ public class Main {
             PatternElement patternElement = new PatternElement(
                 element.getInitial(),
                 element.getDistribution(),
-                PatternElement.Type.valueOf(element.getType())
+                PatternElement.Type.valueOf(element.getType().toUpperCase())
             );
             pattern.addElement(patternElement);
         }

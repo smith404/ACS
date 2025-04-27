@@ -25,17 +25,21 @@ public class AmsConfig {
     }
 
     private int precision = 6;
+
+    private boolean calendar;
     private Date lbd;
     private boolean endOfPeriod = false;
     private String cashFlowFrequency;
-    private double amount;
-    private String currency;
+
     private String toa;
-    private int duration;
-    private boolean calendar;
+    private String currency;
+    private double amount;
+
     private Date insuredPeriodStartDate;
     private String patternType;
     private String factorType;
+    private int duration;
+
     private List<Element> elements;
 
     public LocalDate getLbdAsLocalDate() {

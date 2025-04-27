@@ -145,17 +145,17 @@ public class ClosingSteeringParameters {
         return steeringParameters.stream()
                 .filter(sp -> sp.getCspType() != 'D')
                 .map(sp -> {
-                    String type;
+                    PatternElement.Type type;
                     if (sp.getCspType() == 'Y') {
-                        type = "YEAR";
+                        type = PatternElement.Type.YEAR;
                     } else if (sp.getCspType() == 'Q') {
-                        type = "QUARTER";
+                        type = PatternElement.Type.QUARTER;
                     } else if (sp.getCspType() == 'M') {
-                        type = "MONTH";
+                        type = PatternElement.Type.MONTH;
                     } else if (sp.getCspType() == 'W') {
-                        type = "WEEK";
+                        type = PatternElement.Type.WEEK;
                     } else {
-                        type = "DAY";
+                        type = PatternElement.Type.DAY;
                     }
 
                     double initialDistribution = 0;
@@ -171,7 +171,7 @@ public class ClosingSteeringParameters {
                     return new PatternElement(
                         initialDistribution,
                         sp.getFactor(),
-                        PatternElement.Type.valueOf(type)
+                        type
                     );
                 })
                 .toList();
