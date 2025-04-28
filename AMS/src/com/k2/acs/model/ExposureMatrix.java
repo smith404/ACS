@@ -33,8 +33,9 @@ public class ExposureMatrix implements DateCriteriaSummable {
                 case YEAR -> currentDate = currentDate.plusYears(1);
                 default -> throw new IllegalArgumentException("Unsupported frequency type: " + frequency);
             }
-            if (!currentDate.isAfter(endDate)) {
-                endDates.add(currentDate.minusDays(1));
+            LocalDate previousDate = currentDate.minusDays(1);
+            if (!previousDate.isAfter(endDate) || previousDate.isEqual(endDate)) {
+                endDates.add(previousDate);
             }
         }
 
