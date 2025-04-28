@@ -11,11 +11,4 @@ public class Scenario {
     private String name;
     private String description;
     private boolean releasable;
-    private List<Factor> factors;
-
-    @Data
-    public static class Factor {
-        private String type;
-        private double distribution;
-    }
 }
