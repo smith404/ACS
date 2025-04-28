@@ -1,0 +1,25 @@
+{
+    "group": "earthquake",
+    "key": "eq_usa_cal",
+    "name": "Earthquake USA California",
+    "description": "Earthquake USA California",
+    "releasable": true,
+    "factors": [
+        {
+            "type": "Q",
+            "distribution": 0.25
+        },
+        {
+            "type": "Q",
+            "distribution": 0.25
+        },
+        {
+            "type": "Q",
+            "distribution": 0.25
+        },
+        {
+            "type": "Q",
+            "distribution": 0.25
+        }
+    ]
+}

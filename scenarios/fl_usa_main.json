@@ -1,0 +1,24 @@
+{
+    "group": "flood",
+    "key": "fl_usa_main",
+    "name": "Flood USA Mainland",
+    "description": "Flood USA Mainland",
+    "releasable": false,
+    "factors": [
+        {
+            "type": "Q",
+            "distribution": 0.19
+        },
+        {
+            "type": "Q",
+            "distribution": 0.30
+        },
+        {
+            "type": "Q",
+            "distribution": 0.21
+        },
+        {
+            "type": "Q",
+            "distribution": 0.30
+    ]
+}
