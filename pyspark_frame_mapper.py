@@ -125,21 +125,49 @@ class FrameMapper:
             log_str.close()
 
     def apply_transforms(self, transforms, df, log_str=None):
-        if isinstance(transforms, list):
-            for transform in transforms:
-                df = self.apply_transform(transform, df, log_str)
-        return df
+        current_transfrom = "{}"
+        try:
+            if isinstance(transforms, list):
+                for transform in transforms:
+                    current_transfrom = json.dumps(transform, indent=4)
+                    df = self.apply_transform(transform, df, log_str)
+            return df
+        except Exception:
+            log_str.write(f"Error processing transforms: {current_transfrom}\n")
+            raise  # Re-throw the exception
 
     def apply_transform(self, transform, df, log_str=None):
+        current_time = datetime.now()
         transform_type = transform.get('transform_type')
         if transform_type:
             method_name = f"transfrom_type_{transform_type}"
             method = getattr(self, method_name, None)
             if callable(method):
-                 return method(transform, df)
+                log_str.write(f"Calling method for transform type: {transform_type} at {current_time}\n")
+                return method(transform, df, log_str)
             else:
-                log_str.write(f"No method found for transform type: {transform_type}\n")
+                log_str.write(f"No method found for transform type: {transform_type} at {current_time}\n")
                 return df
+
+    def transfrom_type_include(self, mapping, df, log_str=None):
+        transform_rule_path = self.replace_tokens(mapping.get("transform_rule_path"))
+        if not transform_rule_path.endswith('.json'):
+            transform_rule_path += '.json'
+        
+        if self.dbutils:
+            json_content = self.dbutils.fs.head(transform_rule_path)
+            included_transforms = json.loads(json_content)
+        else:
+            with open(transform_rule_path, 'r') as file:
+                included_transforms = json.load(file)
+
+        transforms = included_transforms.get("transforms")
+        if isinstance(transforms, list):
+            df = self.apply_transforms(transforms, df, log_str)
+        else:
+            log_str.write(f"Invalid format in included file: {transform_rule_path}\n")
+        
+        return df
 
     def transfrom_type_rename_columns(self, mapping, df, log_str=None):
         columns = mapping.get("columns", [])

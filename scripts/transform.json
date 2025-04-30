@@ -35,35 +35,8 @@
             ]
         },
         {
-            "transform_type": "copy_columns",
-            "columns": [
-                {
-                    "source_column": "Level",
-                    "target_column": "Copy_Level"
-                }
-            ]
-        },
-        {
-            "transform_type": "set_columns",
-            "trim": true,
-            "columns": [
-                {
-                    "source_column": "RowNum",
-                    "default_value": 1
-                },
-                {
-                    "source_column": "Name",
-                    "default_value": "Mark"
-                },
-                {
-                    "source_column": "Age",
-                    "default_value": null
-                },
-                {
-                    "source_column": "Reference",
-                    "pattern_value": "X-_this_"
-                }
-            ]
+            "transform_type": "include",
+            "transform_rule_path": "scripts/base_transform_1.json"
         },
         {
             "transform_type": "drop_columns",
@@ -91,7 +64,7 @@
         },
         {
             "transform_type": "simplemap",
-            "target_columns": [
+            "columns": [
                 "FROM_QUARTER",
                 "TO_QUARTER"
             ],
@@ -104,7 +77,7 @@
         {
             "transform_type": "map",
             "default_value": "Unknown",
-            "target_columns": [
+            "columns": [
                 "FROM_QUARTER",
                 "TO_QUARTER"
             ],
@@ -164,7 +137,7 @@
             "columns": [
                 {
                     "source_column": "Name",
-                    "target_value": null,
+                    "target_value": "Ursula",
                     "conditions": [
                         {
                             "column": "Sum_Level",

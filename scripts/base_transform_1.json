@@ -1,0 +1,35 @@
+{
+    "transforms": [
+        {
+            "transform_type": "copy_columns",
+            "columns": [
+                {
+                    "source_column": "Level",
+                    "target_column": "Copy_Level"
+                }
+            ]
+        },
+        {
+            "transform_type": "set_columns",
+            "trim": true,
+            "columns": [
+                {
+                    "source_column": "RowNum",
+                    "default_value": 1
+                },
+                {
+                    "source_column": "Name",
+                    "default_value": "Mark"
+                },
+                {
+                    "source_column": "Age",
+                    "default_value": null
+                },
+                {
+                    "source_column": "Reference",
+                    "pattern_value": "X-_this_"
+                }
+            ]
+        }
+    ]
+}
