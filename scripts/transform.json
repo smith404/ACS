@@ -39,30 +39,6 @@
             "transform_rule_path": "scripts/base_transform_1.json"
         },
         {
-            "transform_type": "drop_columns",
-            "columns": [
-                "Series_title_5"
-            ]
-        },
-        {
-            "transform_type": "split_column",
-            "source_column": "FIN_PERIOD",
-            "delimiter": "_",
-            "target_columns": [
-                "FROM_QUARTER",
-                "TO_QUARTER"
-            ]
-        },
-        {
-            "transform_type": "merge_columns",
-            "target_column": "FIN_PERIOD",
-            "delimiter": ">>",
-            "source_columns": [
-                "FROM_QUARTER",
-                "Month"
-            ]
-        },
-        {
             "transform_type": "simplemap",
             "columns": [
                 "FROM_QUARTER",
