@@ -1,13 +1,3 @@
-# Copyright (c) 2025 K2-Software GmbH
-# 
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the licence conditions.
-
-import argparse
 from enum import Enum
 from io import StringIO
 import json  # Import json module
@@ -15,11 +5,10 @@ import yaml  # Import yaml module
 import uuid  # Import uuid module
 import os  # Import os module
 from datetime import datetime  # Import datetime module
-from pyspark.sql import SparkSession
-import pyspark.sql.functions as sf
-from pyspark.sql import Window  # Import Window module
 
-class PySparkFrameMapper:
+class FrameMapper:
+    JSON_EXTENSION = '.json'
+
     def __init__(self, mapper, spark, dbutils=None, uuid_str=None, cob=None, time=None, version=None):
         self.mapper = mapper
         self.spark = spark
@@ -48,8 +37,8 @@ class PySparkFrameMapper:
         self.mapper_directory = self.config.get('mapper_directory', '')
 
     def load_mapper(self):
-        if not self.mapper.endswith('.json'):
-            self.mapper += '.json'
+        if not self.mapper.endswith(self.JSON_EXTENSION):
+            self.mapper += self.JSON_EXTENSION
         mapper_path = f"{self.mapper_directory}/{self.mapper}"
         if (self.dbutils):
             config_path = self.dbutils.fs.head(mapper_path)
@@ -145,8 +134,8 @@ class PySparkFrameMapper:
 
     def transfrom_type_include(self, mapping, df, log_str=None):
         transform_rule_path = self.replace_tokens(mapping.get("transform_rule_path"))
-        if not transform_rule_path.endswith('.json'):
-            transform_rule_path += '.json'
+        if not transform_rule_path.endswith(self.JSON_EXTENSION):
+            transform_rule_path += self.JSON_EXTENSION
         
         if self.dbutils:
             json_content = self.dbutils.fs.head(transform_rule_path)
@@ -394,28 +383,3 @@ class PySparkFrameMapper:
                         ).drop("from", "to")
         
         return df
-    
-def main():
-    """
-    Main method to demonstrate the usage of FrameMapper class.
-    """
-    parser = argparse.ArgumentParser(description="Frame Mapper Executor")
-    parser.add_argument("--mapper", type=str, help="The name of the mapper to use")
-    args = parser.parse_args()
-
-    if args.mapper:
-        # Initialize a SparkSession
-        spark_session = SparkSession.builder \
-            .appName("PySparkExample") \
-            .getOrCreate()
-
-        frame_mapper = PySparkFrameMapper(args.mapper, spark=spark_session)
-        frame_mapper.process_transforms()
-
-        try:
-            spark_session.stop()
-        except Exception as e:
-            print(f"Error stopping Spark session: {e}")
-        
-if __name__ == "__main__":
-    main()
