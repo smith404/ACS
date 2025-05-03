@@ -30,7 +30,6 @@ class PySparkFrameMapper:
         self.version = version if version else "v1.0.0"
         self.load_config()
         self.load_mapper()
-        self.apply_spark_config()
 
     def load_config(self):
         config_home = os.getenv('FM_CONFIG_HOME', '.')  # Get environment variable or default to current directory
@@ -46,6 +45,11 @@ class PySparkFrameMapper:
             with open(config_path, 'r') as file:
                 self.config = yaml.safe_load(file)
         self.mapper_directory = self.config.get('mapper_directory', '')
+        
+        spark_config = self.mapping.get('spark_config', {})
+        for key, value in spark_config.items():
+            self.spark.conf.set(key, value)
+
 
     def load_mapper(self):
         if not self.mapper.endswith('.json'):
@@ -57,11 +61,6 @@ class PySparkFrameMapper:
         else:
             with open(mapper_path, 'r') as file:
                 self.mapping = json.load(file)
-
-    def apply_spark_config(self):
-        spark_config = self.mapping.get('spark_config', {})
-        for key, value in spark_config.items():
-            self.spark.conf.set(key, value)
 
     def get_mapping(self):
         return self.mapping

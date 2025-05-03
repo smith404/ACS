@@ -17,12 +17,18 @@
                 $http.get('/data_assets').then(function(response) {
                     ctrl.dataAssets = response.data;
                 });
+
+                ctrl.fromAsset = "";
+                ctrl.toAsset = "";
+                ctrl.properties = [];
             }]);
     </script>
+    <script src="{{ url_for('static', filename='components/asset-mapper.js')}}"></script>
 </head>
 <body>
     <div class="container" ng-controller="DataAssetsController as ctrl">
         <h1>Data Assets</h1>
+        <asset-mapper from-asset="ctrl.fromAsset" to-asset="ctrl.toAsset" key-value-pairs="ctrl.properties"></asset-mapper>
         <table class="table table-striped">
             <thead>
                 <tr>

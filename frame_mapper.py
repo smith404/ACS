@@ -9,48 +9,20 @@ from datetime import datetime  # Import datetime module
 class FrameMapper:
     JSON_EXTENSION = '.json'
 
-    def __init__(self, mapper, spark, dbutils=None, uuid_str=None, cob=None, time=None, version=None):
+    def __init__(self, mapper, uuid_str=None, cob=None, time=None, version=None):
         self.mapper = mapper
-        self.spark = spark
-        self.dbutils = dbutils
         self.uuid = uuid_str if uuid_str else str(uuid.uuid4())
         self.cob = cob if cob else datetime.now().strftime('%Y%m%d')
         self.time = time if time else datetime.now().strftime('%H-%M-%S')
         self.version = version if version else "v1.0.0"
         self.load_config()
         self.load_mapper()
-        self.apply_spark_config()
 
     def load_config(self):
-        config_home = os.getenv('FM_CONFIG_HOME', '.')  # Get environment variable or default to current directory
-        config_filename = 'config.yaml'
-        environment = os.getenv('FM_ENVIRONMENT')
-        if environment:
-            config_filename = f'config-{environment}.yaml'
-        config_path = os.path.join(config_home, config_filename)
-        if (self.dbutils):
-            config_path = self.dbutils.fs.head(config_path)
-            self.config = yaml.safe_load(config_path)
-        else:
-            with open(config_path, 'r') as file:
-                self.config = yaml.safe_load(file)
-        self.mapper_directory = self.config.get('mapper_directory', '')
+        pass
 
     def load_mapper(self):
-        if not self.mapper.endswith(self.JSON_EXTENSION):
-            self.mapper += self.JSON_EXTENSION
-        mapper_path = f"{self.mapper_directory}/{self.mapper}"
-        if (self.dbutils):
-            config_path = self.dbutils.fs.head(mapper_path)
-            self.mapping = json.loads(config_path)
-        else:
-            with open(mapper_path, 'r') as file:
-                self.mapping = json.load(file)
-
-    def apply_spark_config(self):
-        spark_config = self.mapping.get('spark_config', {})
-        for key, value in spark_config.items():
-            self.spark.conf.set(key, value)
+        pass
 
     def get_mapping(self):
         return self.mapping
