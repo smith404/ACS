@@ -24,11 +24,14 @@
             }]);
     </script>
     <script src="{{ url_for('static', filename='components/asset-mapper.js')}}"></script>
+    <script src="{{ url_for('static', filename='components/transform.js')}}"></script>
+    <script src="{{ url_for('static', filename='components/controllers/transform-controller.js')}}"></script>
 </head>
 <body>
     <div class="container" ng-controller="DataAssetsController as ctrl">
         <h1>Data Assets</h1>
         <asset-mapper from-asset="ctrl.fromAsset" to-asset="ctrl.toAsset" key-value-pairs="ctrl.properties"></asset-mapper>
+        <transform></transform>
         <table class="table table-striped">
             <thead>
                 <tr>
