@@ -70,7 +70,6 @@ def data_assets() -> Response:
     db_wrapper = DuckDBWrapper(database_path)
     db_wrapper.connect()
     data_assets = db_wrapper.execute_named_query_to_json("read_assets")
-    print("XXXXXXXXX:" + data_assets)
     db_wrapper.close()
     return Response(data_assets, mimetype='application/json')
 

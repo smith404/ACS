@@ -4,15 +4,7 @@ angular.module('app').component('assetMapper', { // Renamed from assetMapping to
     toAsset: '=',
     keyValuePairs: '='
   },
-  controller: function () {
-    this.addKeyValuePair = function () {
-      this.keyValuePairs.push({ key: '', value: '' });
-    };
-
-    this.removeKeyValuePair = function (index) {
-      this.keyValuePairs.splice(index, 1);
-    };
-  },
+  controller: 'AssetMapperController',
   templateUrl: '/static/components/templates/asset-mapper.html'
 });
 
