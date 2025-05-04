@@ -5,7 +5,7 @@
     "to_medallion_layer": "silver",
     "from_container": "scratch",
     "to_container": "scratch",
-    "spark_config": {
+    "arch_config": {
         "spark.sql.debug.maxToStringFields": "100"
     },
     "transforms": [

@@ -24,7 +24,6 @@
             }]);
     </script>
     <script src="{{ url_for('static', filename='components/asset-mapper.js')}}"></script>
-    <script src="{{ url_for('static', filename='components/transform.js')}}"></script>
     <script src="{{ url_for('static', filename='components/controllers/transform-controller.js')}}"></script>
 </head>
 <body>
@@ -32,26 +31,30 @@
         <h1>Data Assets</h1>
         <asset-mapper from-asset="ctrl.fromAsset" to-asset="ctrl.toAsset" key-value-pairs="ctrl.properties"></asset-mapper>
         <transform></transform>
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Domain</th>
-                    <th>Name</th>
-                    <th>Description</th>
-                    <th>Layer</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr ng-repeat="asset in ctrl.dataAssets">
-                    <td ng-bind="asset.data_asset_id">id</td>
-                    <td ng-bind="asset.domain">domain</td>
-                    <td ng-bind="asset.asset_name">name</td>
-                    <td ng-bind="asset.asset_description">description</td>
-                    <td ng-bind="asset.medallion_layer">layer</td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="row mt-3">
+            <div class="col-12">
+                 <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Domain</th>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Layer</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="asset in ctrl.dataAssets">
+                            <td ng-bind="asset.data_asset_id">id</td>
+                            <td ng-bind="asset.domain">domain</td>
+                            <td ng-bind="asset.asset_name">name</td>
+                            <td ng-bind="asset.asset_description">description</td>
+                            <td ng-bind="asset.medallion_layer">layer</td>
+                        </tr>
+                    </tbody>
+                    </table>
+            </div>
+        </div>
     </div>
 </body>
 </html>

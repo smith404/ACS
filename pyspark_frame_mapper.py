@@ -17,22 +17,18 @@ import os  # Import os module
 from datetime import datetime  # Import datetime module
 from pyspark.sql import SparkSession
 import pyspark.sql.functions as sf
-from pyspark.sql import Window  # Import Window module
+from pyspark.sql import Window
 
-class PySparkFrameMapper:
-    def __init__(self, mapper, spark, dbutils=None, uuid_str=None, cob=None, time=None, version=None):
-        self.mapper = mapper
+from frame_mapper import FrameMapper  # Import Window module
+
+class PySparkFrameMapper(FrameMapper):
+    def __init__(self, mapper, spark=None, dbutils=None, uuid_str=None, cob=None, time=None, version=None):
         self.spark = spark
         self.dbutils = dbutils
-        self.uuid = uuid_str if uuid_str else str(uuid.uuid4())
-        self.cob = cob if cob else datetime.now().strftime('%Y%m%d')
-        self.time = time if time else datetime.now().strftime('%H-%M-%S')
-        self.version = version if version else "v1.0.0"
-        self.load_config()
-        self.load_mapper()
+        super().__init__(mapper, uuid_str, cob, time, version)
 
     def load_config(self):
-        config_home = os.getenv('FM_CONFIG_HOME', '.')  # Get environment variable or default to current directory
+        config_home = os.getenv('FM_CONFIG_HOME', '.') 
         config_filename = 'config.yaml'
         environment = os.getenv('FM_ENVIRONMENT')
         if environment:
@@ -46,14 +42,9 @@ class PySparkFrameMapper:
                 self.config = yaml.safe_load(file)
         self.mapper_directory = self.config.get('mapper_directory', '')
         
-        spark_config = self.mapping.get('spark_config', {})
-        for key, value in spark_config.items():
-            self.spark.conf.set(key, value)
-
-
     def load_mapper(self):
-        if not self.mapper.endswith('.json'):
-            self.mapper += '.json'
+        if not self.mapper.endswith(FrameMapper.JSON_EXTENSION):
+            self.mapper += FrameMapper.JSON_EXTENSION
         mapper_path = f"{self.mapper_directory}/{self.mapper}"
         if (self.dbutils):
             config_path = self.dbutils.fs.head(mapper_path)
@@ -62,90 +53,31 @@ class PySparkFrameMapper:
             with open(mapper_path, 'r') as file:
                 self.mapping = json.load(file)
 
-    def get_mapping(self):
-        return self.mapping
+    def apply_config(self):
+        spark_config = self.mapping.get('arch_config', {})
+        for key, value in spark_config.items():
+            self.spark.conf.set(key, value)
 
-    def get_mappping_property(self, property_name):
-        value = self.mapping.get(property_name)
-        if isinstance(value, str):
-            value = self.replace_tokens(value)
-        return value
+    def load_from_data(self, from_asset_path, log_str):
+        self.status_signal_path = os.path.dirname(from_asset_path) + "/status.FAILURE"
+        return self.spark.read.format("parquet").option("header", "true").load(from_asset_path)
 
-    def replace_tokens(self, value):
-        tokens = [token.strip('{}') for token in value.split(sep="/") if token.startswith('{') and token.endswith('}')]
-        for token in tokens:
-            if token == 'uuid':
-                value = value.replace(f'{{{token}}}', self.uuid)
-            elif token == 'cob':
-                value = value.replace(f'{{{token}}}', self.cob)
-            elif token == 'time':
-                value = value.replace(f'{{{token}}}', self.time)
-            elif token == 'version':
-                value = value.replace(f'{{{token}}}', self.version)
-            else:
-                value = value.replace(f'{{{token}}}', self.mapping.get(token, ''))
-        return value
+    def write_from_data(self, df, to_asset_path, log_str):
+        compression = self.config.get('compression', 'none')
+        df.write.format("parquet").mode("overwrite").option("compression", compression).save(to_asset_path)
+        self.status_signal_path = os.path.dirname(to_asset_path) + "/status.SUCCESS"
 
-    def process_transforms(self):
-        try:
-            start_time = datetime.now()
-            log_str = StringIO()
-            log_str.write(f"Start Time: {start_time}\n") 
-            from_asset_path = self.get_mappping_property("from_asset_path")
-            log_str.write("Running with configuration:\n")
-            log_str.write(json.dumps(self.mapping, indent=4))
-            log_str.write("\n")
-            status_signal_path = os.path.dirname(from_asset_path) + "/status.FAILURE"
-            if from_asset_path:
-                df = self.spark.read.format("parquet").option("header", "true").load(from_asset_path)
-                transforms = self.mapping.get('transforms', [])
-                df = self.apply_transforms(transforms, df, log_str)
-                to_asset_path = self.get_mappping_property("to_asset_path")
-                if to_asset_path:
-                    compression = self.config.get('compression', 'none')  # Get compression from config
-                    df.write.format("parquet").mode("overwrite").option("compression", compression).save(to_asset_path)
-                    status_signal_path = os.path.dirname(to_asset_path) + "/status.SUCCESS"
-        except Exception as e:
-            log_str.write(f"Error processing transforms: {e}\n")
-        finally:
-            end_time = datetime.now()
-            log_str.write(f"End Time: {end_time}\n")            
-            if (self.dbutils):
-                self.dbutils.fs.put(status_signal_path, contents=log_str.getvalue(), overwrite=True)
-            else:
-                with open(status_signal_path, 'w') as file:
-                    file.write(log_str.getvalue())
-            log_str.close()
-
-    def apply_transforms(self, transforms, df, log_str=None):
-        current_transfrom = "{}"
-        try:
-            if isinstance(transforms, list):
-                for transform in transforms:
-                    current_transfrom = json.dumps(transform, indent=4)
-                    df = self.apply_transform(transform, df, log_str)
-            return df
-        except Exception:
-            log_str.write(f"Error processing transforms: {current_transfrom}\n")
-            raise  # Re-throw the exception
-
-    def apply_transform(self, transform, df, log_str=None):
-        current_time = datetime.now()
-        transform_type = transform.get('transform_type')
-        if transform_type:
-            method_name = f"transfrom_type_{transform_type}"
-            method = getattr(self, method_name, None)
-            if callable(method):
-                log_str.write(f"Calling method for transform type: {transform_type} at {current_time}\n")
-                return method(transform, df, log_str)
-            else:
-                log_str.write(f"No method found for transform type: {transform_type} at {current_time}\n")
-                return df
+    def write_signal_file(self, status_signal_path, log_str):
+        if (self.dbutils):
+            self.dbutils.fs.put(status_signal_path, contents=log_str.getvalue(), overwrite=True)
+        else:
+            with open(status_signal_path, 'w') as file:
+                file.write(log_str.getvalue())
 
     def transfrom_type_include(self, mapping, df, log_str=None):
         transform_rule_path = self.replace_tokens(mapping.get("transform_rule_path"))
-        if not transform_rule_path.endswith('.json'):
-            transform_rule_path += '.json'
+        if not transform_rule_path.endswith(FrameMapper.JSON_EXTENSION):
+            transform_rule_path += FrameMapper.JSON_EXTENSION
         
         if self.dbutils:
             json_content = self.dbutils.fs.head(transform_rule_path)
