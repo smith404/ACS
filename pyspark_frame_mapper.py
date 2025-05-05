@@ -246,9 +246,7 @@ class PySparkFrameMapper(FrameMapper):
             elif col_type == "string":
                 if col_format:
                     current_type = dict(df.dtypes).get(col_name)
-                    if current_type == "date":
-                        df = df.withColumn(col_name, sf.date_format(sf.col(col_name), col_format))
-                    elif current_type == "timestamp":
+                    if current_type and (current_type.startswith("date") or current_type.startswith("timestamp")):
                         df = df.withColumn(col_name, sf.date_format(sf.col(col_name), col_format))
                     else:
                         log_str.write(f"Unsupported format conversion for column '{col_name}' with type '{current_type}'\n")
