@@ -238,6 +238,7 @@ class PySparkFrameMapper(FrameMapper):
         for column in columns:
             col_name = column.get("column")
             col_type = column.get("type")
+            col_format = column.get("format", None)
             if col_type == "int":
                 df = df.withColumn(col_name, sf.col(col_name).cast("int"))
             elif col_type == "float":
@@ -247,9 +248,15 @@ class PySparkFrameMapper(FrameMapper):
             elif col_type == "boolean":
                 df = df.withColumn(col_name, sf.col(col_name).cast("boolean"))
             elif col_type == "date":
-                df = df.withColumn(col_name, sf.col(col_name).cast("date"))
+                if col_format:
+                    df = df.withColumn(col_name, sf.to_date(sf.col(col_name), col_format))
+                else:
+                    df = df.withColumn(col_name, sf.col(col_name).cast("date"))
             elif col_type == "timestamp":
-                df = df.withColumn(col_name, sf.col(col_name).cast("timestamp"))
+                if col_format:
+                    df = df.withColumn(col_name, sf.to_timestamp(sf.col(col_name), col_format))
+                else:
+                    df = df.withColumn(col_name, sf.col(col_name).cast("timestamp"))
             elif col_type == "long":
                 df = df.withColumn(col_name, sf.col(col_name).cast("long"))
             elif col_type == "double":
