@@ -244,6 +244,14 @@ class PySparkFrameMapper(FrameMapper):
             elif col_type == "float":
                 df = df.withColumn(col_name, sf.col(col_name).cast("float"))
             elif col_type == "string":
+                if col_format:
+                    current_type = dict(df.dtypes).get(col_name)
+                    if current_type == "date":
+                        df = df.withColumn(col_name, sf.date_format(sf.col(col_name), col_format))
+                    elif current_type == "timestamp":
+                        df = df.withColumn(col_name, sf.date_format(sf.col(col_name), col_format))
+                    else:
+                        log_str.write(f"Unsupported format conversion for column '{col_name}' with type '{current_type}'\n")
                 df = df.withColumn(col_name, sf.col(col_name).cast("string"))
             elif col_type == "boolean":
                 df = df.withColumn(col_name, sf.col(col_name).cast("boolean"))
