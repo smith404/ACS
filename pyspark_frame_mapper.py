@@ -79,6 +79,8 @@ class PySparkFrameMapper(FrameMapper):
         if not transform_rule_path.endswith(FrameMapper.JSON_EXTENSION):
             transform_rule_path += FrameMapper.JSON_EXTENSION
         
+        transform_rule_path = f"{self.mapper_directory}/{transform_rule_path}"
+
         if self.dbutils:
             json_content = self.dbutils.fs.head(transform_rule_path)
             included_transforms = json.loads(json_content)

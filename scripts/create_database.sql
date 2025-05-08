@@ -1,3 +1,16 @@
+CREATE SCHEMA IF NOT EXISTS pattern;
+
+CREATE SEQUENCE IF NOT EXISTS scenario_key 
+    START WITH 1 
+    INCREMENT BY 1;
+
+CREATE TABLE IF NOT EXISTS pattern.scenario (
+    scenario_id INTEGER DEFAULT nextval('scenario_key') NOT NULL,
+    uuid CHAR(36) NOT NULL UNIQUE,
+    scenario_name VARCHAR(50) NOT NULL UNIQUE,
+    scenario_description VARCHAR(255)
+);
+
 CREATE SCHEMA IF NOT EXISTS data_language;
 
 CREATE SEQUENCE IF NOT EXISTS domain_key 
