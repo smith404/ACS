@@ -7,8 +7,24 @@ CREATE SEQUENCE IF NOT EXISTS scenario_key
 CREATE TABLE IF NOT EXISTS pattern.scenario (
     scenario_id INTEGER DEFAULT nextval('scenario_key') NOT NULL,
     uuid CHAR(36) NOT NULL UNIQUE,
+    scenario_grscenario_idoup VARCHAR(50) NOT NULL UNIQUE,
     scenario_name VARCHAR(50) NOT NULL UNIQUE,
-    scenario_description VARCHAR(255)
+    scenario_description VARCHAR(255),
+    releasable char(1) NOT NULL DEFAULT 'N',
+    PRIMARY KEY (scenario_id)
+);
+
+CREATE SEQUENCE IF NOT EXISTS scenario_parameter_key 
+    START WITH 1 
+    INCREMENT BY 1;
+
+CREATE TABLE IF NOT EXISTS pattern.scenario_parameter (
+    parameter_id INTEGER DEFAULT nextval('scenario_key') NOT NULL,
+    scenario_id INTEGER NOT NULL,
+    period CHAR(1) NOT NULL UNIQUE,
+    distribution float,
+    PRIMARY KEY (parameter_id),
+    FOREIGN KEY (scenario_id) REFERENCES pattern.scenario(scenario_id)
 );
 
 CREATE SCHEMA IF NOT EXISTS data_language;
