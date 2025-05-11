@@ -18,21 +18,34 @@ class FrameMapper:
         self.status_signal_path = "no_file_path.log"
         self.load_config()
         self.load_mapper()
-        self.apply_config()
+        self.apply_arch_config()
 
     def load_config(self):
-        # This method is intentionally left empty because the configuration loading logic
-        # will be implemented in a subclass or provided later as per specific requirements.
-        pass
+        config_home = os.getenv('FM_CONFIG_HOME', '.') 
+        config_filename = 'config.yaml'
+        environment = os.getenv('FM_ENVIRONMENT')
+        if environment:
+            config_filename = f'config-{environment}.yaml'
+        config_path = os.path.join(config_home, config_filename)
+        file_content = self.load_file_to_string(config_path)
+        self.config = yaml.safe_load(file_content)
+        self.mapper_directory = self.config.get('mapper_directory', '')
 
     def load_mapper(self):
-        # This method is intentionally left empty because the mapping loading logic
-        # will be implemented in a subclass or provided later as per specific requirements.
+        if not self.mapper.endswith(FrameMapper.JSON_EXTENSION):
+            self.mapper += FrameMapper.JSON_EXTENSION
+        mapper_path = f"{self.mapper_directory}/{self.mapper}"
+        file_content = self.load_file_to_string(mapper_path)
+        self.mapping = json.load(file_content)
+
+    def load_file_to_string(self, file_path):
+        # This method is intentionally left empty because the configuration is implementation specific.
+        # The logic for loading the file to string will be implemented in a subclass
         pass
 
-    def apply_config(self):
+    def write_string_to_file(self, file_path, content):
         # This method is intentionally left empty because the configuration is implementation specific.
-        # The logic for applying the configuration to the mapper will be implemented in a subclass
+        # The logic for writing the string to file will be implemented in a subclass
         pass
 
     def get_mapping(self):
@@ -74,14 +87,17 @@ class FrameMapper:
                 df = self.apply_transforms(transforms, df, log_str)
                 to_asset_path = self.get_mappping_property("to_asset_path")
                 if to_asset_path:
-                    self.write_from_data(df, to_asset_path, log_str)
+                    self.write_to_data(df, to_asset_path, log_str)
         except Exception as e:
             log_str.write(f"Error processing transforms: {e}\n")
         finally:
             end_time = datetime.now()
             log_str.write(f"End Time: {end_time}\n")            
-            self.write_signal_file(self.status_signal_path, log_str)
+            self.write_log_file(self.status_signal_path, log_str)
             log_str.close()
+
+    def write_log_file(self, status_signal_path, log_str):
+        self.write_string_to_file(status_signal_path, log_str.getvalue())
 
     def load_from_data(self, from_asset_path, log_str):
         # This method is intentionally left empty because the loading is implementation specific.
@@ -89,17 +105,12 @@ class FrameMapper:
         # The logic for applying the configuration to the mapper will be implemented in a subclass
         pass
 
-    def write_from_data(self, df, to_asset_path, log_str):
+    def write_to_data(self, df, to_asset_path, log_str):
         # This method is intentionally left empty because the saving is implementation specific.
         # The logic for applying the configuration to the mapper will be implemented in a subclass
         pass
 
-    def write_signal_file(self, status_signal_path, log_str):
-        # This method is intentionally left empty because the log saving is implementation specific.
-        # The logic for applying the configuration to the mapper will be implemented in a subclass
-        pass
-
-    def apply_config(self):
+    def apply_arch_config(self):
         # This method is intentionally left empty because the configuration is implementation specific.
         # The logic for applying the configuration to the mapper will be implemented in a subclass
         pass

@@ -27,59 +27,42 @@ class PySparkFrameMapper(FrameMapper):
         self.dbutils = dbutils
         super().__init__(mapper, uuid_str, cob, time, version)
 
-    def load_config(self):
-        config_home = os.getenv('FM_CONFIG_HOME', '.') 
-        config_filename = 'config.yaml'
-        environment = os.getenv('FM_ENVIRONMENT')
-        if environment:
-            config_filename = f'config-{environment}.yaml'
-        config_path = os.path.join(config_home, config_filename)
-        if (self.dbutils):
-            config_path = self.dbutils.fs.head(config_path)
-            self.config = yaml.safe_load(config_path)
-        else:
-            with open(config_path, 'r') as file:
-                self.config = yaml.safe_load(file)
-        self.mapper_directory = self.config.get('mapper_directory', '')
-        
-    def load_mapper(self):
-        if not self.mapper.endswith(FrameMapper.JSON_EXTENSION):
-            self.mapper += FrameMapper.JSON_EXTENSION
-        mapper_path = f"{self.mapper_directory}/{self.mapper}"
-        if (self.dbutils):
-            config_path = self.dbutils.fs.head(mapper_path)
-            self.mapping = json.loads(config_path)
-        else:
-            with open(mapper_path, 'r') as file:
-                self.mapping = json.load(file)
-
-    def apply_config(self):
+    def apply_arch_config(self):
         spark_config = self.mapping.get('arch_config', {})
         for key, value in spark_config.items():
             self.spark.conf.set(key, value)
+
+    def load_file_to_string(self, file_path):
+        if (self.dbutils):
+            file_content = self.dbutils.fs.head(file_path)
+            return StringIO(file_content)
+        else:
+            with open(file_path, 'r') as file:
+                return StringIO(file.read())
+            
+    def write_string_to_file(self, file_path, content):
+        if (self.dbutils):
+            self.dbutils.fs.put(file_path, contents=content, overwrite=True)
+        else:
+            with open(file_path, 'w') as file:
+                file.write(content)
 
     def load_from_data(self, from_asset_path, log_str):
         self.status_signal_path = os.path.dirname(from_asset_path) + "/status.FAILURE"
         return self.spark.read.format("parquet").option("header", "true").load(from_asset_path)
 
-    def write_from_data(self, df, to_asset_path, log_str):
+    def write_to_data(self, df, to_asset_path, log_str):
         compression = self.config.get('compression', 'none')
         df.write.format("parquet").mode("overwrite").option("compression", compression).save(to_asset_path)
         self.status_signal_path = os.path.dirname(to_asset_path) + "/status.SUCCESS"
-
-    def write_signal_file(self, status_signal_path, log_str):
-        if (self.dbutils):
-            self.dbutils.fs.put(status_signal_path, contents=log_str.getvalue(), overwrite=True)
-        else:
-            with open(status_signal_path, 'w') as file:
-                file.write(log_str.getvalue())
 
     def transfrom_type_include(self, mapping, df, log_str=None):
         transform_rule_path = self.replace_tokens(mapping.get("transform_rule_path"))
         if not transform_rule_path.endswith(FrameMapper.JSON_EXTENSION):
             transform_rule_path += FrameMapper.JSON_EXTENSION
-        
-        transform_rule_path = f"{self.mapper_directory}/{transform_rule_path}"
+
+        if not transform_rule_path.startswith("$"):
+            transform_rule_path = f"{self.mapper_directory}/{transform_rule_path}"
 
         if self.dbutils:
             json_content = self.dbutils.fs.head(transform_rule_path)

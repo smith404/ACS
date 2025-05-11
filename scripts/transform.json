@@ -36,7 +36,7 @@
         },
         {
             "transform_type": "include",
-            "transform_rule_path": "scripts/base_transform_1.json"
+            "transform_rule_path": "$scripts/base_transform_1.json"
         },
         {
             "transform_type": "simplemap",
