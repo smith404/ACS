@@ -57,8 +57,18 @@ class FrameMapper:
             value = self.replace_tokens(value)
         return value
 
+    def get_file_path(self, path, extension=JSON_EXTENSION, absolute_marker="$"):
+        transform_rule_path = self.replace_tokens(path)
+        if not transform_rule_path.endswith(extension):
+            transform_rule_path += extension
+        if transform_rule_path.startswith(absolute_marker):
+            transform_rule_path = transform_rule_path[len(absolute_marker):]
+        else:
+            transform_rule_path = f"{self.mapper_directory}/{transform_rule_path}"
+        return transform_rule_path
+
     def replace_tokens(self, value):
-        tokens = [token.strip('{}') for token in value.split(sep="/") if token.startswith('{') and token.endswith('}')]
+        tokens = [token.strip('{}') for token in value.split(sep="/") if token.startswith("{") and token.endswith("}")]
         for token in tokens:
             if token == 'uuid':
                 value = value.replace(f'{{{token}}}', self.uuid)

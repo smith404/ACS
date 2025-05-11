@@ -57,14 +57,7 @@ class PySparkFrameMapper(FrameMapper):
         self.status_signal_path = os.path.dirname(to_asset_path) + "/status.SUCCESS"
 
     def transfrom_type_include(self, mapping, df, log_str=None):
-        transform_rule_path = self.replace_tokens(mapping.get("transform_rule_path"))
-        if not transform_rule_path.endswith(FrameMapper.JSON_EXTENSION):
-            transform_rule_path += FrameMapper.JSON_EXTENSION
-
-        if transform_rule_path.startswith("$"):
-            transform_rule_path = transform_rule_path[1:]
-        else:
-            transform_rule_path = f"{self.mapper_directory}/{transform_rule_path}"
+        transform_rule_path = self.get_file_path(mapping.get("transform_rule_path"))
 
         file_content = self.load_file_to_string(transform_rule_path)
         included_transforms = json.load(file_content)
