@@ -61,7 +61,9 @@ class PySparkFrameMapper(FrameMapper):
         if not transform_rule_path.endswith(FrameMapper.JSON_EXTENSION):
             transform_rule_path += FrameMapper.JSON_EXTENSION
 
-        if not transform_rule_path.startswith("$"):
+        if transform_rule_path.startswith("$"):
+            transform_rule_path = transform_rule_path[1:]
+        else:
             transform_rule_path = f"{self.mapper_directory}/{transform_rule_path}"
 
         file_content = self.load_file_to_string(transform_rule_path)
