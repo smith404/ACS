@@ -86,14 +86,14 @@ class FrameMapper:
                 
                 # Call pre_process_method if provided
                 if pre_process_method:
-                    df = pre_process_method(df, log_str)
+                    df = pre_process_method(df=df, log_str=log_str)
                 
                 transforms = self.mapping.get('transforms', [])
                 df = self.apply_transforms(transforms, df, log_str=log_str, process_method=process_method)
                 
                 # Call post_process_method if provided
                 if post_process_method:
-                    df = post_process_method(df, log_str)
+                    df = post_process_method(df=df, log_str=log_str)
                 
                 to_asset_path = self.get_mappping_property("to_asset_path")
                 if to_asset_path:
@@ -147,7 +147,7 @@ class FrameMapper:
                 log_str.write(f"Calling method for transform type: {transform_type} at {current_time}\n")
                 # Call process_method if provided
                 if process_method:
-                    process_method(df, log_str, transform)
+                    process_method(df=df, log_str=log_str, transfrom=transform)
                 return method(transform, df, log_str)
             else:
                 log_str.write(f"No method found for transform type: {transform_type} at {current_time}\n")
