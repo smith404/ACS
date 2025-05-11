@@ -64,12 +64,8 @@ class PySparkFrameMapper(FrameMapper):
         if not transform_rule_path.startswith("$"):
             transform_rule_path = f"{self.mapper_directory}/{transform_rule_path}"
 
-        if self.dbutils:
-            json_content = self.dbutils.fs.head(transform_rule_path)
-            included_transforms = json.loads(json_content)
-        else:
-            with open(transform_rule_path, 'r') as file:
-                included_transforms = json.load(file)
+        file_content = self.load_file_to_string(transform_rule_path)
+        included_transforms = json.load(file_content)
 
         transforms = included_transforms.get("transforms")
         if isinstance(transforms, list):

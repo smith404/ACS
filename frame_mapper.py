@@ -72,7 +72,7 @@ class FrameMapper:
                 value = value.replace(f'{{{token}}}', self.mapping.get(token, ''))
         return value
 
-    def process_transforms(self):
+    def process_transforms(self, pre_process_method=None, process_method=None, post_process_method=None):
         try:
             start_time = datetime.now()
             log_str = StringIO()
@@ -83,8 +83,18 @@ class FrameMapper:
             log_str.write("\n")
             if from_asset_path:
                 df = self.load_from_data(from_asset_path, log_str)
+                
+                # Call pre_process_method if provided
+                if pre_process_method:
+                    df = pre_process_method(df, log_str)
+                
                 transforms = self.mapping.get('transforms', [])
-                df = self.apply_transforms(transforms, df, log_str)
+                df = self.apply_transforms(transforms, df, log_str=log_str, process_method=process_method)
+                
+                # Call post_process_method if provided
+                if post_process_method:
+                    df = post_process_method(df, log_str)
+                
                 to_asset_path = self.get_mappping_property("to_asset_path")
                 if to_asset_path:
                     self.write_to_data(df, to_asset_path, log_str)
@@ -115,19 +125,19 @@ class FrameMapper:
         # The logic for applying the configuration to the mapper will be implemented in a subclass
         pass
 
-    def apply_transforms(self, transforms, df, log_str=None):
+    def apply_transforms(self, transforms, df, log_str=None, process_method=None):
         current_transfrom = "{}"
         try:
             if isinstance(transforms, list):
                 for transform in transforms:
                     current_transfrom = json.dumps(transform, indent=4)
-                    df = self.apply_transform(transform, df, log_str)
+                    df = self.apply_transform(transform, df, log_str=log_str, process_method=process_method)
             return df
         except Exception:
             log_str.write(f"Error processing transforms: {current_transfrom}\n")
             raise  # Re-throw the exception
 
-    def apply_transform(self, transform, df, log_str=None):
+    def apply_transform(self, transform, df, log_str=None, process_method=None):
         current_time = datetime.now()
         transform_type = transform.get('transform_type')
         if transform_type:
@@ -135,6 +145,9 @@ class FrameMapper:
             method = getattr(self, method_name, None)
             if callable(method):
                 log_str.write(f"Calling method for transform type: {transform_type} at {current_time}\n")
+                # Call process_method if provided
+                if process_method:
+                    process_method(df, log_str, transform)
                 return method(transform, df, log_str)
             else:
                 log_str.write(f"No method found for transform type: {transform_type} at {current_time}\n")
