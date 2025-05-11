@@ -28,23 +28,23 @@ class PySparkFrameMapper(FrameMapper):
         super().__init__(mapper, uuid_str, cob, time, version)
 
     def apply_arch_config(self):
-        spark_config = self.mapping.get('arch_config', {})
+        spark_config = self.mapping.get("arch_config", {})
         for key, value in spark_config.items():
             self.spark.conf.set(key, value)
 
     def load_file_to_string(self, file_path):
-        if (self.dbutils):
+        if self.dbutils:
             file_content = self.dbutils.fs.head(file_path)
             return StringIO(file_content)
         else:
-            with open(file_path, 'r') as file:
+            with open(file_path, "r") as file:
                 return StringIO(file.read())
             
     def write_string_to_file(self, file_path, content):
-        if (self.dbutils):
+        if self.dbutils:
             self.dbutils.fs.put(file_path, contents=content, overwrite=True)
         else:
-            with open(file_path, 'w') as file:
+            with open(file_path, "w") as file:
                 file.write(content)
 
     def load_from_data(self, from_asset_path, log_str):
@@ -52,7 +52,7 @@ class PySparkFrameMapper(FrameMapper):
         return self.spark.read.format("parquet").option("header", "true").load(from_asset_path)
 
     def write_to_data(self, df, to_asset_path, log_str):
-        compression = self.config.get('compression', 'none')
+        compression = self.config.get("compression", "none")
         df.write.format("parquet").mode("overwrite").option("compression", compression).save(to_asset_path)
         self.status_signal_path = os.path.dirname(to_asset_path) + "/status.SUCCESS"
 
@@ -134,17 +134,17 @@ class PySparkFrameMapper(FrameMapper):
         return df   
     
     def transfrom_type_group_by(self, mapping, df, log_str=None):
-        aggregations = mapping.get('aggregations', [])
+        aggregations = mapping.get("aggregations", [])
         if isinstance(aggregations, list):
             agg_exprs = []
             for agg in aggregations:
-                method_name = agg.get('function')
+                method_name = agg.get("function")
                 method = getattr(sf, method_name, None)
                 if callable(method):
-                    agg_exprs.append(method(agg.get('source_column')).alias(agg.get('target_column')))
+                    agg_exprs.append(method(agg.get("source_column")).alias(agg.get("target_column")))
                 else:
                     log_str.write(f"No aggregation method found for: {method_name}\n")
-            df = df.groupBy(mapping.get('columns')).agg(*agg_exprs)
+            df = df.groupBy(mapping.get("columns")).agg(*agg_exprs)
         return df
 
     def transfrom_type_update_columns(self, mapping, df, log_str=None):
