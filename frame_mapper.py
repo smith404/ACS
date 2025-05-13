@@ -48,6 +48,16 @@ class FrameMapper:
         # The logic for writing the string to file will be implemented in a subclass
         pass
 
+    def load_data_from_csv(self, file_path, header=True, infer_schema=True):
+        # This method is intentionally left empty because the loading is implementation specific.
+        # The logic for loading the data from CSV will be implemented in a subclass
+        pass
+
+    def load_data_from_parquet(self, file_path):
+        # This method is intentionally left empty because the loading is implementation specific.
+        # The logic for loading the data from Parquet will be implemented in a subclass
+        pass
+
     def get_mapping(self):
         return self.mapping
 

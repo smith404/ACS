@@ -56,6 +56,12 @@ class PySparkFrameMapper(FrameMapper):
         df.write.format("parquet").mode("overwrite").option("compression", compression).save(to_asset_path)
         self.status_signal_path = os.path.dirname(to_asset_path) + "/status.SUCCESS"
 
+    def load_data_from_csv(self, file_path, header=True, infer_schema=True):
+        return self.spark.read.format("csv").option("header", header).option("inferSchema", infer_schema).load(file_path)
+
+    def load_data_from_parquet(self, file_path):
+        return self.spark.read.format("parquet").load(file_path)
+
     def transfrom_type_include(self, mapping, df, log_str=None):
         transform_rule_path = self.get_file_path(mapping.get("transform_rule_path"))
 
