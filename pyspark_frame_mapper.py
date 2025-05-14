@@ -1,12 +1,3 @@
-# Copyright (c) 2025 K2-Software GmbH
-# 
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the licence conditions.
-
 import argparse
 from enum import Enum
 from io import StringIO
@@ -48,13 +39,13 @@ class PySparkFrameMapper(FrameMapper):
                 file.write(content)
 
     def load_from_data(self, from_asset_path, log_str):
-        self.status_signal_path = os.path.dirname(from_asset_path) + "/status.FAILURE"
+        self.status_signal_path = os.path.dirname(from_asset_path) + "/" + self.log_name + "/status.FAILURE"
         return self.spark.read.format("parquet").option("header", "true").load(from_asset_path)
 
     def write_to_data(self, df, to_asset_path, log_str):
         compression = self.config.get("compression", "none")
         df.write.format("parquet").mode("overwrite").option("compression", compression).save(to_asset_path)
-        self.status_signal_path = os.path.dirname(to_asset_path) + "/status.SUCCESS"
+        self.status_signal_path = os.path.dirname(to_asset_path) + "/" + self.log_name + "/status.SUCCESS"
 
     def load_data_from_csv(self, file_path, header=True, infer_schema=True):
         return self.spark.read.format("csv").option("header", header).option("inferSchema", infer_schema).load(file_path)

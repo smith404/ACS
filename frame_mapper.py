@@ -40,6 +40,7 @@ class FrameMapper:
         file_content = self.load_file_to_string(mapper_path)
         self.mapping = json.load(file_content)
 
+        self.log_name = self.mapping.get("name", "mapper_status")  # Assign 'name' to log_name with default
         self.success_mapper = self.mapping.get("on_success")
         self.error_mapper = self.mapping.get("on_error")
         self.finally_mapper = self.mapping.get("on_finally")
