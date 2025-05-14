@@ -161,22 +161,22 @@ public class ExposureMatrix implements DateCriteriaSummable {
                                                     .toList();
 
         StringBuilder table = new StringBuilder();
-        table.append("Exp x Inc");
+        table.append(String.format("%-15s", "Exp x Inc"));
         for (LocalDate exposureDate : exposureBucketEndDates) {
-            table.append(",").append(exposureDate);
+            table.append(String.format("%-15s", exposureDate));
         }
         table.append("\n");
 
         // Populate the table rows
         for (LocalDate incurredDate : incurredBucketEndDates) {
-            table.append(incurredDate);
+            table.append(String.format("%-15s", incurredDate));
             for (LocalDate exposureDate : exposureBucketEndDates) {
                 double sum = entries.stream()
                                     .filter(entry -> entry.getIncurredDateBucket().equals(incurredDate) &&
                                                      entry.getExposureDateBucket().equals(exposureDate))
                                     .mapToDouble(ExposureMatrixEntry::getSum)
                                     .sum();
-                table.append(",").append(roundToPrecision(sum));
+                table.append(String.format("%-15s", roundToPrecision(sum)));
             }
             table.append("\n");
         }
