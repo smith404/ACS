@@ -5,6 +5,9 @@
     "to_medallion_layer": "silver",
     "from_container": "scratch",
     "to_container": "scratch",
+    "on_success": true,
+    "on_error": null,
+    "on_finally": null,
     "arch_config": {
         "spark.sql.debug.maxToStringFields": "100"
     },
@@ -44,11 +47,7 @@
                 "FROM_QUARTER",
                 "TO_QUARTER"
             ],
-            "mapping": {
-                "F": "First",
-                "C": "Current",
-                "R": "Retired"
-            }
+            "mapping_file": "$scripts/test_mapp.csv"
         },
         {
             "transform_type": "map",

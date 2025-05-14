@@ -221,42 +221,50 @@ class PySparkFrameMapper(FrameMapper):
             col_name = column.get("column")
             col_type = column.get("type")
             col_format = column.get("format", None)
-            if col_type == "int":
-                df = df.withColumn(col_name, sf.col(col_name).cast("int"))
-            elif col_type == "float":
-                df = df.withColumn(col_name, sf.col(col_name).cast("float"))
-            elif col_type == "string":
-                if col_format:
-                    current_type = dict(df.dtypes).get(col_name)
-                    if current_type and (current_type.startswith("date") or current_type.startswith("timestamp")):
-                        df = df.withColumn(col_name, sf.date_format(sf.col(col_name), col_format))
-                    else:
-                        log_str.write(f"Unsupported format conversion for column '{col_name}' with type '{current_type}'\n")
-                df = df.withColumn(col_name, sf.col(col_name).cast("string"))
-            elif col_type == "boolean":
-                df = df.withColumn(col_name, sf.col(col_name).cast("boolean"))
-            elif col_type == "date":
-                if col_format:
-                    df = df.withColumn(col_name, sf.to_date(sf.col(col_name), col_format))
-                else:
-                    df = df.withColumn(col_name, sf.col(col_name).cast("date"))
-            elif col_type == "timestamp":
-                if col_format:
-                    df = df.withColumn(col_name, sf.to_timestamp(sf.col(col_name), col_format))
-                else:
-                    df = df.withColumn(col_name, sf.col(col_name).cast("timestamp"))
-            elif col_type == "long":
-                df = df.withColumn(col_name, sf.col(col_name).cast("long"))
-            elif col_type == "double":
-                df = df.withColumn(col_name, sf.col(col_name).cast("double"))
-            elif col_type == "short":
-                df = df.withColumn(col_name, sf.col(col_name).cast("short"))
-            elif col_type == "byte":
-                df = df.withColumn(col_name, sf.col(col_name).cast("byte"))
-            elif col_type == "counter":
-                window_spec = Window.orderBy(sf.monotonically_increasing_id())
-                df = df.withColumn(col_name, sf.row_number().over(window_spec))
+            df = self.apply_column_type(df, col_name, col_type, col_format, log_str)
         return df
+
+    def apply_column_type(self, df, col_name, col_type, col_format, log_str):
+        if col_type == "int":
+            return df.withColumn(col_name, sf.col(col_name).cast("int"))
+        elif col_type == "float":
+            return df.withColumn(col_name, sf.col(col_name).cast("float"))
+        elif col_type == "string":
+            return self.apply_string_type(df, col_name, col_format, log_str)
+        elif col_type == "boolean":
+            return df.withColumn(col_name, sf.col(col_name).cast("boolean"))
+        elif col_type == "date":
+            return self.apply_date_type(df, col_name, col_format)
+        elif col_type == "timestamp":
+            return self.apply_timestamp_type(df, col_name, col_format)
+        elif col_type in ["long", "double", "short", "byte"]:
+            return df.withColumn(col_name, sf.col(col_name).cast(col_type))
+        elif col_type == "counter":
+            return self.apply_counter_type(df, col_name)
+        return df
+
+    def apply_string_type(self, df, col_name, col_format, log_str):
+        if col_format:
+            current_type = dict(df.dtypes).get(col_name)
+            if current_type and (current_type.startswith("date") or current_type.startswith("timestamp")):
+                return df.withColumn(col_name, sf.date_format(sf.col(col_name), col_format))
+            else:
+                log_str.write(f"Unsupported format conversion for column '{col_name}' with type '{current_type}'\n")
+        return df.withColumn(col_name, sf.col(col_name).cast("string"))
+
+    def apply_date_type(self, df, col_name, col_format):
+        if col_format:
+            return df.withColumn(col_name, sf.to_date(sf.col(col_name), col_format))
+        return df.withColumn(col_name, sf.col(col_name).cast("date"))
+
+    def apply_timestamp_type(self, df, col_name, col_format):
+        if col_format:
+            return df.withColumn(col_name, sf.to_timestamp(sf.col(col_name), col_format))
+        return df.withColumn(col_name, sf.col(col_name).cast("timestamp"))
+
+    def apply_counter_type(self, df, col_name):
+        window_spec = Window.orderBy(sf.monotonically_increasing_id())
+        return df.withColumn(col_name, sf.row_number().over(window_spec))
 
     def transfrom_type_copy_columns(self, mapping, df, log_str=None):
         columns = mapping.get("columns", [])
@@ -291,34 +299,48 @@ class PySparkFrameMapper(FrameMapper):
         return df
 
     def transfrom_type_map(self, mapping, df, log_str=None):
-        columns = mapping.get("columns", )
+        columns = mapping.get("columns", [])
+        mapping_file = mapping.get("mapping_file")
         map_dict = mapping.get("mapping", {})
         default_value = mapping.get("default_value", None)
-        
-        # Create a DataFrame from the mapping dictionary
-        map_df = self.spark.createDataFrame(
-            [(k, v) for k, v in map_dict.items()],
-            ["from", "to"]
-        )
-   
+
+        # Load mapping from file if mapping_file is provided
+        if mapping_file:
+            if mapping_file.endswith(".csv"):
+                map_df = self.load_data_from_csv(mapping_file)
+            elif mapping_file.endswith(".parquet"):
+                map_df = self.load_data_from_parquet(mapping_file)
+            else:
+                log_str.write(f"Unsupported mapping file format: {mapping_file}\n")
+                return df
+            map_df = map_df.withColumnRenamed("from", "from").withColumnRenamed("to", "to")
+        else:
+            # Create a DataFrame from the mapping dictionary
+            map_df = self.spark.createDataFrame(
+                [(k, v) for k, v in map_dict.items()],
+                ["from", "to"]
+            )
+
         for column in columns:
             if default_value:
-                df = df.join(map_df, 
-                            on=(df[column] == map_df["from"]),
-                            how="left"
-                        ).withColumn(
-                            column,
-                            sf.when(sf.col("to").isNotNull(), sf.col("to")).otherwise(sf.lit(default_value))
-                        ).drop("from", "to")
+                df = df.join(
+                    map_df,
+                    on=(df[column] == map_df["from"]),
+                    how="left"
+                ).withColumn(
+                    column,
+                    sf.when(sf.col("to").isNotNull(), sf.col("to")).otherwise(sf.lit(default_value))
+                ).drop("from", "to")
             else:
-                df = df.join(map_df, 
-                            on=(df[column] == map_df["from"]),
-                            how="left"
-                        ).withColumn(
-                            column,
-                            sf.when(sf.col("to").isNotNull(), sf.col("to")).otherwise(sf.col(column))
-                        ).drop("from", "to")
-        
+                df = df.join(
+                    map_df,
+                    on=(df[column] == map_df["from"]),
+                    how="left"
+                ).withColumn(
+                    column,
+                    sf.when(sf.col("to").isNotNull(), sf.col("to")).otherwise(sf.col(column))
+                ).drop("from", "to")
+
         return df
     
 def main():

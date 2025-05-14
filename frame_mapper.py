@@ -8,16 +8,18 @@ from datetime import datetime  # Import datetime module
 
 class FrameMapper:
     JSON_EXTENSION = ".json"
+    success_mapper = None
+    error_mapper = None
+    finally_mapper = None
 
     def __init__(self, mapper, uuid_str=None, cob=None, time=None, version=None):
-        self.mapper = mapper
         self.uuid = uuid_str if uuid_str else str(uuid.uuid4())
         self.cob = cob if cob else datetime.now().strftime("%Y%m%d")
         self.time = time if time else datetime.now().strftime("%H-%M-%S")
         self.version = version if version else "v1.0.0"
         self.status_signal_path = "no_file_path.log"
         self.load_config()
-        self.load_mapper()
+        self.load_mapper(mapper)
         self.apply_arch_config()
 
     def load_config(self):
@@ -31,12 +33,16 @@ class FrameMapper:
         self.config = yaml.safe_load(file_content)
         self.mapper_directory = self.config.get("mapper_directory", "")
 
-    def load_mapper(self):
-        if not self.mapper.endswith(FrameMapper.JSON_EXTENSION):
-            self.mapper += FrameMapper.JSON_EXTENSION
-        mapper_path = f"{self.mapper_directory}/{self.mapper}"
+    def load_mapper(self, map_name):
+        if not map_name.endswith(FrameMapper.JSON_EXTENSION):
+            map_name += FrameMapper.JSON_EXTENSION
+        mapper_path = f"{self.mapper_directory}/{map_name}"
         file_content = self.load_file_to_string(mapper_path)
         self.mapping = json.load(file_content)
+
+        self.success_mapper = self.mapping.get("on_success")
+        self.error_mapper = self.mapping.get("on_error")
+        self.finally_mapper = self.mapping.get("on_finally")
 
     def load_file_to_string(self, file_path):
         # This method is intentionally left empty because the configuration is implementation specific.
@@ -118,11 +124,20 @@ class FrameMapper:
                 to_asset_path = self.get_mappping_property("to_asset_path")
                 if to_asset_path:
                     self.write_to_data(df, to_asset_path, log_str)
+                if self.success_mapper:
+                    self.load_mapper(self.success_mapper)
+                    self.process_transforms(pre_process_method=pre_process_method, process_method=process_method, post_process_method=post_process_method)
         except Exception as e:
             log_str.write(f"Error processing transforms: {e}\n")
+            if self.error_mapper:
+                self.load_mapper(self.error_mapper)
+                self.process_transforms(pre_process_method=pre_process_method, process_method=process_method, post_process_method=post_process_method)
         finally:
             end_time = datetime.now()
             log_str.write(f"End Time: {end_time}\n")            
+            if self.finally_mapper:
+                self.load_mapper(self.finally_mapper)
+                self.process_transforms(pre_process_method=pre_process_method, process_method=process_method, post_process_method=post_process_method)
             self.write_log_file(self.status_signal_path, log_str)
             log_str.close()
 
