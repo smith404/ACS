@@ -40,6 +40,13 @@ class FrameMapper:
         file_content = self.load_file_to_string(mapper_path)
         self.mapping = json.load(file_content)
 
+        # Add environment variables starting with FM_ to the mapping
+        for key, value in os.environ.items():
+            if key.startswith("FM_"):
+                self.mapping[key] = value
+                self.mapping[key[3:]] = value  # Add key without FM_ and in lowercase
+                self.mapping[key[3:].lower()] = value  # Add key without FM_ and in lowercase
+
         self.success_mapper = self.mapping.get("on_success")
         self.error_mapper = self.mapping.get("on_error")
         self.finally_mapper = self.mapping.get("on_finally")
@@ -49,7 +56,7 @@ class FrameMapper:
         # The logic for loading the file to string will be implemented in a subclass
         pass
 
-    def write_string_to_file(self, file_path, content):
+    def write_string_to_file(self, file_path, content, overwrite=True):
         # This method is intentionally left empty because the configuration is implementation specific.
         # The logic for writing the string to file will be implemented in a subclass
         pass
@@ -84,24 +91,26 @@ class FrameMapper:
         return transform_rule_path
 
     def replace_tokens(self, value):
-        tokens = [token.strip("{}") for token in value.split(sep="/") if token.startswith("{") and token.endswith("}")]
+        tokens = [token.strip("{}") for token in value.split("{{") if "}}" in token]
         for token in tokens:
-            if token == "uuid":
-                value = value.replace(f"{{{token}}}", self.uuid)
-            elif token == "cob":
-                value = value.replace(f"{{{token}}}", self.cob)
-            elif token == "time":
-                value = value.replace(f"{{{token}}}", self.time)
-            elif token == "version":
-                value = value.replace(f"{{{token}}}", self.version)
+            token_key = token.split("}}")[0]
+            if token_key == "uuid":
+                value = value.replace(f"{{{{{token_key}}}}}", self.uuid)
+            elif token_key == "cob":
+                value = value.replace(f"{{{{{token_key}}}}}", self.cob)
+            elif token_key == "time":
+                value = value.replace(f"{{{{{token_key}}}}}", self.time)
+            elif token_key == "version":
+                value = value.replace(f"{{{{{token_key}}}}}", self.version)
             else:
-                value = value.replace(f"{{{token}}}", self.mapping.get(token, ""))
+                value = value.replace(f"{{{{{token_key}}}}}", self.mapping.get(token_key, ""))
         return value
 
-    def process_transforms(self, pre_process_method=None, process_method=None, post_process_method=None):
+    def process_transforms(self, log_str=None, pre_process_method=None, process_method=None, post_process_method=None):
         try:
             start_time = datetime.now()
-            log_str = StringIO()
+            if log_str is None:
+                log_str = StringIO()
             log_str.write(f"Start Time: {start_time}\n") 
             from_asset_path = self.get_mappping_property("from_asset_path")
             log_str.write("Running with configuration:\n")
@@ -124,11 +133,13 @@ class FrameMapper:
                 to_asset_path = self.get_mappping_property("to_asset_path")
                 if to_asset_path:
                     self.write_to_data(df, to_asset_path, log_str)
+                    self.write_log_file(self.status_signal_path, log_str)
                 if self.success_mapper:
                     self.load_mapper(self.success_mapper)
                     self.process_transforms(pre_process_method=pre_process_method, process_method=process_method, post_process_method=post_process_method)
         except Exception as e:
             log_str.write(f"Error processing transforms: {e}\n")
+            self.write_log_file(self.status_signal_path, log_str)
             if self.error_mapper:
                 self.load_mapper(self.error_mapper)
                 self.process_transforms(pre_process_method=pre_process_method, process_method=process_method, post_process_method=post_process_method)
@@ -136,21 +147,19 @@ class FrameMapper:
             end_time = datetime.now()
             log_str.write(f"End Time: {end_time}\n")            
             if self.finally_mapper:
-                self.load_mapper(self.finally_mapper)
                 self.process_transforms(pre_process_method=pre_process_method, process_method=process_method, post_process_method=post_process_method)
-            self.write_log_file(self.status_signal_path, log_str)
             log_str.close()
 
     def write_log_file(self, status_signal_path, log_str):
         self.write_string_to_file(status_signal_path, log_str.getvalue())
 
-    def load_from_data(self, from_asset_path, log_str):
+    def load_from_data(self, from_asset_path, log_str=None):
         # This method is intentionally left empty because the loading is implementation specific.
         # The method must return the DataFrame after loading the data from the specified path.
         # The logic for applying the configuration to the mapper will be implemented in a subclass
         pass
 
-    def write_to_data(self, df, to_asset_path, log_str):
+    def write_to_data(self, df, to_asset_path, overwrite=True, log_str=None):
         # This method is intentionally left empty because the saving is implementation specific.
         # The logic for applying the configuration to the mapper will be implemented in a subclass
         pass
