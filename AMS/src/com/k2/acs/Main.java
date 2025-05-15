@@ -93,11 +93,6 @@ public class Main {
         }
 
         BestEstimateCashFlow bestEstimateCashFlow = new BestEstimateCashFlow();
-        bestEstimateCashFlow.addProperty("Valuation", "BASELINE");
-        bestEstimateCashFlow.addProperty("CRE", config.getToa());
-        bestEstimateCashFlow.addProperty("Factor", config.getFactorType());
-        bestEstimateCashFlow.loadCashFlows(cashFlows);
-        bestEstimateCashFlow.sortCashFlows();
         if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
             getLogger().info(bestEstimateCashFlow.toString());
             getLogger().info("Sum of cash flows before LBD: " + sumBeforeLbd);
