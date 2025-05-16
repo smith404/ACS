@@ -47,6 +47,7 @@ class FrameMapper:
                 self.mapping[key[3:]] = value  # Add key without FM_ and in lowercase
                 self.mapping[key[3:].lower()] = value  # Add key without FM_ and in lowercase
 
+        self.log_name = self.mapping.get("name","mapper_status")
         self.success_mapper = self.mapping.get("on_success")
         self.error_mapper = self.mapping.get("on_error")
         self.finally_mapper = self.mapping.get("on_finally")
@@ -91,19 +92,18 @@ class FrameMapper:
         return transform_rule_path
 
     def replace_tokens(self, value):
-        tokens = [token.strip("{}") for token in value.split("{{") if "}}" in token]
+        tokens = [token.split("}}")[0] for token in value.split("{{") if "}}" in token]
         for token in tokens:
-            token_key = token.split("}}")[0]
-            if token_key == "uuid":
-                value = value.replace(f"{{{{{token_key}}}}}", self.uuid)
-            elif token_key == "cob":
-                value = value.replace(f"{{{{{token_key}}}}}", self.cob)
-            elif token_key == "time":
-                value = value.replace(f"{{{{{token_key}}}}}", self.time)
-            elif token_key == "version":
-                value = value.replace(f"{{{{{token_key}}}}}", self.version)
+            if token == "uuid":
+                value = value.replace(f"{{{{{token}}}}}", self.uuid)
+            elif token == "cob":
+                value = value.replace(f"{{{{{token}}}}}", self.cob)
+            elif token == "time":
+                value = value.replace(f"{{{{{token}}}}}", self.time)
+            elif token == "version":
+                value = value.replace(f"{{{{{token}}}}}", self.version)
             else:
-                value = value.replace(f"{{{{{token_key}}}}}", self.mapping.get(token_key, ""))
+                value = value.replace(f"{{{{{token}}}}}", self.mapping.get(token, ""))
         return value
 
     def process_transforms(self, log_str=None, pre_process_method=None, process_method=None, post_process_method=None):

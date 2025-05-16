@@ -40,13 +40,13 @@ class PySparkFrameMapper(FrameMapper):
                 file.write(content)
 
     def load_from_data(self, from_asset_path, log_str):
-        self.status_signal_path = os.path.dirname(from_asset_path) + "/" + self.log_name + "/status.FAILURE"
+        self.status_signal_path = os.path.dirname(from_asset_path) + "/" + self.log_name + ".FAILURE"
         return self.spark.read.format("parquet").option("header", "true").load(from_asset_path)
 
     def write_to_data(self, df, to_asset_path, overwrite=True, log_str=None):
         compression = self.config.get("compression", "none")
         df.write.format("parquet").mode("overwrite").option("compression", compression).save(to_asset_path)
-        self.status_signal_path = os.path.dirname(to_asset_path) + "/" + self.log_name + "/status.SUCCESS"
+        self.status_signal_path = os.path.dirname(to_asset_path) + "/" + self.log_name + ".SUCCESS"
 
     def load_data_from_csv(self, file_path, header=True, infer_schema=True):
         return self.spark.read.format("csv").option("header", header).option("inferSchema", infer_schema).load(file_path)
