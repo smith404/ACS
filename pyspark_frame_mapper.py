@@ -39,7 +39,7 @@ class PySparkFrameMapper(FrameMapper):
             with open(file_path, mode) as file:
                 file.write(content)
 
-    def load_from_data(self, from_asset_path, log_str):
+    def load_from_data(self, from_asset_path, log_str=None):
         self.status_signal_path = os.path.dirname(from_asset_path) + "/" + self.log_name + ".FAILURE"
         return self.spark.read.format("parquet").option("header", "true").load(from_asset_path)
 
@@ -335,6 +335,36 @@ class PySparkFrameMapper(FrameMapper):
 
         return df
     
+    def transfrom_type_join(self, mapping, df, log_str=None):
+        join_file = self.replace_tokens(mapping.get("join_file"))
+        how = mapping.get("how", "inner")
+        on_rules = mapping.get("on_rules", [])
+
+        # Load the join DataFrame
+        if join_file.endswith(".parquet"):
+            join_df = self.load_data_from_parquet(join_file)
+        elif join_file.endswith(".csv"):
+            join_df = self.load_data_from_csv(join_file)
+        else:
+            if log_str:
+                log_str.write(f"Unsupported join file format: {join_file}\n")
+            return df
+
+        join_conditions = [
+            df[rule["source_column"]] == join_df[rule["target_column"]]
+            for rule in on_rules
+        ]
+
+        if join_conditions:
+            from functools import reduce
+            join_condition = reduce(lambda a, b: a & b, join_conditions)
+            df = df.join(join_df, join_condition, how=how)
+        else:
+            if log_str:
+                log_str.write("No join conditions specified in 'on_rules'.\n")
+
+        return df
+
 def main():
     """
     Main method to demonstrate the usage of FrameMapper class.

@@ -1,6 +1,6 @@
 {
-    "from_asset_path": "{from_container}/{from_medallion_layer}/test_data.parquet",
-    "to_asset_path": "{to_container}/{to_medallion_layer}/processed_data.parquet",
+    "from_asset_path": "{{from_container}/{{from_medallion_layer}}/test_data.parquet",
+    "to_asset_path": "{{to_container}}/{{to_medallion_layer}}/processed_data.parquet",
     "from_medallion_layer": "bronze",
     "to_medallion_layer": "silver",
     "from_container": "scratch",
@@ -35,6 +35,15 @@
                     "source_column": "Magnitude",
                     "target_column": "Level"
                 }
+            ]
+        },
+        {
+            "transform_type": "join",
+            "join_file": "{{from_container}}/{{from_medallion_layer}}/join_data.parquet",
+            "how": "inner",
+            "on_rules": [
+                {"source_column": "Reference", "target_column": "Reference"},
+                {"source_column": "Month", "target_column": "Month"},
             ]
         },
         {
