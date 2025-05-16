@@ -55,7 +55,7 @@ class PySparkFrameMapper(FrameMapper):
         return self.spark.read.format("parquet").load(file_path)
 
     def transfrom_type_include(self, mapping, df, log_str=None):
-        transform_rule_path = self.get_file_path(mapping.get("transform_rule_path"))
+        transform_rule_path = self.get_file_path(self.replace_tokens(mapping.get("transform_rule_path")))
 
         file_content = self.load_file_to_string(transform_rule_path)
         included_transforms = json.load(file_content)
@@ -292,7 +292,7 @@ class PySparkFrameMapper(FrameMapper):
 
     def transfrom_type_map(self, mapping, df, log_str=None):
         columns = mapping.get("columns", [])
-        mapping_file = mapping.get("mapping_file")
+        mapping_file = self.replace_tokens(mapping.get("mapping_file"))
         map_dict = mapping.get("mapping", {})
         default_value = mapping.get("default_value", None)
 
