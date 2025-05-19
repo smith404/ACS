@@ -5,14 +5,14 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Pattern {
-    private String type;
+    private final String uuid = UUID.randomUUID().toString();
     private List<PatternElement> elements = new ArrayList<>();
-    private int duration = 0;
 
     public void addElement(PatternElement element, boolean transfer) {
         if (element.getParentPattern() != null && element.getParentPattern() != this) {

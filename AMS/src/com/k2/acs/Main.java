@@ -31,18 +31,18 @@ public class Main {
             Pattern pattern = createPattern(config);
 
             UltimateValue ultimateValue = new UltimateValue(UltimateValue.Type.PREMIUM, config.getAmount());
-            ultimateValue.addProperty("TOA", config.getToa());
 
-            FactorCalculator factorCalculator = new FactorCalculator(config.getPrecision(), pattern);
+            FactorCalculator factorCalculator = new FactorCalculator(config.getPrecision(), pattern, config.getRiskAttachingDuration());
             FactorCalculator.setUseCalendar(config.isCalendar());
 
             factorCalculator.calculateDailyFactors(config.getInsuredPeriodStartDateAsLocalDate(), FactorCalculator.FactorType.valueOf(config.getFactorType().toUpperCase()));
+
             factorCalculator.applyUltimateValueToPattern(ultimateValue);
 
             List<LocalDate> endPoints = ExposureMatrix.getEndDatesBetween(
                 factorCalculator.getEarliestExposureDate().getYear(),
                 factorCalculator.getLatestExposureDate().getYear(),
-                PatternElement.Type.valueOf(config.getCashFlowFrequency().toUpperCase())
+                PatternElement.Type.valueOf(config.getExposedTimeUnit().toUpperCase())
             );
 
             //List<CashFlow> cashFlows = factorCalculator.generateCashFlows(config.getInsuredPeriodStartDateAsLocalDate(), endPoints, config.isEndOfPeriod());
@@ -63,8 +63,6 @@ public class Main {
 
     private static Pattern createPattern(AmsConfig config) {
         Pattern pattern = new Pattern();
-        pattern.setType(config.getPatternType());
-        pattern.setDuration(config.getDuration());
         for (AmsConfig.Element element : config.getElements()) {
             PatternElement patternElement = new PatternElement(
                 element.getInitial(),
@@ -81,7 +79,6 @@ public class Main {
         double sumBeforeLbd = 0.0;
         double sumAfterLbd = 0.0;
         for (CashFlow cashFlow : cashFlows) {
-            cashFlow.setCurrency(config.getCurrency());
             cashFlow.addProperty("PATTERN_TYPE", config.getFactorType());
             if (cashFlow.getAmount() != 0) {
                 if (cashFlow.getIncurredDate().isBefore(lbd)) {

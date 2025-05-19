@@ -24,21 +24,22 @@ public class AmsConfig {
         }
     }
 
+    private Date lbd;
+
     private int precision = 6;
 
     private boolean calendar;
-    private Date lbd;
     private boolean endOfPeriod = false;
-    private String cashFlowFrequency;
-
-    private String toa;
-    private String currency;
-    private double amount;
 
     private Date insuredPeriodStartDate;
-    private String patternType;
+    private int riskAttachingDuration;
+
+    private String inccuredTimeUnit;
+    private String exposedTimeUnit;
+
+    private double amount;
+
     private String factorType;
-    private int duration;
 
     private List<Element> elements;
 

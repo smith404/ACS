@@ -26,8 +26,8 @@ public class PatternElement {
         return new PatternElement(initialDistribution, totalDistribution, type);
     }
 
-    private Pattern parentPattern;
     private final String uuid = UUID.randomUUID().toString();
+    private Pattern parentPattern;
     private Type type;
     private double distribution = 0;
     private double initialDistribution = 0;
@@ -60,18 +60,17 @@ public class PatternElement {
         return factors;
     }
 
-    public List<Factor> generateEarningFactors(LocalDate startDate) {
+    public List<Factor> generateEarningFactors(LocalDate startDate, int riskAttachingDuration) {
         LocalDate originDate = startDate;
         int elementDays = FactorCalculator.getDaysForTypeWithCalendar(this.type, startDate);
-        int contractDurationDays = parentPattern.getDuration();
         List<Factor> factors = new ArrayList<>();
-        double factorDistribution = this.distribution / (contractDurationDays); 
-        double initialFactorDistribution = this.initialDistribution / contractDurationDays; 
+        double factorDistribution = this.distribution / (riskAttachingDuration); 
+        double initialFactorDistribution = this.initialDistribution / riskAttachingDuration; 
 
-        for (int i = 0; i < elementDays + contractDurationDays; i++) {
+        for (int i = 0; i < elementDays + riskAttachingDuration; i++) {
             if (i < elementDays) {
                 factors.add(new Factor(originDate, (factorDistribution/2) + initialFactorDistribution, startDate.plusDays(i)));
-            } else if (i < contractDurationDays) {
+            } else if (i < riskAttachingDuration) {
                 factors.add(new Factor(originDate, factorDistribution + initialFactorDistribution, startDate.plusDays(i)));
             } else {
                 factors.add(new Factor(originDate, (factorDistribution/2) , startDate.plusDays(i)));

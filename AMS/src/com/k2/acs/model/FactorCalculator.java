@@ -55,13 +55,25 @@ public class FactorCalculator implements DateCriteriaSummable {
 
     private final int precision;
     private final Pattern pattern;
+    private final int riskAttachingDuration;
 
     @Getter
     private List<Factor> allFactors;
 
-    public FactorCalculator(int precision, Pattern pattern) {
+    public FactorCalculator(int precision, Pattern pattern, int riskAttachingDuration) {
+        if (pattern == null) {
+            throw new IllegalArgumentException("Pattern must not be null.");
+        }
+        if (precision < 0) {
+            throw new IllegalArgumentException("Precision must be a non-negative integer.");
+        }
+        if (riskAttachingDuration < 0) {
+            throw new IllegalArgumentException("Risk attaching duration must be a non-negative integer.");
+        }
+
         this.precision = precision;
         this.pattern = pattern;
+        this.riskAttachingDuration = riskAttachingDuration;
     }
 
     private double roundToPrecision(double value) {
@@ -75,7 +87,7 @@ public class FactorCalculator implements DateCriteriaSummable {
         for (PatternElement element : pattern.getElements()) {
             List<Factor> factors = switch (factorType) {
                 case WRITING -> element.generateWritingFactors(startDate);
-                case EARNING -> element.generateEarningFactors(startDate);
+                case EARNING -> element.generateEarningFactors(startDate, riskAttachingDuration);
             };
             allFactors.addAll(factors);
             startDate = startDate.plusDays(FactorCalculator.getDaysForTypeWithCalendar(element.getType(), startDate)); 
@@ -126,8 +138,8 @@ public class FactorCalculator implements DateCriteriaSummable {
     }
 
     public List<Factor> combineDailyFactors(Pattern pattern1, Pattern pattern2, LocalDate startDate, FactorType factorType) {
-        List<Factor> factors1 = new FactorCalculator(precision, pattern1).calculateDailyFactors(startDate, factorType);
-        List<Factor> factors2 = new FactorCalculator(precision, pattern2).calculateDailyFactors(startDate, factorType);
+        List<Factor> factors1 = new FactorCalculator(precision, pattern1, riskAttachingDuration).calculateDailyFactors(startDate, factorType);
+        List<Factor> factors2 = new FactorCalculator(precision, pattern2, riskAttachingDuration).calculateDailyFactors(startDate, factorType);
 
         int size = Math.min(factors1.size(), factors2.size());
         List<Factor> combinedFactors = new ArrayList<>();
