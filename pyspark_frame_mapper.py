@@ -106,7 +106,10 @@ class PySparkFrameMapper(FrameMapper):
         return df
 
     def transfrom_type_select(self, mapping, df, log_str=None):
-        df = df.select(mapping.get("columns"))
+        columns = mapping.get("columns")
+        df = df.select(columns)
+        if mapping.get("distinct", False):
+            df = df.dropDuplicates(columns)
         filters = mapping.get("filters", [])
         if filters:
             for filter_condition in filters:
@@ -119,7 +122,10 @@ class PySparkFrameMapper(FrameMapper):
         return df   
     
     def transfrom_type_select_expression(self, mapping, df, log_str=None):
-        df = df.selectExpr(mapping.get("columns"))
+        columns = mapping.get("columns")
+        df = df.selectExpr(columns)
+        if mapping.get("distinct", False):
+            df = df.distinct()
         filters = mapping.get("filters", [])
         if filters:
             for filter_condition in filters:
