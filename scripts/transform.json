@@ -145,6 +145,17 @@
                             "value": "%jobs%"
                         }
                     ] 
+                },
+                {
+                    "source_column": "STATUS",
+                    "target_column": "RowNum",
+                    "conditions": [
+                        {
+                            "column": "Series_title_1",
+                            "operator": "<",
+                            "value_column": "Reference"
+                        }
+                    ] 
                 }
             ]
         },

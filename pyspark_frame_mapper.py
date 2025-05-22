@@ -148,39 +148,50 @@ class PySparkFrameMapper(FrameMapper):
     def transfrom_type_update_columns(self, mapping, df, log_str=None):
         columns = mapping.get("columns", [])
         for column in columns:
-            condition_expr = self.build_condition_expr(column.get("conditions", []))
+            condition_expr = self.build_condition_expr(column.get("conditions", []), df)
             if condition_expr is not None:
-                df = df.withColumn(column.get("source_column"), sf.when(condition_expr, sf.lit(column.get("target_value"))).otherwise(sf.col(column.get("source_column"))))
+                target_column = column.get("target_column")
+                if target_column:
+                    df = df.withColumn(target_column, sf.when(condition_expr, sf.col(column.get("source_column"))).otherwise(sf.col(target_column)))
+                else:
+                    df = df.withColumn(column.get("source_column"), sf.when(condition_expr, sf.lit(column.get("target_value"))).otherwise(sf.col(column.get("source_column"))))
         return df
 
-    def build_condition_expr(self, conditions):
+    def build_condition_expr(self, conditions, df):
         condition_expr = None
         for condition in conditions:
             col_name = condition.get("column")
             operator = condition.get("operator")
             value = condition.get("value")
-            expr = self.get_condition_expr(col_name, operator, value)
+            value_column = condition.get("value_column")
+
+            if value_column:
+                value_expr = sf.col(value_column)
+            else:
+                value_expr = sf.lit(value)
+
+            expr = self.get_condition_expr(col_name, operator, value_expr)
             if expr is not None:
                 condition_expr = expr if condition_expr is None else condition_expr & expr
         return condition_expr
 
-    def get_condition_expr(self, col_name, operator, value):
+    def get_condition_expr(self, col_name, operator, value_expr):
         if operator == ">":
-            return sf.col(col_name) > value
+            return sf.col(col_name) > value_expr
         elif operator == "<":
-            return sf.col(col_name) < value
+            return sf.col(col_name) < value_expr
         elif operator == "==":
-            return sf.col(col_name) == value
+            return sf.col(col_name) == value_expr
         elif operator == "!=":
-            return sf.col(col_name) != value
+            return sf.col(col_name) != value_expr
         elif operator == ">=":
-            return sf.col(col_name) >= value
+            return sf.col(col_name) >= value_expr
         elif operator == "<=":
-            return sf.col(col_name) <= value
+            return sf.col(col_name) <= value_expr
         elif operator == "like":
-            return sf.col(col_name).like(value)
+            return sf.col(col_name).like(value_expr)
         elif operator == "not like":
-            return ~sf.col(col_name).like(value)
+            return ~sf.col(col_name).like(value_expr)
         elif operator == "is_null":
             return sf.col(col_name).isNull()
         elif operator == "is_not_null":
