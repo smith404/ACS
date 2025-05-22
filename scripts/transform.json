@@ -93,6 +93,21 @@
             ]
         },
         {
+            "transform_type": "duplicate_row",
+            "update_columns": [
+                {
+                    "source_column": "Level",
+                    "target_value": "Top of the World"
+                }             ],
+            "conditions": [
+                {
+                    "column": "Sum_Level",
+                    "operator": "<",
+                    "value": 1000
+                }
+            ]
+    },
+        {
             "transform_type": "group_by",
             "columns": [
                 "Reference",

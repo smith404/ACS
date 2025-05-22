@@ -376,6 +376,28 @@ class PySparkFrameMapper(FrameMapper):
 
         return df
 
+    def transfrom_type_duplicate_row(self, mapping, df, log_str=None):
+        conditions = mapping.get("conditions", [])
+        update_columns = mapping.get("update_columns", [])
+
+        # Build the condition expression
+        condition_expr = self.build_condition_expr(conditions, df)
+
+        if condition_expr is not None:
+            # Filter rows that satisfy the condition
+            filtered_df = df.filter(condition_expr)
+
+            # Update columns in the filtered DataFrame
+            for column in update_columns:
+                source_column = column.get("source_column")
+                target_value = column.get("target_value")
+                filtered_df = filtered_df.withColumn(source_column, sf.lit(target_value))
+
+            # Union the original DataFrame with the updated rows
+            df = df.union(filtered_df)
+
+        return df
+
 def main():
     """
     Main method to demonstrate the usage of FrameMapper class.
