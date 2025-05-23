@@ -105,38 +105,6 @@ class PySparkFrameMapper(FrameMapper):
                 df = df.withColumn(column, sf.when(sf.col(column) == key, sf.lit(value)).otherwise(sf.col(column)))
         return df
 
-    def transfrom_type_select(self, mapping, df, log_str=None):
-        columns = mapping.get("columns")
-        df = df.select(columns)
-        if mapping.get("distinct", False):
-            df = df.dropDuplicates(columns)
-        filters = mapping.get("filters", [])
-        if filters:
-            for filter_condition in filters:
-                column = filter_condition.get("column")
-                operator = filter_condition.get("operator")
-                value = filter_condition.get("value")
-                condition_expr = self.get_condition_expr(column, operator, value)
-                if condition_expr is not None:
-                    df = df.filter(condition_expr)
-        return df   
-    
-    def transfrom_type_select_expression(self, mapping, df, log_str=None):
-        columns = mapping.get("columns")
-        df = df.selectExpr(columns)
-        if mapping.get("distinct", False):
-            df = df.distinct()
-        filters = mapping.get("filters", [])
-        if filters:
-            for filter_condition in filters:
-                column = filter_condition.get("column")
-                operator = filter_condition.get("operator")
-                value = filter_condition.get("value")
-                condition_expr = self.get_condition_expr(column, operator, value)
-                if condition_expr is not None:
-                    df = df.filter(condition_expr)
-        return df   
-    
     def transfrom_type_group_by(self, mapping, df, log_str=None):
         aggregations = mapping.get("aggregations", [])
         if isinstance(aggregations, list):
@@ -150,60 +118,6 @@ class PySparkFrameMapper(FrameMapper):
                     log_str.write(f"No aggregation method found for: {method_name}\n")
             df = df.groupBy(mapping.get("columns")).agg(*agg_exprs)
         return df
-
-    def transfrom_type_update_columns(self, mapping, df, log_str=None):
-        columns = mapping.get("columns", [])
-        for column in columns:
-            condition_expr = self.build_condition_expr(column.get("conditions", []), df)
-            if condition_expr is not None:
-                target_column = column.get("target_column")
-                if target_column:
-                    df = df.withColumn(target_column, sf.when(condition_expr, sf.col(column.get("source_column"))).otherwise(sf.col(target_column)))
-                else:
-                    df = df.withColumn(column.get("source_column"), sf.when(condition_expr, sf.lit(column.get("target_value"))).otherwise(sf.col(column.get("source_column"))))
-        return df
-
-    def build_condition_expr(self, conditions, df):
-        condition_expr = None
-        for condition in conditions:
-            col_name = condition.get("column")
-            operator = condition.get("operator")
-            value = condition.get("value")
-            value_column = condition.get("value_column")
-
-            if value_column:
-                value_expr = sf.col(value_column)
-            else:
-                value_expr = sf.lit(value)
-
-            expr = self.get_condition_expr(col_name, operator, value_expr)
-            if expr is not None:
-                condition_expr = expr if condition_expr is None else condition_expr & expr
-        return condition_expr
-
-    def get_condition_expr(self, col_name, operator, value_expr):
-        if operator == ">":
-            return sf.col(col_name) > value_expr
-        elif operator == "<":
-            return sf.col(col_name) < value_expr
-        elif operator == "==":
-            return sf.col(col_name) == value_expr
-        elif operator == "!=":
-            return sf.col(col_name) != value_expr
-        elif operator == ">=":
-            return sf.col(col_name) >= value_expr
-        elif operator == "<=":
-            return sf.col(col_name) <= value_expr
-        elif operator == "like":
-            return sf.col(col_name).like(value_expr)
-        elif operator == "not like":
-            return ~sf.col(col_name).like(value_expr)
-        elif operator == "is_null":
-            return sf.col(col_name).isNull()
-        elif operator == "is_not_null":
-            return sf.col(col_name).isNotNull()
-        else:
-            return None
 
     def transfrom_type_split_column(self, mapping, df, log_str=None):
         source_column = mapping.get("source_column")
@@ -382,6 +296,36 @@ class PySparkFrameMapper(FrameMapper):
 
         return df
 
+    def transfrom_type_select(self, mapping, df, log_str=None):
+        columns = mapping.get("columns")
+        df = df.select(columns)
+        if mapping.get("distinct", False):
+            df = df.dropDuplicates(columns)
+
+        conditions = mapping.get("conditions", [])
+        # Build the condition expression
+        condition_expr = self.build_condition_expr(conditions, df)
+        if condition_expr is not None:
+            # Filter rows that satisfy the condition
+            df = df.filter(condition_expr)
+                    
+        return df   
+    
+    def transfrom_type_select_expression(self, mapping, df, log_str=None):
+        columns = mapping.get("columns")
+        df = df.selectExpr(columns)
+        if mapping.get("distinct", False):
+            df = df.distinct()
+
+        conditions = mapping.get("conditions", [])
+        # Build the condition expression
+        condition_expr = self.build_condition_expr(conditions, df)
+        if condition_expr is not None:
+            # Filter rows that satisfy the condition
+            df = df.filter(condition_expr)
+
+        return df   
+    
     def transfrom_type_duplicate_row(self, mapping, df, log_str=None):
         conditions = mapping.get("conditions", [])
         update_columns = mapping.get("update_columns", [])
@@ -403,6 +347,60 @@ class PySparkFrameMapper(FrameMapper):
             df = df.union(filtered_df)
 
         return df
+
+    def transfrom_type_update_columns(self, mapping, df, log_str=None):
+        columns = mapping.get("columns", [])
+        for column in columns:
+            condition_expr = self.build_condition_expr(column.get("conditions", []), df)
+            if condition_expr is not None:
+                target_column = column.get("target_column")
+                if target_column:
+                    df = df.withColumn(target_column, sf.when(condition_expr, sf.col(column.get("source_column"))).otherwise(sf.col(target_column)))
+                else:
+                    df = df.withColumn(column.get("source_column"), sf.when(condition_expr, sf.lit(column.get("target_value"))).otherwise(sf.col(column.get("source_column"))))
+        return df
+
+    def build_condition_expr(self, conditions, df):
+        condition_expr = None
+        for condition in conditions:
+            col_name = condition.get("column")
+            operator = condition.get("operator")
+            value = condition.get("value")
+            value_column = condition.get("value_column")
+
+            if value_column:
+                value_expr = sf.col(value_column)
+            else:
+                value_expr = sf.lit(value)
+
+            expr = self.get_condition_expr(col_name, operator, value_expr)
+            if expr is not None:
+                condition_expr = expr if condition_expr is None else condition_expr & expr
+        return condition_expr
+
+    def get_condition_expr(self, col_name, operator, value_expr):
+        if operator == ">":
+            return sf.col(col_name) > value_expr
+        elif operator == "<":
+            return sf.col(col_name) < value_expr
+        elif operator == "==":
+            return sf.col(col_name) == value_expr
+        elif operator == "!=":
+            return sf.col(col_name) != value_expr
+        elif operator == ">=":
+            return sf.col(col_name) >= value_expr
+        elif operator == "<=":
+            return sf.col(col_name) <= value_expr
+        elif operator == "like":
+            return sf.col(col_name).like(value_expr)
+        elif operator == "not like":
+            return ~sf.col(col_name).like(value_expr)
+        elif operator == "is_null":
+            return sf.col(col_name).isNull()
+        elif operator == "is_not_null":
+            return sf.col(col_name).isNotNull()
+        else:
+            return None
 
 def main():
     """

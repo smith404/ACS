@@ -84,7 +84,7 @@
                 "Group",
                 "Series_title_1"
             ],
-            "filter":[
+            "conditions":[
                 {
                     "column": "Level",
                     "operator": ">",
