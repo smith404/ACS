@@ -1,13 +1,14 @@
 {
-    "from_asset_path": "{{from_container}/{{from_medallion_layer}}/test_data.parquet",
+    "name": "TransformData",
+    "from_asset_path": "{{from_container}}/{{from_medallion_layer}}/test_data.parquet",
     "to_asset_path": "{{to_container}}/{{to_medallion_layer}}/processed_data.parquet",
     "from_medallion_layer": "bronze",
     "to_medallion_layer": "silver",
     "from_container": "scratch",
     "to_container": "scratch",
-    "on_success": true,
-    "on_error": null,
-    "on_finally": null,
+    "xon_success": "",
+    "xon_error": null,
+    "xon_finally": null,
     "arch_config": {
         "spark.sql.debug.maxToStringFields": "100"
     },
@@ -42,8 +43,8 @@
             "join_file": "{{from_container}}/{{from_medallion_layer}}/join_data.parquet",
             "how": "inner",
             "on_rules": [
-                {"source_column": "Reference", "target_column": "Reference"},
-                {"source_column": "Month", "target_column": "Month"},
+                {"source_column": "Reference", "target_column": "Series_reference"},
+                {"source_column": "Month", "target_column": "Period"}
             ]
         },
         {
