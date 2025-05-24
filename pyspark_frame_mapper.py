@@ -404,9 +404,6 @@ class PySparkFrameMapper(FrameMapper):
             return None
 
 def main():
-    """
-    Main method to demonstrate the usage of FrameMapper class.
-    """
     parser = argparse.ArgumentParser(description="Frame Mapper Executor")
     parser.add_argument("--mapper", type=str, help="The name of the mapper to use")
     args = parser.parse_args()

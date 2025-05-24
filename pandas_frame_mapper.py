@@ -222,20 +222,6 @@ class PandasFrameMapper(FrameMapper):
         # Filtering by conditions is not implemented here
         return df
 
-    def transfrom_type_select_expression(self, mapping, df, log_str=None):
-        columns = mapping.get("columns")
-        # selectExpr is not directly supported in pandas, so use eval if needed
-        df = df.eval(','.join(columns))
-        if mapping.get("distinct", False):
-            df = df.drop_duplicates()
-        # Filtering by conditions is not implemented here
-        return df
-
-    def transfrom_type_duplicate_row(self, mapping, df, log_str=None):
-        # Not directly supported in pandas, so this is a placeholder
-        # You may need to implement custom logic based on your requirements
-        return df
-
     def transfrom_type_update_columns(self, mapping, df, log_str=None):
         columns = mapping.get("columns", [])
         for column in columns:
@@ -248,10 +234,6 @@ class PandasFrameMapper(FrameMapper):
         return df
 
     def build_condition_expr(self, conditions, df):
-        """
-        Build a boolean mask for pandas DataFrame based on conditions.
-        Returns a boolean Series that can be used to filter df.
-        """
         mask = pd.Series([True] * len(df), index=df.index)
         for condition in conditions:
             col_name = condition.get("column")
@@ -271,9 +253,6 @@ class PandasFrameMapper(FrameMapper):
         return mask
 
     def get_condition_expr(self, df, col_name, operator, value_expr):
-        """
-        Return a boolean Series for the given condition on the DataFrame.
-        """
         if operator == ">":
             return df[col_name] > value_expr
         elif operator == "<":
@@ -298,9 +277,6 @@ class PandasFrameMapper(FrameMapper):
             return None
 
 def main():
-    """
-    Main method to demonstrate the usage of FrameMapper class.
-    """
     parser = argparse.ArgumentParser(description="Frame Mapper Executor")
     parser.add_argument("--mapper", type=str, help="The name of the mapper to use")
     args = parser.parse_args()

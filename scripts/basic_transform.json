@@ -1,7 +1,7 @@
 {
     "name": "TransformData",
     "from_asset_path": "{{from_container}}/{{from_medallion_layer}}/financial.parquet",
-    "to_asset_path": "{{to_container}}/{{to_medallion_layer}}/processed.parquet",
+    "to_asset_path": "{{to_container}}/{{to_medallion_layer}}/processed_data.parquet",
     "from_medallion_layer": "bronze",
     "to_medallion_layer": "silver",
     "from_container": "scratch",
@@ -17,8 +17,7 @@
             "transform_type": "trim_columns",
             "columns": [
                 "Series_reference",
-                "Period",
-                "Month"
+                "Period"
             ]
         },
         {
@@ -39,32 +38,19 @@
             ]
         },
         {
-            "transform_type": "join",
-            "join_file": "{{from_container}}/{{from_medallion_layer}}/join_data.parquet",
-            "how": "inner",
-            "on_rules": [
-                {"source_column": "Reference", "target_column": "Series_reference"},
-                {"source_column": "Month", "target_column": "Period"}
-            ]
-        },
-        {
-            "transform_type": "include",
-            "transform_rule_path": "$scripts/included_transform.json"
-        },
-        {
-            "transform_type": "simplemap",
+            "transform_type": "copy_columns",
             "columns": [
-                "FROM_QUARTER",
-                "TO_QUARTER"
-            ],
-            "mapping_file": "$scripts/test_mapp.csv"
+                {
+                    "source_column": "Level",
+                    "target_column": "New_Level"
+                }
+            ]
         },
         {
             "transform_type": "map",
             "default_value": "Unknown",
             "columns": [
-                "FROM_QUARTER",
-                "TO_QUARTER"
+                "STATUS"
             ],
             "mapping": {
                 "F": "First",
@@ -73,7 +59,29 @@
             }
         },
         {
-            "transform_type": "select_expression",
+            "transform_type": "set_columns",
+            "trim": true,
+            "columns": [
+                {
+                    "source_column": "RowNum",
+                    "target_value": 1
+                },
+                {
+                    "source_column": "Name",
+                    "target_value": "Mark"
+                },
+                {
+                    "source_column": "Age",
+                    "target_value": 54
+                },
+                {
+                    "source_column": "Reference",
+                    "pattern_value": "X-_this_"
+                }
+            ]
+        },
+        {
+            "transform_type": "select",
             "columns": [
                 "Reference",
                 "Month",
@@ -81,7 +89,7 @@
                 "Age",
                 "STATUS",
                 "Level",
-                "Level + 20 as New_Level",
+                "New_Level",
                 "Group",
                 "Series_title_1"
             ],
@@ -93,21 +101,6 @@
                 }
             ]
         },
-        {
-            "transform_type": "duplicate_row",
-            "update_columns": [
-                {
-                    "source_column": "Level",
-                    "target_value": "Top of the World"
-                }             ],
-            "conditions": [
-                {
-                    "column": "Sum_Level",
-                    "operator": "<",
-                    "value": 1000
-                }
-            ]
-    },
         {
             "transform_type": "group_by",
             "columns": [
@@ -142,7 +135,7 @@
                         {
                             "column": "Sum_Level",
                             "operator": "<",
-                            "value": 1000
+                            "value": 900
                         },
                         {
                             "column": "Sum_Level",
@@ -158,18 +151,7 @@
                         {
                             "column": "Series_title_1",
                             "operator": "like",
-                            "value": "%jobs%"
-                        }
-                    ] 
-                },
-                {
-                    "source_column": "STATUS",
-                    "target_column": "RowNum",
-                    "conditions": [
-                        {
-                            "column": "Series_title_1",
-                            "operator": "<",
-                            "value_column": "Reference"
+                            "value": "Salaries%"
                         }
                     ] 
                 }
@@ -181,6 +163,10 @@
                 {
                     "column": "RowNum",
                     "type": "counter"
+                },
+                 {
+                    "column": "Name",
+                    "type": "string"
                 },
                 {
                     "column": "Age",

@@ -17,8 +17,7 @@
             "transform_type": "trim_columns",
             "columns": [
                 "Series_reference",
-                "Period",
-                "Month"
+                "Period"
             ]
         },
         {
