@@ -92,6 +92,8 @@ class FrameMapper:
         return transform_rule_path
 
     def replace_tokens(self, value):
+        if not isinstance(value, str):
+            return value
         tokens = [token.split("}}")[0] for token in value.split("{{") if "}}" in token]
         for token in tokens:
             if token == "uuid":
@@ -200,79 +202,101 @@ class FrameMapper:
     def transfrom_type_include(self, mapping, df, log_str=None):
         # This method is intentionally left empty because the logic for the "include" transform type
         # is not yet defined. It will be implemented in the future based on specific requirements.
-        pass
+        log_str.write("Include transform is not implemented yet.\n")
+        return df
 
     def transfrom_type_rename_columns(self, mapping, df, log_str=None):
         # This method is intentionally left empty because the logic for the "rename_columns" transform type
         # is not yet defined. It will be implemented in the future based on specific requirements.
-        pass
+        log_str.write("Rename columns transform is not implemented yet.\n")
+        return df
 
     def transfrom_type_drop_columns(self, mapping, df, log_str=None):
         # This method is intentionally left empty because the logic for the "drop_columns" transform type
         # is not yet defined. It will be implemented in the future based on specific requirements.
-        pass
+        log_str.write("Drop columns transform is not implemented yet.\n")
+        return df
 
     def transfrom_type_set_columns(self, mapping, df, log_str=None):
         # This method is intentionally left empty because the logic for the "set_columns" transform type
         # is not yet defined. It will be implemented in the future based on specific requirements.
-        pass
+        log_str.write("Set columns transform is not implemented yet.\n")
+        return df
 
     def transfrom_type_simplemap(self, mapping, df, log_str=None):
         # This method is intentionally left empty because the logic for the "simplemap" transform type
         # is not yet defined. It will be implemented in the future based on specific requirements.
-        pass
+        log_str.write("Simplemap transform is not implemented yet.\n")
+        return df
 
     def transfrom_type_select(self, mapping, df, log_str=None):
         # This method is intentionally left empty because the logic for the "select" transform type
         # is not yet defined. It will be implemented in the future based on specific requirements.
-        pass
+        log_str.write("Select transform is not implemented yet.\n")
+        return df
     
     def transfrom_type_select_expression(self, mapping, df, log_str=None):
         # This method is intentionally left empty because the logic for the "select_expression" transform type
         # is not yet defined. It will be implemented in the future based on specific requirements.
-        pass
+        log_str.write("Select expression transform is not implemented yet.\n")
+        return df
     
     def transfrom_type_group_by(self, mapping, df, log_str=None):
         # This method is intentionally left empty because the logic for the "group_by" transform type
         # is not yet defined. It will be implemented in the future based on specific requirements.
-        pass
+        log_str.write("Group by transform is not implemented yet.\n")
+        return df
 
     def transfrom_type_update_columns(self, mapping, df, log_str=None):
         # This method is intentionally left empty because the logic for the "update_columns" transform type
         # is not yet defined. It will be implemented in the future based on specific requirements.
-        pass
+        log_str.write("Update columns transform is not implemented yet.\n")
+        return df
 
     def transfrom_type_split_column(self, mapping, df, log_str=None):
         # This method is intentionally left empty because the logic for the "split_column" transform type
         # is not yet defined. It will be implemented in the future based on specific requirements.
-        pass
+        log_str.write("Split column transform is not implemented yet.\n")
+        return df
 
     def transfrom_type_merge_columns(self, mapping, df, log_str=None):
         # This method is intentionally left empty because the logic for the "merge_columns" transform type
         # is not yet defined. It will be implemented in the future based on specific requirements.
-        pass
+        log_str.write("Merge columns transform is not implemented yet.\n")
+        return df
 
     def transfrom_type_set_column_type(self, mapping, df, log_str=None):
         # This method is intentionally left empty because the logic for the "column_type" transform type
         # is not yet defined. It will be implemented in the future based on specific requirements.
-        pass
+        log_str.write("Set column type transform is not implemented yet.\n")
+        return df
 
     def transfrom_type_copy_columns(self, mapping, df, log_str=None):
         # This method is intentionally left empty because the logic for the "copy_columns" transform type
         # is not yet defined. It will be implemented in the future based on specific requirements.
-        pass
+        log_str.write("Copy columns transform is not implemented yet.\n")
+        return df
 
     def transfrom_type_trim_columns(self, mapping, df, log_str=None):
         # This method is intentionally left empty because the logic for the "trim_columns" transform type
         # is not yet defined. It will be implemented in the future based on specific requirements.
-        pass
+        log_str.write("Trim columns transform is not implemented yet.\n")
+        return df
 
     def transfrom_type_transpose_columns(self, mapping, df, log_str=None):
         # This method is intentionally left empty because the logic for the "transpose_columns" transform type
         # is not yet defined. It will be implemented in the future based on specific requirements.
-        pass
+        log_str.write("Transpose columns transform is not implemented yet.\n")
+        return df
 
     def transfrom_type_map(self, mapping, df, log_str=None):
         # This method is intentionally left empty because the logic for the "map" transform type
         # is not yet defined. It will be implemented in the future based on specific requirements.
-        pass
+        log_str.write("Map transform is not implemented yet.\n")
+        return df
+
+    def transfrom_type_duplicate_row(self, mapping, df, log_str=None):
+        # This method is intentionally left empty because the logic for the "duplicate_row" transform type
+        # is not yet defined. It will be implemented in the future based on specific requirements.
+        log_str.write("Duplicate row transform is not implemented yet.\n")
+        return df

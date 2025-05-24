@@ -223,7 +223,7 @@ class PySparkFrameMapper(FrameMapper):
 
     def transfrom_type_map(self, mapping, df, log_str=None):
         columns = mapping.get("columns", [])
-        mapping_file = self.replace_tokens(mapping.get("mapping_file"))
+        mapping_file = self.replace_tokens(mapping.get("mapping_file", None))
         map_dict = mapping.get("mapping", {})
         default_value = mapping.get("default_value", None)
 
@@ -371,9 +371,10 @@ class PySparkFrameMapper(FrameMapper):
             if value_column:
                 value_expr = sf.col(value_column)
             else:
-                value_expr = sf.lit(value)
+                value_expr = value
 
             expr = self.get_condition_expr(col_name, operator, value_expr)
+
             if expr is not None:
                 condition_expr = expr if condition_expr is None else condition_expr & expr
         return condition_expr
