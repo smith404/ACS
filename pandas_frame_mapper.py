@@ -1,4 +1,6 @@
 import argparse
+import sys
+import unittest
 from enum import Enum
 from io import StringIO
 import json  # Import json module
@@ -276,7 +278,74 @@ class PandasFrameMapper(FrameMapper):
         else:
             return None
 
+# Unit test support
+class TestPySparkFrameMapper(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.mapper = PandasFrameMapper(mapper=None)
+
+    @classmethod
+    def tearDownClass(cls):
+        pass
+
+    def test_transfrom_type_set_column_type(self):
+        df = pd.DataFrame({
+            "a": ["1", "2", "3"],
+            "b": ["4.1", "5.2", "6.3"],
+            "c": [1, 0, 1],
+            "d": ["2020-01-01", "2020-01-02", "2020-01-03"]
+        })
+        mapping = {
+            "columns": [
+                {"column": "a", "type": "int"},
+                {"column": "b", "type": "float"},
+                {"column": "c", "type": "boolean"},
+                {"column": "d", "type": "date", "format": "%Y-%m-%d"}
+            ]
+        }
+        result = self.mapper.transfrom_type_set_column_type(mapping, df.copy())
+        self.assertTrue(pd.api.types.is_integer_dtype(result["a"]))
+        self.assertTrue(pd.api.types.is_float_dtype(result["b"]))
+        self.assertTrue(pd.api.types.is_bool_dtype(result["c"]))
+        self.assertTrue(pd.api.types.is_object_dtype(result["d"]))  # dates as objects
+
+    def test_transfrom_type_rename_columns(self):
+        df = pd.DataFrame({"x": [1, 2], "y": [3, 4]})
+        mapping = {
+            "columns": [
+                {"source_column": "x", "target_column": "a"},
+                {"source_column": "y", "target_column": "b"}
+            ]
+        }
+        result = self.mapper.transfrom_type_rename_columns(mapping, df.copy())
+        self.assertIn("a", result.columns)
+        self.assertIn("b", result.columns)
+        self.assertNotIn("x", result.columns)
+        self.assertNotIn("y", result.columns)
+
+    def test_transfrom_type_drop_columns(self):
+        df = pd.DataFrame({"a": [1], "b": [2], "c": [3]})
+        mapping = {"columns": ["b", "c"]}
+        result = self.mapper.transfrom_type_drop_columns(mapping, df.copy())
+        self.assertIn("a", result.columns)
+        self.assertNotIn("b", result.columns)
+        self.assertNotIn("c", result.columns)
+
+    def test_transfrom_type_simplemap(self):
+        df = pd.DataFrame({"col1": ["A", "B", "C"]})
+        mapping = {
+            "columns": ["col1"],
+            "mapping": {"A": "X", "B": "Y"}
+        }
+        result = self.mapper.transfrom_type_simplemap(mapping, df.copy())
+        self.assertEqual(list(result["col1"]), ["X", "Y", "C"])
+
 def main():
+    if "--unittest" in sys.argv:
+        sys.argv = [sys.argv[0]]  # Remove extra args for unittest
+        unittest.main(warnings='ignore')
+        exit(0)
+
     parser = argparse.ArgumentParser(description="Frame Mapper Executor")
     parser.add_argument("--mapper", type=str, help="The name of the mapper to use")
     args = parser.parse_args()

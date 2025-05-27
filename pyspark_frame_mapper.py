@@ -1,4 +1,6 @@
 import argparse
+import sys
+import unittest
 from enum import Enum
 from io import StringIO
 import json  # Import json module
@@ -8,7 +10,7 @@ import os  # Import os module
 from datetime import datetime  # Import datetime module
 from pyspark.sql import SparkSession
 import pyspark.sql.functions as sf
-from pyspark.sql import Window
+from pyspark.sql import Window, Row
 
 from frame_mapper import FrameMapper  # Import Window module
 
@@ -403,7 +405,93 @@ class PySparkFrameMapper(FrameMapper):
         else:
             return None
 
+# Unit test support
+class TestPySparkFrameMapper(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.spark = SparkSession.builder.appName("UnitTest").getOrCreate()
+        cls.mapper = PySparkFrameMapper(mapper=None, spark=cls.spark)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.spark.stop()
+
+    def test_transfrom_type_set_column_type(self):
+        # Prepare test DataFrame
+        data = [Row(a="1", b="2.5", c="2023-01-01", d="2023-01-01 12:34:56")]
+        df = self.spark.createDataFrame(data)
+        mapping = {
+            "columns": [
+                {"column": "a", "type": "int"},
+                {"column": "b", "type": "float"},
+                {"column": "c", "type": "date", "format": "yyyy-MM-dd"},
+                {"column": "d", "type": "timestamp", "format": "yyyy-MM-dd HH:mm:ss"},
+            ]
+        }
+        # Dummy log_str
+        class DummyLog:
+            def write(self, msg): pass
+        log_str = DummyLog()
+
+        df2 = self.mapper.transfrom_type_set_column_type(mapping, df, log_str)
+        dtypes = dict(df2.dtypes)
+        self.assertEqual(dtypes["a"], "int")
+        self.assertEqual(dtypes["b"], "float")
+        self.assertEqual(dtypes["c"], "date")
+        self.assertEqual(dtypes["d"], "timestamp")
+
+    def test_transfrom_type_rename_columns(self):
+        data = [Row(a=1, b=2)]
+        df = self.spark.createDataFrame(data)
+        mapping = {
+            "columns": [
+                {"source_column": "a", "target_column": "x"},
+                {"source_column": "b", "target_column": "y"}
+            ]
+        }
+        class DummyLog:
+            def write(self, msg): pass
+        log_str = DummyLog()
+        df2 = self.mapper.transfrom_type_rename_columns(mapping, df, log_str)
+        self.assertIn("x", df2.columns)
+        self.assertIn("y", df2.columns)
+        self.assertNotIn("a", df2.columns)
+        self.assertNotIn("b", df2.columns)
+
+    def test_transfrom_type_drop_columns(self):
+        data = [Row(a=1, b=2, c=3)]
+        df = self.spark.createDataFrame(data)
+        mapping = {
+            "columns": ["b", "c"]
+        }
+        class DummyLog:
+            def write(self, msg): pass
+        log_str = DummyLog()
+        df2 = self.mapper.transfrom_type_drop_columns(mapping, df, log_str)
+        self.assertIn("a", df2.columns)
+        self.assertNotIn("b", df2.columns)
+        self.assertNotIn("c", df2.columns)
+
+    def test_transfrom_type_simplemap(self):
+        data = [Row(col1="A"), Row(col1="B"), Row(col1="C")]
+        df = self.spark.createDataFrame(data)
+        mapping = {
+            "columns": ["col1"],
+            "mapping": {"A": "X", "B": "Y"}
+        }
+        class DummyLog:
+            def write(self, msg): pass
+        log_str = DummyLog()
+        df2 = self.mapper.transfrom_type_simplemap(mapping, df, log_str)
+        result = [row.col1 for row in df2.collect()]
+        self.assertEqual(result, ["X", "Y", "C"])
+
 def main():
+    if "--unittest" in sys.argv:
+        sys.argv = [sys.argv[0]]  # Remove extra args for unittest
+        unittest.main(warnings='ignore')
+        exit(0)
+
     parser = argparse.ArgumentParser(description="Frame Mapper Executor")
     parser.add_argument("--mapper", type=str, help="The name of the mapper to use")
     args = parser.parse_args()

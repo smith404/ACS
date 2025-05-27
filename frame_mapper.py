@@ -34,6 +34,9 @@ class FrameMapper:
         self.mapper_directory = self.config.get("mapper_directory", "")
 
     def load_mapper(self, map_name):
+        if not map_name:
+            self.mapping = {}
+            return
         if not map_name.endswith(FrameMapper.JSON_EXTENSION):
             map_name += FrameMapper.JSON_EXTENSION
         mapper_path = f"{self.mapper_directory}/{map_name}"
