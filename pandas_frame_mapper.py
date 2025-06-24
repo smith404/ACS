@@ -278,6 +278,30 @@ class PandasFrameMapper(FrameMapper):
         else:
             return None
 
+    def transfrom_type_append(self, mapping, df, log_str=None):
+        data_file = self.replace_tokens(mapping.get("data_file"))
+        # Load the append DataFrame
+        if data_file.endswith(".parquet"):
+            append_df = self.load_data_from_parquet(data_file)
+        elif data_file.endswith(".csv"):
+            append_df = self.load_data_from_csv(data_file)
+        else:
+            if log_str:
+                log_str.write(f"Unsupported append file format: {data_file}\n")
+            return df
+
+        # Check schema match (column names and dtypes)
+        if list(df.columns) != list(append_df.columns) or not all(df.dtypes == append_df.dtypes):
+            if log_str:
+                log_str.write(
+                    f"Schema mismatch: current columns {list(df.columns)}, dtypes {list(df.dtypes)}; "
+                    f"append file columns {list(append_df.columns)}, dtypes {list(append_df.dtypes)}\n"
+                )
+            return df
+
+        # Append (concat) the data
+        return pd.concat([df, append_df], ignore_index=True)
+
 # Unit test support
 class TestPySparkFrameMapper(unittest.TestCase):
     @classmethod
