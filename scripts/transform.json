@@ -48,6 +48,10 @@
             ]
         },
         {
+            "transform_type": "append",
+            "data_file": "{{from_container}}/{{from_medallion_layer}}/join_data.parquet"
+        },
+        {
             "transform_type": "include",
             "transform_rule_path": "$scripts/included_transform.json"
         },

@@ -405,6 +405,29 @@ class PySparkFrameMapper(FrameMapper):
         else:
             return None
 
+    def transfrom_type_append(self, mapping, df, log_str=None):
+        data_file = self.replace_tokens(mapping.get("data_file"))
+        # Load the append DataFrame
+        if data_file.endswith(".parquet"):
+            append_df = self.load_data_from_parquet(data_file)
+        elif data_file.endswith(".csv"):
+            append_df = self.load_data_from_csv(data_file)
+        else:
+            if log_str:
+                log_str.write(f"Unsupported append file format: {data_file}\n")
+            return df
+
+        # Check schema match (column names and types)
+        df_schema = [(f.name, f.dataType) for f in df.schema.fields]
+        append_schema = [(f.name, f.dataType) for f in append_df.schema.fields]
+        if df_schema != append_schema:
+            if log_str:
+                log_str.write(f"Schema mismatch: current schema {df_schema}, append file schema {append_schema}\n")
+            return df
+
+        # Append (union) the data
+        return df.unionByName(append_df)
+
 # Unit test support
 class TestPySparkFrameMapper(unittest.TestCase):
     @classmethod
@@ -485,6 +508,43 @@ class TestPySparkFrameMapper(unittest.TestCase):
         df2 = self.mapper.transfrom_type_simplemap(mapping, df, log_str)
         result = [row.col1 for row in df2.collect()]
         self.assertEqual(result, ["X", "Y", "C"])
+
+    def test_transfrom_type_append(self):
+        # Prepare base DataFrame
+        data1 = [Row(a=1, b="2023-01-01"), Row(a=2, b="2023-01-02")]
+        df1 = self.spark.createDataFrame(data1)
+
+        # Prepare append DataFrame with matching schema
+        data2 = [Row(a=3, b="2023-01-03"), Row(a=4, b="2023-01-04")]
+        df2 = self.spark.createDataFrame(data2)
+
+        # Write append DataFrame to temporary CSV file
+        append_file = "/tmp/append_data.csv"
+        self.mapper.write_string_to_file(append_file, "a,b\n3,2023-01-03\n4,2023-01-04")
+
+        mapping = {
+            "data_file": append_file
+        }
+        class DummyLog:
+            def write(self, msg): pass
+        log_str = DummyLog()
+
+        # Perform append transformation
+        df3 = self.mapper.transfrom_type_append(mapping, df1, log_str)
+
+        # Collect and print results
+        result = [row.asDict() for row in df3.collect()]
+        expected_result = [
+            {"a": 1, "b": "2023-01-01"},
+            {"a": 2, "b": "2023-01-02"},
+            {"a": 3, "b": "2023-01-03"},
+            {"a": 4, "b": "2023-01-04"}
+        ]
+        self.assertEqual(result, expected_result)
+
+        # Clean up temporary file
+        import os
+        os.remove(append_file)
 
 def main():
     if "--unittest" in sys.argv:
