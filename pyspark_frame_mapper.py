@@ -519,7 +519,7 @@ class TestPySparkFrameMapper(unittest.TestCase):
         df2 = self.spark.createDataFrame(data2)
 
         # Write append DataFrame to temporary CSV file
-        append_file = "/tmp/append_data.csv"
+        append_file = "./append_data.csv"
         self.mapper.write_string_to_file(append_file, "a,b\n3,2023-01-03\n4,2023-01-04")
 
         mapping = {

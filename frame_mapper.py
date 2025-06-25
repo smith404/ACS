@@ -303,3 +303,9 @@ class FrameMapper:
         # is not yet defined. It will be implemented in the future based on specific requirements.
         log_str.write("Duplicate row transform is not implemented yet.\n")
         return df
+
+    def transfrom_type_append(self, mapping, df, log_str=None):
+        # This method is intentionally left empty because the logic for the "append" transform type
+        # is not yet defined. It will be implemented in the future based on specific requirements.
+        log_str.write("Append transform is not implemented yet.\n")
+        return df
