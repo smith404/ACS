@@ -43,7 +43,6 @@
    </dependencies>
 
     <build>
-        <sourceDirectory>src</sourceDirectory>
         <plugins>
             <!-- Compiler plugin to set Java version -->
             <plugin>

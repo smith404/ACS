@@ -1,0 +1,17 @@
+{
+    "lbd": "2025-01-01",
+    "precision": 6,
+    "amount": 1,
+    "riskAttachingDuration": 365,
+    "calendar": true,
+    "insuredPeriodStartDate": "2023-08-01",
+    "factorType": "earning",
+    "endOfPeriod": true,
+    "inccuredTimeUnit": "QUARTER",
+    "exposedTimeUnit": "quarter",
+    "elements": [ {
+        "type": "QUARTER",
+        "initial": 1,
+        "distribution": 0
+    } ]
+}
