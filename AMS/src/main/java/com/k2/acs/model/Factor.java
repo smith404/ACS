@@ -9,7 +9,6 @@ public class Factor {
     private LocalDate incurredDate;
     private double distribution;
     private LocalDate exposureDate;
-    private int developmentPeriod;
     private double value;
 
     public Factor(LocalDate incurredDate, double distribution, LocalDate exposureDate, double value) {

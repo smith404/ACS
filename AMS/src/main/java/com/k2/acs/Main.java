@@ -7,6 +7,7 @@ import com.k2.acs.model.BestEstimateCashFlow;
 import com.k2.acs.model.FactorCalculator;
 import com.k2.acs.model.CashFlow;
 import com.k2.acs.model.ExposureMatrix;
+import com.k2.acs.model.Factor;
 import lombok.Getter;
 
 import java.time.LocalDate;
@@ -48,7 +49,13 @@ public class Main {
             //List<CashFlow> cashFlows = factorCalculator.generateCashFlows(config.getInsuredPeriodStartDateAsLocalDate(), endPoints, config.isEndOfPeriod());
             //processCashFlows(config, cashFlows);
     
+            // Get all factors and print them in a tabulated format
+            List<Factor> allFactors = factorCalculator.getAllFactors();
+            printFactorsTable(allFactors);
+    
             ExposureMatrix exposureMatrix = new ExposureMatrix(factorCalculator.getAllFactors(), config.getInsuredPeriodStartDateAsLocalDate(), endPoints, endPoints, config.getPrecision(), config.isEndOfPeriod());
+            
+
             
             if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
                 getLogger().info("\n" + exposureMatrix.generateExposureMatrixTable());
@@ -95,5 +102,19 @@ public class Main {
             getLogger().info("Sum of cash flows before LBD: " + sumBeforeLbd);
             getLogger().info("Sum of cash flows after LBD: " + sumAfterLbd);
         }
+    }
+
+    private static void printFactorsTable(List<Factor> factors) {
+        StringBuilder table = new StringBuilder();
+        table.append(String.format("%-15s %-15s %-15s %-15s %-15s%n", "Incurred Date", "Distribution", "Exposure Date", "Dev Period", "Value"));
+        table.append(String.format("%-15s %-15s %-15s %-15s %-15s%n", "-------------", "------------", "-------------", "----------", "-----"));
+        for (Factor factor : factors) {
+            table.append(String.format("%-15s %-15.6f %-15s %-15.6f%n", 
+                factor.getIncurredDate(), 
+                factor.getDistribution(), 
+                factor.getExposureDate(), 
+                factor.getValue()));
+        }
+        getLogger().info("\n" + table.toString());
     }
 }
