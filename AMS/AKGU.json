@@ -1,6 +1,6 @@
 {
-    "lbd": "2025-01-01",
-    "precision": 6,
+    "lbd": "1976-07-01",
+    "precision": 9,
     "amount": 1,
     "riskAttachingDuration": 365,
     "calendar": true,

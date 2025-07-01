@@ -18,7 +18,6 @@ public class Factor {
         this.exposureDate = exposureDate;
         this.value = value;
         this.isWritten = isWritten;
-        if (isWritten) System.out.println("isWritten: " + isWritten);
     }
 
     public Factor(LocalDate incurredDate, double distribution, LocalDate exposureDate) {

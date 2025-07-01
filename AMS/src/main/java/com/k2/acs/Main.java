@@ -39,19 +39,19 @@ public class Main {
 
             factorCalculator.calculateDailyFactors(config.getInsuredPeriodStartDateAsLocalDate(), FactorCalculator.FactorType.valueOf(config.getFactorType().toUpperCase()));
 
-            factorCalculator.applyUltimateValueToPattern(ultimateValue);
-
             List<LocalDate> endPoints = ExposureMatrix.getEndDatesBetween(
                 factorCalculator.getEarliestExposureDate().getYear(),
                 factorCalculator.getLatestExposureDate().getYear(),
                 PatternElement.Type.valueOf(config.getExposedTimeUnit().toUpperCase())
             );
 
-            List<Factor> allFactors = factorCalculator.getAllFactors();
-            printFactorsTable(allFactors);
-  
+            factorCalculator.applyUltimateValueToPattern(ultimateValue);
+ 
             ExposureMatrix exposureMatrix = new ExposureMatrix(factorCalculator.getAllFactors(), config.getInsuredPeriodStartDateAsLocalDate(), endPoints, endPoints, config.getPrecision(), config.isEndOfPeriod());
             
+            List<Factor> allFactors = factorCalculator.getAllFactors();
+            printFactorsTable(allFactors);
+
             if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
                 getLogger().info("\n" + exposureMatrix.generateExposureMatrixTable());
                 getLogger().info("\n" + exposureMatrix.getExposureBuckets());

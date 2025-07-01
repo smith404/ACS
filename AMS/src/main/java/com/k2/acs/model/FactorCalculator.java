@@ -94,8 +94,7 @@ public class FactorCalculator implements DateCriteriaSummable {
             factors.stream()
                    .filter(factor -> factor.getDistribution() != 0.0)
                    .forEach(factor -> {
-                       // Set isWritten if exposureDate < writtenDate
-                       if (factor.getExposureDate().compareTo(writtenDate) <= 0) {
+                       if (factor.getExposureDate().compareTo(writtenDate) < 0) {
                            factor.setWritten(true);
                        }
                        allFactors.add(factor);
