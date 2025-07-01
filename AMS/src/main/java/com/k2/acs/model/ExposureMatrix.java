@@ -11,6 +11,31 @@ import java.util.Map;
 import lombok.Data;
 
 public class ExposureMatrix implements DateCriteriaSummable {
+    /**
+     * Returns a list of bucket end dates starting from the given start date, for the specified number of buckets,
+     * using the provided frequency (PatternElement.Type).
+     *
+     * @param startDate the start date of the first bucket
+     * @param numBuckets the number of buckets to generate
+     * @param frequency the frequency type (DAY, WEEK, MONTH, QUARTER, YEAR)
+     * @return a list of LocalDate representing the end date of each bucket
+     */
+    public static List<LocalDate> getBucketEndDates(LocalDate startDate, int numBuckets, PatternElement.Type frequency) {
+        List<LocalDate> endDates = new ArrayList<>();
+        LocalDate current = startDate;
+        for (int i = 0; i < numBuckets; i++) {
+            switch (frequency) {
+                case DAY -> current = current.plusDays(1);
+                case WEEK -> current = current.plusWeeks(1);
+                case MONTH -> current = current.plusMonths(1);
+                case QUARTER -> current = current.plusMonths(3);
+                case YEAR -> current = current.plusYears(1);
+                default -> throw new IllegalArgumentException("Unsupported frequency type: " + frequency);
+            }
+            endDates.add(current.minusDays(1));
+        }
+        return endDates;
+    }
 
     public enum ExposureType {
         INCURRED,

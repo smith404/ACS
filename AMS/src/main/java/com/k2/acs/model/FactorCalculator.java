@@ -89,7 +89,10 @@ public class FactorCalculator implements DateCriteriaSummable {
                 case WRITING -> element.generateWritingFactors(startDate);
                 case EARNING -> element.generateEarningFactors(startDate, riskAttachingDuration);
             };
-            allFactors.addAll(factors);
+            // Only add factors with non-zero distribution
+            factors.stream()
+                   .filter(factor -> factor.getDistribution() != 0.0)
+                   .forEach(allFactors::add);
             startDate = startDate.plusDays(FactorCalculator.getDaysForTypeWithCalendar(element.getType(), startDate)); 
         }
         return allFactors;

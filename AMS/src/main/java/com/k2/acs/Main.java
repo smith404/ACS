@@ -46,16 +46,11 @@ public class Main {
                 PatternElement.Type.valueOf(config.getExposedTimeUnit().toUpperCase())
             );
 
-            //List<CashFlow> cashFlows = factorCalculator.generateCashFlows(config.getInsuredPeriodStartDateAsLocalDate(), endPoints, config.isEndOfPeriod());
-            //processCashFlows(config, cashFlows);
-    
             // Get all factors and print them in a tabulated format
             List<Factor> allFactors = factorCalculator.getAllFactors();
             printFactorsTable(allFactors);
-    
+  
             ExposureMatrix exposureMatrix = new ExposureMatrix(factorCalculator.getAllFactors(), config.getInsuredPeriodStartDateAsLocalDate(), endPoints, endPoints, config.getPrecision(), config.isEndOfPeriod());
-            
-
             
             if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
                 getLogger().info("\n" + exposureMatrix.generateExposureMatrixTable());
@@ -106,13 +101,13 @@ public class Main {
 
     private static void printFactorsTable(List<Factor> factors) {
         StringBuilder table = new StringBuilder();
-        table.append(String.format("%-15s %-15s %-15s %-15s %-15s%n", "Incurred Date", "Distribution", "Exposure Date", "Dev Period", "Value"));
-        table.append(String.format("%-15s %-15s %-15s %-15s %-15s%n", "-------------", "------------", "-------------", "----------", "-----"));
+        table.append(String.format("%-15s %-15s %-15s %-15s%n", "Incurred Date", "Exposure Date", "Distribution", "Value"));
+        table.append(String.format("%-15s %-15s %-15s %-15s%n", "-------------", "-------------", "------------", "-----"));
         for (Factor factor : factors) {
-            table.append(String.format("%-15s %-15.6f %-15s %-15.6f%n", 
+            table.append(String.format("%-15s %-15s %-15.6f %-15.6f%n", 
                 factor.getIncurredDate(), 
-                factor.getDistribution(), 
                 factor.getExposureDate(), 
+                factor.getDistribution(), 
                 factor.getValue()));
         }
         getLogger().info("\n" + table.toString());
