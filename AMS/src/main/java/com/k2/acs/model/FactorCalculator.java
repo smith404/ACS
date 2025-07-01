@@ -6,19 +6,23 @@ import java.util.List;
 import java.util.Map;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 
+@Getter
+@Setter
 public class FactorCalculator implements DateCriteriaSummable {
     public enum FactorType {
         WRITING,
         EARNING
     }
 
-    @Getter
-    private static boolean useCalendar = false;
+    private boolean useCalendar = false;
+
+    private LocalDate writtenDate = LocalDate.now();
 
     private static final Map<PatternElement.Type, Integer> typeToDaysMap = new EnumMap<>(PatternElement.Type.class);
     static {
@@ -32,16 +36,12 @@ public class FactorCalculator implements DateCriteriaSummable {
         typeToDaysMap.put(type, days);
     }
 
-    public static void setUseCalendar(boolean useCalendar) {
-        FactorCalculator.useCalendar = useCalendar;
-    }
-
     public static int getDaysForType(PatternElement.Type type) {
         return typeToDaysMap.getOrDefault(type, 0);
     }
 
     public static int getDaysForTypeWithCalendar(PatternElement.Type type, LocalDate startDate) {
-        if ((type == PatternElement.Type.MONTH || type == PatternElement.Type.QUARTER || type == PatternElement.Type.YEAR) && useCalendar) {
+        if ((type == PatternElement.Type.MONTH || type == PatternElement.Type.QUARTER || type == PatternElement.Type.YEAR)) {
             LocalDate endDate = switch (type) {
                 case MONTH -> startDate.plusMonths(1);
                 case QUARTER -> startDate.plusMonths(3);

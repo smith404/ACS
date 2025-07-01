@@ -34,7 +34,8 @@ public class Main {
             UltimateValue ultimateValue = new UltimateValue(UltimateValue.Type.PREMIUM, config.getAmount());
 
             FactorCalculator factorCalculator = new FactorCalculator(config.getPrecision(), pattern, config.getRiskAttachingDuration());
-            FactorCalculator.setUseCalendar(config.isCalendar());
+            factorCalculator.setUseCalendar(config.isCalendar());
+            factorCalculator.setWrittenDate(config.getLbdAsLocalDate());
 
             factorCalculator.calculateDailyFactors(config.getInsuredPeriodStartDateAsLocalDate(), FactorCalculator.FactorType.valueOf(config.getFactorType().toUpperCase()));
 
@@ -101,14 +102,15 @@ public class Main {
 
     private static void printFactorsTable(List<Factor> factors) {
         StringBuilder table = new StringBuilder();
-        table.append(String.format("%-15s %-15s %-15s %-15s%n", "Incurred Date", "Exposure Date", "Distribution", "Value"));
-        table.append(String.format("%-15s %-15s %-15s %-15s%n", "-------------", "-------------", "------------", "-----"));
+        table.append(String.format("%-15s %-15s %-15s %-15s %-10s%n", "Incurred Date", "Exposure Date", "Distribution", "Value", "isWritten"));
+        table.append(String.format("%-15s %-15s %-15s %-15s %-10s%n", "-------------", "-------------", "------------", "-----", "---------"));
         for (Factor factor : factors) {
-            table.append(String.format("%-15s %-15s %-15.6f %-15.6f%n", 
+            table.append(String.format("%-15s %-15s %-15.6f %-15.6f %-10s%n", 
                 factor.getIncurredDate(), 
                 factor.getExposureDate(), 
                 factor.getDistribution(), 
-                factor.getValue()));
+                factor.getValue(),
+                factor.isWritten()));
         }
         getLogger().info("\n" + table.toString());
     }

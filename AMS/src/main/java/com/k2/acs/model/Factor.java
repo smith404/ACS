@@ -10,6 +10,7 @@ public class Factor {
     private double distribution;
     private LocalDate exposureDate;
     private double value;
+    private boolean isWritten = false;
 
     public Factor(LocalDate incurredDate, double distribution, LocalDate exposureDate, double value) {
         this.incurredDate = incurredDate;
