@@ -8,6 +8,7 @@ import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Console;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -92,7 +93,13 @@ public class FactorCalculator implements DateCriteriaSummable {
             // Only add factors with non-zero distribution
             factors.stream()
                    .filter(factor -> factor.getDistribution() != 0.0)
-                   .forEach(allFactors::add);
+                   .forEach(factor -> {
+                       // Set isWritten if exposureDate < writtenDate
+                       if (factor.getExposureDate().compareTo(writtenDate) <= 0) {
+                           factor.setWritten(true);
+                       }
+                       allFactors.add(factor);
+                   });
             startDate = startDate.plusDays(FactorCalculator.getDaysForTypeWithCalendar(element.getType(), startDate)); 
         }
         return allFactors;
@@ -107,7 +114,8 @@ public class FactorCalculator implements DateCriteriaSummable {
                                      factor.getIncurredDate(),
                                      factor.getDistribution(),
                                      factor.getExposureDate(),
-                                     factor.getDistribution() * ultimateValue.getAmount()
+                                     factor.getDistribution() * ultimateValue.getAmount(),
+                                     factor.isWritten()
                                ))
                                .toList();
     }

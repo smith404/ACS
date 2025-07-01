@@ -10,6 +10,7 @@
 from typing import List, Optional
 import json
 import uuid
+import os
 from pattern_block import PatternBlock
 from pattern_element import PatternElement
 
@@ -105,8 +106,13 @@ class Pattern:
                 'elements': [element.__dict__ for element in self.elements]
             }, file)
 
+    import os
+
     @classmethod
     def load_from_file(cls, filename: str) -> 'Pattern':
+        # Only allow filenames without path separators and with .json extension
+        if not filename.endswith('.json') or os.path.basename(filename) != filename:
+            raise ValueError("Invalid filename provided.")
         with open(filename, 'r') as file:
             data = json.load(file)
             pattern = cls(duration=data['duration'])

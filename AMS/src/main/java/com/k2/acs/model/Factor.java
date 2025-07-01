@@ -10,16 +10,22 @@ public class Factor {
     private double distribution;
     private LocalDate exposureDate;
     private double value;
-    private boolean isWritten = false;
+    private boolean isWritten;
 
-    public Factor(LocalDate incurredDate, double distribution, LocalDate exposureDate, double value) {
+    public Factor(LocalDate incurredDate, double distribution, LocalDate exposureDate, double value, boolean isWritten) {
         this.incurredDate = incurredDate;
         this.distribution = distribution;
         this.exposureDate = exposureDate;
         this.value = value;
+        this.isWritten = isWritten;
+        if (isWritten) System.out.println("isWritten: " + isWritten);
     }
 
     public Factor(LocalDate incurredDate, double distribution, LocalDate exposureDate) {
-        this(incurredDate, distribution, exposureDate, 0);
+        this(incurredDate, distribution, exposureDate, 0, false);
+    }
+
+    public Factor(LocalDate incurredDate, double distribution, LocalDate exposureDate, double value) {
+        this(incurredDate, distribution, exposureDate, value, false);
     }
 }

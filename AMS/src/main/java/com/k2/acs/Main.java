@@ -47,7 +47,6 @@ public class Main {
                 PatternElement.Type.valueOf(config.getExposedTimeUnit().toUpperCase())
             );
 
-            // Get all factors and print them in a tabulated format
             List<Factor> allFactors = factorCalculator.getAllFactors();
             printFactorsTable(allFactors);
   
@@ -76,30 +75,7 @@ public class Main {
         }
         return pattern;
     }
-
-    private static void processCashFlows(AmsConfig config, List<CashFlow> cashFlows) {
-        LocalDate lbd = config.getLbdAsLocalDate();
-        double sumBeforeLbd = 0.0;
-        double sumAfterLbd = 0.0;
-        for (CashFlow cashFlow : cashFlows) {
-            cashFlow.addProperty("PATTERN_TYPE", config.getFactorType());
-            if (cashFlow.getAmount() != 0) {
-                if (cashFlow.getIncurredDate().isBefore(lbd)) {
-                    sumBeforeLbd += cashFlow.getAmount();
-                } else {
-                    sumAfterLbd += cashFlow.getAmount();
-                }
-            }
-        }
-
-        BestEstimateCashFlow bestEstimateCashFlow = new BestEstimateCashFlow();
-        if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
-            getLogger().info(bestEstimateCashFlow.toString());
-            getLogger().info("Sum of cash flows before LBD: " + sumBeforeLbd);
-            getLogger().info("Sum of cash flows after LBD: " + sumAfterLbd);
-        }
-    }
-
+    
     private static void printFactorsTable(List<Factor> factors) {
         StringBuilder table = new StringBuilder();
         table.append(String.format("%-15s %-15s %-15s %-15s %-10s%n", "Incurred Date", "Exposure Date", "Distribution", "Value", "isWritten"));
