@@ -201,7 +201,7 @@ public class ExposureMatrix implements DateCriteriaSummable {
                                                      entry.getExposureDateBucket().equals(exposureDate))
                                     .mapToDouble(ExposureMatrixEntry::getSum)
                                     .sum();
-                table.append(String.format("%-15s", roundToPrecision(sum)));
+                table.append(String.format("%-15.6f", roundToPrecision(sum)));
             }
             table.append("\n");
         }

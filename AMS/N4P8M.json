@@ -4,7 +4,15 @@
     "amount": 100,
     "ultimateValues": [ {
         "type": "PREMIUM",
-        "value": 1
+        "value": 5223801.49
+    },
+    {
+        "type": "COSTS",
+        "value": -1160224.77
+    },
+    {
+        "type": "LOSSES",
+        "value": -3961501.21
     } ],
     "riskAttachingDuration": 365,
     "calendar": true,

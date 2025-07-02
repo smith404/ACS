@@ -1,10 +1,18 @@
 {
-    "valuationDate": "2025-01-01",
+    "valuationDate": "2024-01-01",
     "precision": 9,
     "amount": 1,
     "ultimateValues": [ {
         "type": "PREMIUM",
-        "value": 1
+        "value": 28568266
+    },
+    {
+        "type": "COSTS",
+        "value": -3142509.26
+    },
+    {
+        "type": "LOSSES",
+        "value": -8802985.65
     } ],
     "riskAttachingDuration": 365,
     "calendar": true,

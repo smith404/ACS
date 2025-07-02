@@ -8,11 +8,11 @@
     },
     {
         "type": "COSTS",
-        "value": 2049.06
+        "value": -2049.06
     },
     {
         "type": "LOSSES",
-        "value": 10125.15
+        "value": -10125.15
     } ],
     "riskAttachingDuration": 365,
     "calendar": true,
