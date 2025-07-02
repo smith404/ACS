@@ -129,24 +129,6 @@ public class FactorCalculator implements DateCriteriaSummable {
                       .sum();
     }
 
-    public List<CashFlow> generateCashFlows(LocalDate startDate, List<LocalDate> endDates, boolean toEnd) {
-        if (allFactors == null) {
-            throw new IllegalStateException("allFactors must not be null before generating cash flows.");
-        }
-        List<CashFlow> cashFlows = new ArrayList<>();
-        for (LocalDate endDate : endDates)
-        {
-            if (endDate.isAfter(startDate.minusDays(1)))
-            {
-                double sum = roundToPrecision(sumValuesBetweenDates(allFactors, startDate, endDate));
-                CashFlow cashFlow = new CashFlow(toEnd ? endDate : startDate, sum);
-                cashFlows.add(cashFlow);
-                startDate = endDate.plusDays(1);
-            }
-        }
-        return cashFlows;
-    }
-
     public List<Factor> combineDailyFactors(Pattern pattern1, Pattern pattern2, LocalDate startDate, FactorType factorType) {
         List<Factor> factors1 = new FactorCalculator(precision, pattern1, riskAttachingDuration).calculateDailyFactors(startDate, factorType);
         List<Factor> factors2 = new FactorCalculator(precision, pattern2, riskAttachingDuration).calculateDailyFactors(startDate, factorType);

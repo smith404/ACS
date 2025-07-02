@@ -95,7 +95,7 @@ public class Main {
                 );
 
                 if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
-                    getLogger().info("Applying UltimateValue of type: " + uv.getType());
+                    getLogger().info("Applying UltimateValue of type: " + uv.getType() + " with amount: " + uv.getAmount());
                     getLogger().info("\n" + exposureMatrix.generateExposureMatrixTable());
                 }
 

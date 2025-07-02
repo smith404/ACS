@@ -21,7 +21,7 @@ public class Factor {
     }
 
     public Factor(LocalDate incurredDate, double distribution, LocalDate exposureDate) {
-        this(incurredDate, distribution, exposureDate, 0, false);
+        this(incurredDate, distribution, exposureDate, distribution, false);
     }
 
     public Factor(LocalDate incurredDate, double distribution, LocalDate exposureDate, double value) {
