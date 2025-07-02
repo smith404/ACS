@@ -1,7 +1,11 @@
 {
-    "lbd": "2025-01-01",
+    "valuationDate": "2025-01-01",
     "precision": 6,
     "amount": 100,
+    "ultimateValues": [ {
+        "type": "PREMIUM",
+        "value": 1
+    } ],
     "riskAttachingDuration": 365,
     "calendar": true,
     "insuredPeriodStartDate": "2024-07-01",

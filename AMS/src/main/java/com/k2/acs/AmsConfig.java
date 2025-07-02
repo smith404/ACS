@@ -24,7 +24,7 @@ public class AmsConfig {
         }
     }
 
-    private Date lbd;
+    private Date valuationDate;
 
     private int precision = 6;
 
@@ -37,14 +37,14 @@ public class AmsConfig {
     private String inccuredTimeUnit;
     private String exposedTimeUnit;
 
-    private double amount;
+    private List<UV> ultimateValues;
 
     private String factorType;
 
     private List<Element> elements;
 
-    public LocalDate getLbdAsLocalDate() {
-        return lbd != null ? lbd.toInstant().atZone(ZoneId.systemDefault()).toLocalDate() : null;
+    public LocalDate getValuationDateAsLocalDate() {
+        return valuationDate != null ? valuationDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate() : null;
     }
 
     public LocalDate getInsuredPeriodStartDateAsLocalDate() {
@@ -56,6 +56,12 @@ public class AmsConfig {
         private String type;
         private Double initial = 0.0;
         private Double distribution = 0.0;
+    }
+
+    @Data
+    public static class UV {
+        private String type = "PREMIUM";
+        private Double value = 1.0;
     }
 
     public static class ConfigParseException extends Exception {

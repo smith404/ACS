@@ -12,7 +12,7 @@ public class UltimateValue extends PropertyObject {
     private Type type;
 
     public enum Type {
-        PREMIUM, COST, CLAIM
+        PREMIUM, COSTS, LOSSES
     }
 
     public UltimateValue(Type type, double amount) {

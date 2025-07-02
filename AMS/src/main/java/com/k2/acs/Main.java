@@ -11,13 +11,26 @@ import com.k2.acs.model.Factor;
 import lombok.Getter;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
-
+import java.util.logging.FileHandler;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 public class Main {
     @Getter
     private static final Logger logger = Logger.getLogger(Main.class.getName());
+
+    static {
+        try {
+            FileHandler fileHandler = new FileHandler("acs.log", true);
+            fileHandler.setFormatter(new SimpleFormatter());
+            logger.addHandler(fileHandler);
+            logger.setUseParentHandlers(true);
+        } catch (Exception e) {
+            System.err.println("Failed to set up file logging: " + e.getMessage());
+        }
+    }
 
     public static void main(String[] args) {
         if (args.length < 1) {
@@ -31,13 +44,23 @@ public class Main {
 
             Pattern pattern = createPattern(config);
 
-            UltimateValue ultimateValue = new UltimateValue(UltimateValue.Type.PREMIUM, config.getAmount());
+            List<UltimateValue> ultimateValues = new ArrayList<>();
+            if (config.getUltimateValues() != null) {
+                for (AmsConfig.UV uv : config.getUltimateValues()) {
+                    UltimateValue.Type type = UltimateValue.Type.valueOf(uv.getType().toUpperCase());
+                    double amount = uv.getValue() != null ? uv.getValue() : 1.0;
+                    ultimateValues.add(new UltimateValue(type, amount));
+                }
+            }
 
             FactorCalculator factorCalculator = new FactorCalculator(config.getPrecision(), pattern, config.getRiskAttachingDuration());
             factorCalculator.setUseCalendar(config.isCalendar());
-            factorCalculator.setWrittenDate(config.getLbdAsLocalDate());
+            factorCalculator.setWrittenDate(config.getValuationDateAsLocalDate());
 
-            factorCalculator.calculateDailyFactors(config.getInsuredPeriodStartDateAsLocalDate(), FactorCalculator.FactorType.valueOf(config.getFactorType().toUpperCase()));
+            factorCalculator.calculateDailyFactors(
+                config.getInsuredPeriodStartDateAsLocalDate(),
+                FactorCalculator.FactorType.valueOf(config.getFactorType().toUpperCase())
+            );
 
             List<LocalDate> endPoints = ExposureMatrix.getEndDatesBetween(
                 factorCalculator.getEarliestExposureDate().getYear(),
@@ -45,18 +68,41 @@ public class Main {
                 PatternElement.Type.valueOf(config.getExposedTimeUnit().toUpperCase())
             );
 
-            factorCalculator.applyUltimateValueToPattern(ultimateValue);
- 
-            ExposureMatrix exposureMatrix = new ExposureMatrix(factorCalculator.getAllFactors(), config.getInsuredPeriodStartDateAsLocalDate(), endPoints, endPoints, config.getPrecision(), config.isEndOfPeriod());
-            
-            List<Factor> allFactors = factorCalculator.getAllFactors();
-            printFactorsTable(allFactors);
+            ExposureMatrix exposureMatrix = new ExposureMatrix(
+                factorCalculator.getAllFactors(),
+                config.getInsuredPeriodStartDateAsLocalDate(),
+                endPoints,
+                endPoints,
+                config.getPrecision(),
+                config.isEndOfPeriod()
+            );
 
             if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
+                getLogger().info("Factor Matrix");
                 getLogger().info("\n" + exposureMatrix.generateExposureMatrixTable());
-                getLogger().info("\n" + exposureMatrix.getExposureBuckets());
-                getLogger().info("\n" + exposureMatrix.getIncurredBuckets());
-            }   
+            }
+
+            for (UltimateValue uv : ultimateValues) {
+                factorCalculator.applyUltimateValueToPattern(uv);
+
+                exposureMatrix = new ExposureMatrix(
+                    factorCalculator.getAllFactors(),
+                    config.getInsuredPeriodStartDateAsLocalDate(),
+                    endPoints,
+                    endPoints,
+                    config.getPrecision(),
+                    config.isEndOfPeriod()
+                );
+
+                if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
+                    getLogger().info("Applying UltimateValue of type: " + uv.getType());
+                    getLogger().info("\n" + exposureMatrix.generateExposureMatrixTable());
+                }
+
+                List<Factor> allFactors = factorCalculator.getAllFactors();
+                printFactorsTable(allFactors);
+            }
+
         } catch (Exception e) {
             getLogger().warning("Error processing the configuration file: " + e.getMessage());
             e.printStackTrace();
