@@ -14,7 +14,7 @@
         "type": "LOSSES",
         "value": -8802985.65
     } ],
-    "riskAttachingDuration": 365,
+    "riskAttachingDuration": 361,
     "calendar": true,
     "insuredPeriodStartDate": "2023-08-01",
     "factorType": "earning",

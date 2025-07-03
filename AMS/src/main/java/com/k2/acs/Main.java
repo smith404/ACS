@@ -53,7 +53,12 @@ public class Main {
                 }
             }
 
-            FactorCalculator factorCalculator = new FactorCalculator(config.getPrecision(), pattern, config.getRiskAttachingDuration());
+            int riskAttachingDuration = config.getRiskAttachingDuration();
+            if (config.isCalendar()) {
+                riskAttachingDuration = config.getNormlizedRiskAttachingDuration(config.getValuationDateAsLocalDate());
+            }
+
+            FactorCalculator factorCalculator = new FactorCalculator(config.getPrecision(), pattern, riskAttachingDuration);
             factorCalculator.setUseCalendar(config.isCalendar());
             factorCalculator.setWrittenDate(config.getValuationDateAsLocalDate());
 
