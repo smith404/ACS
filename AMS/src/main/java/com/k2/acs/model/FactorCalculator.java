@@ -21,10 +21,6 @@ public class FactorCalculator implements DateCriteriaSummable {
         EARNING
     }
 
-    private boolean useCalendar = false;
-
-    private LocalDate writtenDate = LocalDate.now();
-
     private static final Map<PatternElement.Type, Integer> typeToDaysMap = new EnumMap<>(PatternElement.Type.class);
     static {
         typeToDaysMap.put(PatternElement.Type.DAY, 1);
@@ -54,27 +50,22 @@ public class FactorCalculator implements DateCriteriaSummable {
         return typeToDaysMap.getOrDefault(type, 0);
     }
 
+    private boolean useCalendar = true;
+    private LocalDate writtenDate = LocalDate.now();
     private final int precision;
     private final Pattern pattern;
-    private final int riskAttachingDuration;
-
-    @Getter
     private List<Factor> allFactors;
 
-    public FactorCalculator(int precision, Pattern pattern, int riskAttachingDuration) {
+    public FactorCalculator(int precision, Pattern pattern) {
         if (pattern == null) {
             throw new IllegalArgumentException("Pattern must not be null.");
         }
         if (precision < 0) {
             throw new IllegalArgumentException("Precision must be a non-negative integer.");
         }
-        if (riskAttachingDuration < 0) {
-            throw new IllegalArgumentException("Risk attaching duration must be a non-negative integer.");
-        }
 
         this.precision = precision;
         this.pattern = pattern;
-        this.riskAttachingDuration = riskAttachingDuration;
     }
 
     private double roundToPrecision(double value) {
@@ -88,7 +79,7 @@ public class FactorCalculator implements DateCriteriaSummable {
         for (PatternElement element : pattern.getElements()) {
             List<Factor> factors = switch (factorType) {
                 case WRITING -> element.generateWritingFactors(startDate);
-                case EARNING -> element.generateEarningFactors(startDate, riskAttachingDuration);
+                case EARNING -> element.generateEarningFactors(startDate, useCalendar);
             };
             // Only add factors with non-zero distribution
             factors.stream()
@@ -127,26 +118,6 @@ public class FactorCalculator implements DateCriteriaSummable {
                       .filter(factor -> !factor.getExposureDate().isBefore(startDate) && !factor.getExposureDate().isAfter(endDate))
                       .mapToDouble(Factor::getValue)
                       .sum();
-    }
-
-    public List<Factor> combineDailyFactors(Pattern pattern1, Pattern pattern2, LocalDate startDate, FactorType factorType) {
-        List<Factor> factors1 = new FactorCalculator(precision, pattern1, riskAttachingDuration).calculateDailyFactors(startDate, factorType);
-        List<Factor> factors2 = new FactorCalculator(precision, pattern2, riskAttachingDuration).calculateDailyFactors(startDate, factorType);
-
-        int size = Math.min(factors1.size(), factors2.size());
-        List<Factor> combinedFactors = new ArrayList<>();
-
-        for (int i = 0; i < size; i++) {
-            Factor factor1 = factors1.get(i);
-            Factor factor2 = factors2.get(i);
-            combinedFactors.add(new Factor(
-                factor1.getIncurredDate(),
-                factor1.getDistribution() * factor2.getDistribution(),
-                factor1.getExposureDate(),
-                factor1.getValue() * factor2.getValue()
-            ));
-        }
-        return combinedFactors;
     }
 
     public void normalizeFactors() {

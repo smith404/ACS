@@ -28,11 +28,11 @@ public class AmsConfig {
 
     private int precision = 6;
 
-    private boolean calendar;
+    private boolean calendar = true;
     private boolean endOfPeriod = false;
 
     private Date insuredPeriodStartDate;
-    private int riskAttachingDuration;
+    private int riskAttachingDuration = 0;
 
     private String inccuredTimeUnit;
     private String exposedTimeUnit;
@@ -47,17 +47,6 @@ public class AmsConfig {
         return valuationDate != null ? valuationDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate() : null;
     }
 
-    public int getNormlizedRiskAttachingDuration(LocalDate valuationDate) {
-        if (valuationDate == null) {
-            return 0;
-        }
-        int years = riskAttachingDuration / 360;
-        int months = (riskAttachingDuration % 360) / 30;
-        int days = riskAttachingDuration % 30;
-        LocalDate normalizedDate = valuationDate.plusYears(years).plusMonths(months).plusDays(days);
-        return (int) java.time.temporal.ChronoUnit.DAYS.between(valuationDate, normalizedDate);
-    }
-
     public LocalDate getInsuredPeriodStartDateAsLocalDate() {
         return insuredPeriodStartDate != null ? insuredPeriodStartDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate() : null;
     }
@@ -67,6 +56,7 @@ public class AmsConfig {
         private String type;
         private Double initial = 0.0;
         private Double distribution = 0.0;
+        private int riskAttachingDuration = -1;
     }
 
     @Data

@@ -10,38 +10,36 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 public class PatternElement {
-    public static PatternElement fromFactors(List<Factor> factors, Type type) {
-        double totalDistribution = factors.stream()
-                                          .mapToDouble(Factor::getDistribution)
-                                          .sum();
-
-        // If we have only one factor, there is no initial distribution
-        double initialDistribution = 0;
-
-        // If we have multiple factors, the initial distribution is the first factor's distribution
-        if (factors.size() > 1) {
-            initialDistribution = factors.get(0).getDistribution() - factors.get(1).getDistribution();
-            totalDistribution = totalDistribution - initialDistribution;
-        }
-        return new PatternElement(initialDistribution, totalDistribution, type);
-    }
-
     private final String uuid = UUID.randomUUID().toString();
     private Pattern parentPattern;
     private Type type;
     private double distribution = 0;
     private double initialDistribution = 0;
+    private int riskAttachingDuration = 0;
 
-    public PatternElement(double initialDistribution, double distribution, Type type) {
+    public PatternElement(double initialDistribution, double distribution, Type type, int riskAttachingDuration) {
         this.initialDistribution = initialDistribution;
         this.distribution = distribution;
         this.type = type;
+        this.riskAttachingDuration = riskAttachingDuration;
     }
 
     public PatternElement(double distribution, Type type) {
         this.distribution = distribution;
         this.type = type;
     }
+
+    public int getNormlizedRiskAttachingDuration(LocalDate initialDate, int riskAttachingDuration) {
+        if (initialDate == null) {
+            return 0;
+        }
+        int years = riskAttachingDuration / 360;
+        int months = (riskAttachingDuration % 360) / 30;
+        int days = riskAttachingDuration % 30;
+        LocalDate normalizedDate = initialDate.plusYears(years).plusMonths(months).plusDays(days);
+        return (int) java.time.temporal.ChronoUnit.DAYS.between(initialDate, normalizedDate);
+    }
+
 
     public List<Factor> generateWritingFactors(LocalDate startDate) {
         LocalDate originDate = startDate;
@@ -60,17 +58,21 @@ public class PatternElement {
         return factors;
     }
 
-    public List<Factor> generateEarningFactors(LocalDate startDate, int riskAttachingDuration) {
+    public List<Factor> generateEarningFactors(LocalDate startDate, boolean useCalendar) {
         LocalDate originDate = startDate;
+        int riskDuration = this.riskAttachingDuration;
+        if (useCalendar) {
+            riskDuration = getNormlizedRiskAttachingDuration(originDate, riskDuration);
+        }
         int elementDays = FactorCalculator.getDaysForTypeWithCalendar(this.type, startDate);
         List<Factor> factors = new ArrayList<>();
-        double factorDistribution = this.distribution / (riskAttachingDuration); 
-        double initialFactorDistribution = this.initialDistribution / riskAttachingDuration; 
+        double factorDistribution = this.distribution / (riskDuration); 
+        double initialFactorDistribution = this.initialDistribution / riskDuration; 
 
-        for (int i = 0; i < elementDays + riskAttachingDuration; i++) {
+        for (int i = 0; i < elementDays + riskDuration; i++) {
             if (i < elementDays) {
                 factors.add(new Factor(originDate, (factorDistribution/2) + initialFactorDistribution, startDate.plusDays(i)));
-            } else if (i < riskAttachingDuration) {
+            } else if (i < riskDuration) {
                 factors.add(new Factor(originDate, factorDistribution + initialFactorDistribution, startDate.plusDays(i)));
             } else {
                 factors.add(new Factor(originDate, (factorDistribution/2) , startDate.plusDays(i)));

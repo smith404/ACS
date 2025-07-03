@@ -54,11 +54,8 @@ public class Main {
             }
 
             int riskAttachingDuration = config.getRiskAttachingDuration();
-            if (config.isCalendar()) {
-                riskAttachingDuration = config.getNormlizedRiskAttachingDuration(config.getValuationDateAsLocalDate());
-            }
 
-            FactorCalculator factorCalculator = new FactorCalculator(config.getPrecision(), pattern, riskAttachingDuration);
+            FactorCalculator factorCalculator = new FactorCalculator(config.getPrecision(), pattern);
             factorCalculator.setUseCalendar(config.isCalendar());
             factorCalculator.setWrittenDate(config.getValuationDateAsLocalDate());
 
@@ -117,11 +114,14 @@ public class Main {
     private static Pattern createPattern(AmsConfig config) {
         Pattern pattern = new Pattern();
         for (AmsConfig.Element element : config.getElements()) {
+            if (element.getRiskAttachingDuration() < 0) {
+                element.setRiskAttachingDuration(config.getRiskAttachingDuration());
+            }
             PatternElement patternElement = new PatternElement(
                 element.getInitial(),
                 element.getDistribution(),
-                PatternElement.Type.valueOf(element.getType().toUpperCase())
-            );
+                PatternElement.Type.valueOf(element.getType().toUpperCase()),
+                element.getRiskAttachingDuration());
             pattern.addElement(patternElement);
         }
         return pattern;
