@@ -110,16 +110,6 @@ public class FactorCalculator implements DateCriteriaSummable {
                                .toList();
     }
 
-    public double sumValuesBetweenDates(List<Factor> factors, LocalDate startDate, LocalDate endDate) {
-        if (allFactors == null) {
-            throw new IllegalStateException("allFactors must not be null before summing values.");
-        }
-        return factors.stream()
-                      .filter(factor -> !factor.getExposureDate().isBefore(startDate) && !factor.getExposureDate().isAfter(endDate))
-                      .mapToDouble(Factor::getValue)
-                      .sum();
-    }
-
     public void normalizeFactors() {
         if (allFactors == null) {
             throw new IllegalStateException("allFactors must not be null before normalization.");

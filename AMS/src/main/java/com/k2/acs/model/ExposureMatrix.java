@@ -11,15 +11,22 @@ import java.util.Map;
 import lombok.Data;
 
 public class ExposureMatrix implements DateCriteriaSummable {
-    /**
-     * Returns a list of bucket end dates starting from the given start date, for the specified number of buckets,
-     * using the provided frequency (PatternElement.Type).
-     *
-     * @param startDate the start date of the first bucket
-     * @param numBuckets the number of buckets to generate
-     * @param frequency the frequency type (DAY, WEEK, MONTH, QUARTER, YEAR)
-     * @return a list of LocalDate representing the end date of each bucket
-     */
+
+    @Data
+    public static class ExposureMatrixEntry {
+        private final LocalDate incurredDateBucket;
+        private final LocalDate exposureDateBucket;
+        private final double sum;
+        private ExposureType exposureType;
+
+        public ExposureMatrixEntry(LocalDate incurredDateBucket, LocalDate exposureDateBucket, double sum) {
+            this.incurredDateBucket = incurredDateBucket;
+            this.exposureDateBucket = exposureDateBucket;
+            this.sum = sum;
+            this.exposureType = ExposureType.INCURRED;
+        }
+    }
+
     public static List<LocalDate> getBucketEndDates(LocalDate startDate, int numBuckets, PatternElement.Type frequency) {
         List<LocalDate> endDates = new ArrayList<>();
         LocalDate current = startDate;
@@ -65,41 +72,6 @@ public class ExposureMatrix implements DateCriteriaSummable {
         }
 
         return endDates;
-    }
-
-    public static List<LocalDate> getStartDatesBetween(int startYear, int endYear, PatternElement.Type frequency) {
-        List<LocalDate> startDates = new ArrayList<>();
-        LocalDate currentDate = LocalDate.of(startYear, 1, 1);
-        LocalDate endDate = LocalDate.of(endYear, 12, 31);
-        
-        while (!currentDate.isAfter(endDate)) {
-            startDates.add(currentDate);
-            switch (frequency) {
-                case DAY -> currentDate = currentDate.plusDays(1);
-                case WEEK -> currentDate = currentDate.plusWeeks(1);
-                case MONTH -> currentDate = currentDate.plusMonths(1);
-                case QUARTER -> currentDate = currentDate.plusMonths(3);
-                case YEAR -> currentDate = currentDate.plusYears(1);
-                default -> throw new IllegalArgumentException("Unsupported frequency type: " + frequency);
-            }
-        }
-
-        return startDates;
-    }
-
-    @Data
-    public static class ExposureMatrixEntry {
-        private final LocalDate incurredDateBucket;
-        private final LocalDate exposureDateBucket;
-        private final double sum;
-        private ExposureType exposureType;
-
-        public ExposureMatrixEntry(LocalDate incurredDateBucket, LocalDate exposureDateBucket, double sum) {
-            this.incurredDateBucket = incurredDateBucket;
-            this.exposureDateBucket = exposureDateBucket;
-            this.sum = sum;
-            this.exposureType = ExposureType.INCURRED;
-        }
     }
 
     private final int precision;
@@ -207,49 +179,6 @@ public class ExposureMatrix implements DateCriteriaSummable {
         }
 
         return table.toString();
-    }
-
-    public String summarizeExposureMatrix() {
-        List<LocalDate> exposureBucketEndDates = entries.stream()
-                                                    .map(ExposureMatrixEntry::getExposureDateBucket)
-                                                    .distinct()
-                                                    .sorted()
-                                                    .toList();
-        List<LocalDate> incurredBucketEndDates = entries.stream()
-                                                    .map(ExposureMatrixEntry::getIncurredDateBucket)
-                                                    .distinct()
-                                                    .sorted()
-                                                    .toList();
-
-        Map<LocalDate, Double> columnSums = new HashMap<>();
-        Map<LocalDate, Double> rowSums = new HashMap<>();
-        double totalSum = 0;
-
-        for (LocalDate incurredDate : incurredBucketEndDates) {
-            double rowSum = 0;
-            for (LocalDate exposureDate : exposureBucketEndDates) {
-                double value = entries.stream()
-                                      .filter(entry -> entry.getIncurredDateBucket().equals(incurredDate) &&
-                                                       entry.getExposureDateBucket().equals(exposureDate))
-                                      .mapToDouble(ExposureMatrixEntry::getSum)
-                                      .sum();
-                rowSum += value;
-                columnSums.put(exposureDate, columnSums.getOrDefault(exposureDate, 0.0) + value);
-            }
-            rowSums.put(incurredDate, rowSum);
-            totalSum += rowSum;
-        }
-
-        StringBuilder summary = new StringBuilder();
-        summary.append("Row Sums:\n");
-        rowSums.forEach((incurredDate, sum) -> summary.append(incurredDate).append(": ").append(roundToPrecision(sum)).append("\n"));
-
-        summary.append("\nColumn Sums:\n");
-        columnSums.forEach((exposureDate, sum) -> summary.append(exposureDate).append(": ").append(roundToPrecision(sum)).append("\n"));
-
-        summary.append("\nTotal Sum: ").append(roundToPrecision(totalSum));
-
-        return summary.toString();
     }
 
     public List<LocalDate> getExposureBuckets() {
