@@ -68,13 +68,17 @@ public class PatternElement {
         List<Factor> factors = new ArrayList<>();
         double factorDistribution = this.distribution / (riskDuration); 
         double initialFactorDistribution = this.initialDistribution / riskDuration; 
+        double totalRunOnOffArea = ((this.distribution / riskDuration) * elementDays)/2;
 
         for (int i = 0; i < elementDays + riskDuration; i++) {
+            double writenFactor = (i + 1) / (double) elementDays;
+            double unwritenFactor = 1 - writenFactor;
             if (i < elementDays) {
                 factors.add(new Factor(originDate, (factorDistribution/2) + initialFactorDistribution, startDate.plusDays(i)));
             } else if (i < riskDuration) {
                 factors.add(new Factor(originDate, factorDistribution + initialFactorDistribution, startDate.plusDays(i)));
             } else {
+                double hackFactor = (i - riskDuration + 1) / (double) elementDays;
                 factors.add(new Factor(originDate, (factorDistribution/2) , startDate.plusDays(i)));
             }
         }
