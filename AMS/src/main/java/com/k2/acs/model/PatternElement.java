@@ -81,9 +81,8 @@ public class PatternElement {
                 lastFactorValue = 0;
             } else {
                 double runOutFactor = (double) (riskDuration + elementDays - i) / elementDays;
-                double runInFactor = ((i - riskDuration + 1) / (double) elementDays);
-                double factorValue = (factorDistribution / 2) * runInFactor * (i + 1 - riskDuration);
-                System.out.println(" run inFactor: " + runInFactor + " i: " + (i + 1 - riskDuration) + ", factorValue: " + factorValue + ", lastFactorValue: " + lastFactorValue);
+                double factorValue = (factorDistribution / 2) * runOutFactor * (i + 1 - riskDuration);
+                System.out.println(" run outFactor: " + runOutFactor + " i: " + (i + 1 - riskDuration) + ", factorValue: " + factorValue + ", lastFactorValue: " + lastFactorValue);
                 factors.add(new Factor(originDate, factorValue, startDate.plusDays(i)));
                 lastFactorValue = factorValue;
             }
