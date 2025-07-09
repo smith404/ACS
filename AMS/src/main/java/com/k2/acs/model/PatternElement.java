@@ -66,20 +66,26 @@ public class PatternElement {
         }
         int elementDays = FactorCalculator.getDaysForTypeWithCalendar(this.type, startDate);
         List<Factor> factors = new ArrayList<>();
-        double factorDistribution = this.distribution / (riskDuration); 
+        double factorDistribution = this.distribution / riskDuration; 
         double initialFactorDistribution = this.initialDistribution / riskDuration; 
-        double totalRunOnOffArea = ((this.distribution / riskDuration) * elementDays)/2;
 
+        double lastFactorValue = 0;
         for (int i = 0; i < elementDays + riskDuration; i++) {
-            double writenFactor = (i + 1) / (double) elementDays;
-            double unwritenFactor = 1 - writenFactor;
-            if (i < elementDays) {
-                factors.add(new Factor(originDate, (factorDistribution/2) + initialFactorDistribution, startDate.plusDays(i)));
+            if (i < elementDays) {                
+                double runInFactor = ((i + 1) / (double) elementDays);
+                double factorValue = (factorDistribution / 2) * runInFactor * (i + 1);
+                factors.add(new Factor(originDate, factorValue - lastFactorValue + initialFactorDistribution, startDate.plusDays(i)));
+                lastFactorValue = factorValue;
             } else if (i < riskDuration) {
                 factors.add(new Factor(originDate, factorDistribution + initialFactorDistribution, startDate.plusDays(i)));
+                lastFactorValue = 0;
             } else {
-                double hackFactor = (i - riskDuration + 1) / (double) elementDays;
-                factors.add(new Factor(originDate, (factorDistribution/2) , startDate.plusDays(i)));
+                double runOutFactor = (double) (riskDuration + elementDays - i) / elementDays;
+                double runInFactor = ((i - riskDuration + 1) / (double) elementDays);
+                double factorValue = (factorDistribution / 2) * runInFactor * (i + 1 - riskDuration);
+                System.out.println(" run inFactor: " + runInFactor + " i: " + (i + 1 - riskDuration) + ", factorValue: " + factorValue + ", lastFactorValue: " + lastFactorValue);
+                factors.add(new Factor(originDate, factorValue, startDate.plusDays(i)));
+                lastFactorValue = factorValue;
             }
         }
 

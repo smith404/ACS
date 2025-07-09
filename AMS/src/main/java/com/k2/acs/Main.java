@@ -23,10 +23,10 @@ public class Main {
 
     static {
         try {
-            FileHandler fileHandler = new FileHandler("acs.log", true);
+            FileHandler fileHandler = new FileHandler("acs.log", false); // overwrite log file each run
             fileHandler.setFormatter(new SimpleFormatter());
             logger.addHandler(fileHandler);
-            logger.setUseParentHandlers(true);
+            logger.setUseParentHandlers(false); // stop log writing to console
         } catch (Exception e) {
             System.err.println("Failed to set up file logging: " + e.getMessage());
         }
