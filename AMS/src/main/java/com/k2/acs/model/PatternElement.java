@@ -70,20 +70,24 @@ public class PatternElement {
         double initialFactorDistribution = this.initialDistribution / riskDuration; 
 
         double lastFactorValue = 0;
+        double scaleFactor = 1 / (double) elementDays;
         for (int i = 0; i < elementDays + riskDuration; i++) {
-            if (i < elementDays) {                
-                double runInFactor = ((i + 1) / (double) elementDays);
-                double factorValue = (factorDistribution / 2) * runInFactor * (i + 1);
+            if (i < elementDays) { 
+                int runInDay = i + 1;               
+                double runInFactor = (runInDay * scaleFactor);
+                double factorValue = (factorDistribution / 2) * runInFactor * runInDay;
+                System.out.println("ST: date; " + startDate.plusDays(i) + " runInFactor: " + runInFactor + " runInDay: " + runInDay + ", factorValue: " + factorValue + ", lastFactorValue: " + lastFactorValue);
                 factors.add(new Factor(originDate, factorValue - lastFactorValue + initialFactorDistribution, startDate.plusDays(i)));
                 lastFactorValue = factorValue;
             } else if (i < riskDuration) {
                 factors.add(new Factor(originDate, factorDistribution + initialFactorDistribution, startDate.plusDays(i)));
                 lastFactorValue = 0;
             } else {
-                double runOutFactor = (double) (riskDuration + elementDays - i) / elementDays;
-                double factorValue = (factorDistribution / 2) * runOutFactor * (i + 1 - riskDuration);
-                System.out.println(" run outFactor: " + runOutFactor + " i: " + (i + 1 - riskDuration) + ", factorValue: " + factorValue + ", lastFactorValue: " + lastFactorValue);
-                factors.add(new Factor(originDate, factorValue, startDate.plusDays(i)));
+                int runInDay = (i - riskDuration) + 1;
+                double runInFactor = (double) runInDay * scaleFactor;
+                double factorValue = (factorDistribution / 2) * runInFactor * runInDay;
+                System.out.println("ED: date; " + startDate.plusDays(i) + " runInFactor: " + runInFactor + " runInDay: " + runInDay + ", factorValue: " + factorValue + ", lastFactorValue: " + lastFactorValue);
+                factors.add(new Factor(originDate, factorValue - lastFactorValue, startDate.plusDays(i)));
                 lastFactorValue = factorValue;
             }
         }
