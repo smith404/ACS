@@ -64,30 +64,30 @@ public class PatternElement {
         if (useCalendar) {
             riskDuration = getNormlizedRiskAttachingDuration(originDate, riskDuration);
         }
-        int elementDays = FactorCalculator.getDaysForTypeWithCalendar(this.type, startDate);
         List<Factor> factors = new ArrayList<>();
+        int elementDays = FactorCalculator.getDaysForTypeWithCalendar(this.type, startDate);
         double factorDistribution = this.distribution / riskDuration; 
         double initialFactorDistribution = this.initialDistribution / riskDuration; 
+        double scaleFactor = 1 / (double) elementDays;
 
         double lastFactorValue = 0;
-        double scaleFactor = 1 / (double) elementDays;
         for (int i = 0; i < elementDays + riskDuration; i++) {
             if (i < elementDays) { 
                 int runInDay = i + 1;               
                 double runInFactor = (runInDay * scaleFactor);
-                double factorValue = (factorDistribution / 2) * runInFactor * runInDay;
-                System.out.println("ST: date; " + startDate.plusDays(i) + " runInFactor: " + runInFactor + " runInDay: " + runInDay + ", factorValue: " + factorValue + ", lastFactorValue: " + lastFactorValue);
-                factors.add(new Factor(originDate, factorValue - lastFactorValue + initialFactorDistribution, startDate.plusDays(i)));
+                double factorValue = (factorDistribution / 2) * runInFactor;
+                //System.out.println("ST: date; " + startDate.plusDays(i) + " factor: " + (factorValue - lastFactorValue) + " runInFactor: " + runInFactor + " runInDay: " + runInDay + ", factorValue: " + factorValue + ", lastFactorValue: " + lastFactorValue);
+                factors.add(new Factor(originDate, factorValue + lastFactorValue + initialFactorDistribution, startDate.plusDays(i)));
                 lastFactorValue = factorValue;
             } else if (i < riskDuration) {
                 factors.add(new Factor(originDate, factorDistribution + initialFactorDistribution, startDate.plusDays(i)));
                 lastFactorValue = 0;
             } else {
-                int runInDay = (i - riskDuration) + 1;
-                double runInFactor = (double) runInDay * scaleFactor;
-                double factorValue = (factorDistribution / 2) * runInFactor * runInDay;
-                System.out.println("ED: date; " + startDate.plusDays(i) + " runInFactor: " + runInFactor + " runInDay: " + runInDay + ", factorValue: " + factorValue + ", lastFactorValue: " + lastFactorValue);
-                factors.add(new Factor(originDate, factorValue - lastFactorValue, startDate.plusDays(i)));
+                int runInDay = elementDays - (i - riskDuration);
+                double runInFactor = runInDay * scaleFactor;
+                double factorValue = (factorDistribution / 2) * runInFactor;
+                //System.out.println("ED: date; " + startDate.plusDays(i) + " factor: " + (factorValue - lastFactorValue) + " runInFactor: " + runInFactor + " runInDay: " + runInDay + ", factorValue: " + factorValue + ", lastFactorValue: " + lastFactorValue);
+                factors.add(new Factor(originDate, factorValue + lastFactorValue, startDate.plusDays(i)));
                 lastFactorValue = factorValue;
             }
         }
