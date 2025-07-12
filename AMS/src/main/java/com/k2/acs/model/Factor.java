@@ -4,6 +4,8 @@ import lombok.Data;
 
 import java.time.LocalDate;
 
+// TODO: remove value from factor applying an amount needs to generate an array of Values
+
 @Data
 public class Factor {
     private LocalDate incurredDate;
