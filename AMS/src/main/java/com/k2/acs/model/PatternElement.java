@@ -17,6 +17,17 @@ public class PatternElement {
     private double initialDistribution = 0;
     private int riskAttachingDuration = 0;
 
+    public static int getNormlizedDuration(LocalDate initialDate, int duration) {
+        if (initialDate == null) {
+            return 0;
+        }
+        int years = duration / 360;
+        int months = (duration % 360) / 30;
+        int days = duration % 30;
+        LocalDate normalizedDate = initialDate.plusYears(years).plusMonths(months).plusDays(days);
+        return (int) java.time.temporal.ChronoUnit.DAYS.between(initialDate, normalizedDate);
+    }
+
     public PatternElement(double initialDistribution, double distribution, Type type, int riskAttachingDuration) {
         this.initialDistribution = initialDistribution;
         this.distribution = distribution;
@@ -28,18 +39,6 @@ public class PatternElement {
         this.distribution = distribution;
         this.type = type;
     }
-
-    public int getNormlizedRiskAttachingDuration(LocalDate initialDate, int riskAttachingDuration) {
-        if (initialDate == null) {
-            return 0;
-        }
-        int years = riskAttachingDuration / 360;
-        int months = (riskAttachingDuration % 360) / 30;
-        int days = riskAttachingDuration % 30;
-        LocalDate normalizedDate = initialDate.plusYears(years).plusMonths(months).plusDays(days);
-        return (int) java.time.temporal.ChronoUnit.DAYS.between(initialDate, normalizedDate);
-    }
-
 
     public List<Factor> generateWritingFactors(LocalDate startDate) {
         LocalDate originDate = startDate;
@@ -63,7 +62,7 @@ public class PatternElement {
         int riskDuration = this.riskAttachingDuration;
 
         if (useCalendar) {
-            riskDuration = getNormlizedRiskAttachingDuration(originDate, riskDuration);
+            riskDuration = getNormlizedDuration(originDate, riskDuration);
         }
 
         int elementDays = FactorCalculator.getDaysForTypeWithCalendar(this.type, startDate);

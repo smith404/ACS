@@ -76,6 +76,8 @@ public class ExposureMatrix implements DateCriteriaSummable {
 
     private final int precision;
     private final List<ExposureMatrixEntry> entries;
+    private String formatString;
+    private String formatDouble;
 
     public ExposureMatrix(List<Factor> factors, LocalDate startDate, List<LocalDate> incurredBucketEndDates, List<LocalDate> exposureBucketEndDates, int precision) {
         this(factors, startDate, incurredBucketEndDates, exposureBucketEndDates, precision, false);
@@ -83,6 +85,8 @@ public class ExposureMatrix implements DateCriteriaSummable {
 
     public ExposureMatrix(List<Factor> factors, LocalDate startDate, List<LocalDate> incurredBucketEndDates, List<LocalDate> exposureBucketEndDates, int precision, boolean toEnd) {
         this.precision = precision;
+        formatString = "%" + (10 + precision) + "s";
+        formatDouble = "%" + (10 + precision) + "." + precision + "f"; 
         this.entries = generateExposureMatrix(factors, startDate, incurredBucketEndDates, exposureBucketEndDates, toEnd);
     }
 
@@ -158,23 +162,22 @@ public class ExposureMatrix implements DateCriteriaSummable {
                                                     .toList();
 
         StringBuilder table = new StringBuilder();
-        table.append(String.format("%-15s", "Exp x Inc"));
+        table.append(String.format("%10s", "Exp x Inc"));
         for (LocalDate exposureDate : exposureBucketEndDates) {
-            table.append(String.format("%-15s", exposureDate));
+            table.append(String.format(formatString, exposureDate));
         }
         table.append("\n");
 
         // Populate the table rows
         for (LocalDate incurredDate : incurredBucketEndDates) {
-            table.append(String.format("%-15s", incurredDate));
+            table.append(String.format("%10s", incurredDate));
             for (LocalDate exposureDate : exposureBucketEndDates) {
                 double sum = entries.stream()
                                     .filter(entry -> entry.getIncurredDateBucket().equals(incurredDate) &&
                                                      entry.getExposureDateBucket().equals(exposureDate))
                                     .mapToDouble(ExposureMatrixEntry::getSum)
                                     .sum();
-                String numFormat = "%-15." + precision + "f";
-                table.append(String.format(numFormat, roundToPrecision(sum)));
+                table.append(String.format(formatDouble, roundToPrecision(sum)));
             }
             table.append("\n");
         }
