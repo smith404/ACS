@@ -1,8 +1,9 @@
 package com.k2.acs.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -59,7 +60,7 @@ public class Pattern {
         if (element.getParentPattern() != null && element.getParentPattern() == this) {
             element.setParentPattern(null);
         }
-   
+
         elements.remove(element);
     }
 

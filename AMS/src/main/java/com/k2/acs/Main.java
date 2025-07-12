@@ -1,13 +1,6 @@
 package com.k2.acs;
 
-import com.k2.acs.model.UltimateValue;
-import com.k2.acs.model.Pattern;
-import com.k2.acs.model.PatternElement;
-import com.k2.acs.model.BestEstimateCashFlow;
-import com.k2.acs.model.FactorCalculator;
-import com.k2.acs.model.CashFlow;
-import com.k2.acs.model.ExposureMatrix;
-import com.k2.acs.model.Factor;
+import com.k2.acs.model.*;
 import lombok.Getter;
 
 import java.time.LocalDate;
@@ -59,25 +52,25 @@ public class Main {
             factorCalculator.setWrittenDate(config.getValuationDateAsLocalDate());
 
             factorCalculator.calculateDailyFactors(
-                config.getInsuredPeriodStartDateAsLocalDate(),
-                FactorCalculator.FactorType.valueOf(config.getFactorType().toUpperCase())
+                    config.getInsuredPeriodStartDateAsLocalDate(),
+                    FactorCalculator.FactorType.valueOf(config.getFactorType().toUpperCase())
             );
 
             //printFactorsTable(factorCalculator.getAllFactors());
 
             List<LocalDate> endPoints = ExposureMatrix.getEndDatesBetween(
-                factorCalculator.getEarliestExposureDate().getYear(),
-                factorCalculator.getLatestExposureDate().getYear(),
-                PatternElement.Type.valueOf(config.getExposedTimeUnit().toUpperCase())
+                    factorCalculator.getEarliestExposureDate().getYear(),
+                    factorCalculator.getLatestExposureDate().getYear(),
+                    PatternElement.Type.valueOf(config.getExposedTimeUnit().toUpperCase())
             );
 
             ExposureMatrix exposureMatrix = new ExposureMatrix(
-                factorCalculator.getAllFactors(),
-                config.getInsuredPeriodStartDateAsLocalDate(),
-                endPoints,
-                endPoints,
-                config.getPrecision(),
-                config.isEndOfPeriod()
+                    factorCalculator.getAllFactors(),
+                    config.getInsuredPeriodStartDateAsLocalDate(),
+                    endPoints,
+                    endPoints,
+                    config.getPrecision(),
+                    config.isEndOfPeriod()
             );
 
             if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
@@ -89,12 +82,12 @@ public class Main {
                 factorCalculator.applyUltimateValueToPattern(uv);
 
                 exposureMatrix = new ExposureMatrix(
-                    factorCalculator.getAllFactors(),
-                    config.getInsuredPeriodStartDateAsLocalDate(),
-                    endPoints,
-                    endPoints,
-                    config.getPrecision(),
-                    config.isEndOfPeriod()
+                        factorCalculator.getAllFactors(),
+                        config.getInsuredPeriodStartDateAsLocalDate(),
+                        endPoints,
+                        endPoints,
+                        config.getPrecision(),
+                        config.isEndOfPeriod()
                 );
 
                 if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
@@ -105,7 +98,6 @@ public class Main {
 
         } catch (Exception e) {
             getLogger().warning("Error processing the configuration file: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
@@ -113,28 +105,28 @@ public class Main {
         Pattern pattern = new Pattern();
         for (AmsConfig.Element element : config.getElements()) {
             PatternElement patternElement = new PatternElement(
-                element.getInitial(),
-                element.getDistribution(),
-                PatternElement.Type.valueOf(element.getType().toUpperCase()),
-                element.getInitialDuration() > 0 ? element.getInitialDuration() : config.getDefaultDuration(),
-                element.getDuration() > 0 ? element.getDuration() : config.getDefaultDuration());
+                    element.getInitial(),
+                    element.getDistribution(),
+                    PatternElement.Type.valueOf(element.getType().toUpperCase()),
+                    element.getInitialDuration() > 0 ? element.getInitialDuration() : config.getDefaultDuration(),
+                    element.getDuration() > 0 ? element.getDuration() : config.getDefaultDuration());
             pattern.addElement(patternElement);
         }
         return pattern;
     }
-    
+
     private static void printFactorsTable(List<Factor> factors) {
         StringBuilder table = new StringBuilder();
         table.append(String.format("%-15s %-15s %-15s %-15s %-10s%n", "Incurred Date", "Exposure Date", "Distribution", "Value", "isWritten"));
         table.append(String.format("%-15s %-15s %-15s %-15s %-10s%n", "-------------", "-------------", "------------", "-----", "---------"));
         for (Factor factor : factors) {
-            table.append(String.format("%-15s %-15s %-15.6f %-15.6f %-10s%n", 
-                factor.getIncurredDate(), 
-                factor.getExposureDate(), 
-                factor.getDistribution(), 
-                factor.getValue(),
-                factor.isWritten()));
+            table.append(String.format("%-15s %-15s %-15.6f %-15.6f %-10s%n",
+                    factor.getIncurredDate(),
+                    factor.getExposureDate(),
+                    factor.getDistribution(),
+                    factor.getValue(),
+                    factor.isWritten()));
         }
-        getLogger().info("\n" + table.toString());
+        getLogger().info("\n" + table);
     }
 }

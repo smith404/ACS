@@ -1,9 +1,8 @@
 package com.k2.acs.model;
 
+import com.k2.acs.model.PatternElement.Type;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import com.k2.acs.model.PatternElement.Type;
 
 @Data
 @NoArgsConstructor
@@ -39,7 +38,7 @@ public class SteeringParameter {
             }
             default -> throw new IllegalArgumentException("Invalid cspType: " + cspType);
         }
-    }   
+    }
 
     public int getEndPoint() {
         switch (cspType) {
@@ -50,7 +49,7 @@ public class SteeringParameter {
                 return (cspIndex * FactorCalculator.getDaysForType(Type.QUARTER));
             }
             case 'M' -> {
-                return(cspIndex * FactorCalculator.getDaysForType(Type.MONTH));
+                return (cspIndex * FactorCalculator.getDaysForType(Type.MONTH));
             }
             case 'W' -> {
                 return (cspIndex * FactorCalculator.getDaysForType(Type.WEEK));

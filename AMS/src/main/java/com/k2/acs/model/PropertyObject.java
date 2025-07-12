@@ -1,10 +1,10 @@
 package com.k2.acs.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public abstract class PropertyObject {

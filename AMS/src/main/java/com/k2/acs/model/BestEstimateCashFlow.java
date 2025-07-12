@@ -2,6 +2,7 @@ package com.k2.acs.model;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,16 +18,16 @@ public class BestEstimateCashFlow extends PropertyObject {
 
     public double getTotalAmount() {
         return cashFlows.stream()
-                        .mapToDouble(CashFlow::getAmount)
-                        .sum();
+                .mapToDouble(CashFlow::getAmount)
+                .sum();
     }
 
     public int loadCashFlows(List<CashFlow> cashFlows) {
         this.cashFlows.clear();
         if (filterZero) {
             this.cashFlows.addAll(cashFlows.stream()
-                                           .filter(cashFlow -> cashFlow.getAmount() != 0)
-                                           .toList());
+                    .filter(cashFlow -> cashFlow.getAmount() != 0)
+                    .toList());
         } else {
             this.cashFlows.addAll(cashFlows);
         }

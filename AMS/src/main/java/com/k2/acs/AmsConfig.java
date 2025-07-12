@@ -1,16 +1,14 @@
 package com.k2.acs;
 
-import java.util.Date;
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import lombok.Data;
 
 import java.io.File;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Date;
+import java.util.List;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -35,7 +33,7 @@ public class AmsConfig {
     private Date insuredPeriodStartDate;
     private int defaultDuration = 0;
 
-    private String inccuredTimeUnit;
+    private String incurredTimeUnit;
     private String exposedTimeUnit;
 
     private List<UV> ultimateValues;

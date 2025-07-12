@@ -1,7 +1,5 @@
 package com.k2.acs.model;
 
-import java.util.List;
-
 import lombok.Data;
 
 @Data

@@ -15,7 +15,7 @@
     } ],
     "defaultDuration": 360,
     "calendar": true,
-    "insuredPeriodStartDate": "2024-07-01",
+    "insuredPeriodStartDate": "2024-08-02",
     "factorType": "earning",
     "endOfPeriod": true,
     "inccuredTimeUnit": "QUARTER",
