@@ -12,6 +12,13 @@ import lombok.Data;
 
 public class ExposureMatrix implements DateCriteriaSummable {
 
+    public enum ExposureType {
+        INCURRED,
+        REPORTED,
+        DUE,
+        SETTLED
+    }
+
     @Data
     public static class ExposureMatrixEntry {
         private final LocalDate incurredDateBucket;
@@ -42,13 +49,6 @@ public class ExposureMatrix implements DateCriteriaSummable {
             endDates.add(current.minusDays(1));
         }
         return endDates;
-    }
-
-    public enum ExposureType {
-        INCURRED,
-        REPORTED,
-        DUE,
-        SETTLED
     }
 
     public static List<LocalDate> getEndDatesBetween(int startYear, int endYear, PatternElement.Type frequency) {

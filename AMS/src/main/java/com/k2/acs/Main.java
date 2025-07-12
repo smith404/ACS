@@ -55,12 +55,15 @@ public class Main {
 
             FactorCalculator factorCalculator = new FactorCalculator(config.getPrecision(), pattern);
             factorCalculator.setUseCalendar(config.isCalendar());
+            factorCalculator.setUseLinear(config.isLinear());
             factorCalculator.setWrittenDate(config.getValuationDateAsLocalDate());
 
             factorCalculator.calculateDailyFactors(
                 config.getInsuredPeriodStartDateAsLocalDate(),
                 FactorCalculator.FactorType.valueOf(config.getFactorType().toUpperCase())
             );
+
+            //printFactorsTable(factorCalculator.getAllFactors());
 
             List<LocalDate> endPoints = ExposureMatrix.getEndDatesBetween(
                 factorCalculator.getEarliestExposureDate().getYear(),
@@ -98,9 +101,6 @@ public class Main {
                     getLogger().info("Applying UltimateValue of type: " + uv.getType() + " with amount: " + uv.getAmount());
                     getLogger().info("\n" + exposureMatrix.generateExposureMatrixTable());
                 }
-
-                List<Factor> allFactors = factorCalculator.getAllFactors();
-                printFactorsTable(allFactors);
             }
 
         } catch (Exception e) {
@@ -112,14 +112,12 @@ public class Main {
     private static Pattern createPattern(AmsConfig config) {
         Pattern pattern = new Pattern();
         for (AmsConfig.Element element : config.getElements()) {
-            if (element.getRiskAttachingDuration() < 0) {
-                element.setRiskAttachingDuration(config.getRiskAttachingDuration());
-            }
             PatternElement patternElement = new PatternElement(
                 element.getInitial(),
                 element.getDistribution(),
                 PatternElement.Type.valueOf(element.getType().toUpperCase()),
-                element.getRiskAttachingDuration());
+                element.getInitialDuration() > 0 ? element.getInitialDuration() : config.getDefaultDuration(),
+                element.getDuration() > 0 ? element.getDuration() : config.getDefaultDuration());
             pattern.addElement(patternElement);
         }
         return pattern;

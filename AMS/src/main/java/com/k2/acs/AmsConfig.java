@@ -29,10 +29,11 @@ public class AmsConfig {
     private int precision = 6;
 
     private boolean calendar = true;
+    private boolean linear = false;
     private boolean endOfPeriod = false;
 
     private Date insuredPeriodStartDate;
-    private int riskAttachingDuration = 0;
+    private int defaultDuration = 0;
 
     private String inccuredTimeUnit;
     private String exposedTimeUnit;
@@ -56,7 +57,8 @@ public class AmsConfig {
         private String type;
         private Double initial = 0.0;
         private Double distribution = 0.0;
-        private int riskAttachingDuration = -1;
+        private int duration = -1;
+        private int initialDuration = -1;
     }
 
     @Data

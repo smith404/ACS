@@ -14,8 +14,9 @@ public class PatternElement {
     private Pattern parentPattern;
     private Type type;
     private double distribution = 0;
-    private double initialDistribution = 0;
-    private int riskAttachingDuration = 0;
+    private double initial = 0;
+    private int distributionDuration = 0;
+    private int initialDuration = 0;
 
     public static int getNormlizedDuration(LocalDate initialDate, int duration) {
         if (initialDate == null) {
@@ -28,11 +29,12 @@ public class PatternElement {
         return (int) java.time.temporal.ChronoUnit.DAYS.between(initialDate, normalizedDate);
     }
 
-    public PatternElement(double initialDistribution, double distribution, Type type, int riskAttachingDuration) {
-        this.initialDistribution = initialDistribution;
+    public PatternElement(double initial, double distribution, Type type, int initialDuration, int distributionDuration) {
+        this.initial = initial;
         this.distribution = distribution;
         this.type = type;
-        this.riskAttachingDuration = riskAttachingDuration;
+        this.distributionDuration = distributionDuration;
+        this.initialDuration = initialDuration;
     }
 
     public PatternElement(double distribution, Type type) {
@@ -48,7 +50,7 @@ public class PatternElement {
 
         for (int i = 0; i < elementDays; i++) {
             if (i == 0) {
-                factors.add(new Factor(originDate, factorDistribution + this.initialDistribution, startDate.plusDays(i)));
+                factors.add(new Factor(originDate, factorDistribution + this.initial, startDate.plusDays(i)));
             } else {
                 factors.add(new Factor(originDate, factorDistribution, startDate.plusDays(i)));
             }
@@ -57,9 +59,9 @@ public class PatternElement {
         return factors;
     }
 
-    public List<Factor> generateEarningFactors(LocalDate startDate, boolean useCalendar) {
+    public List<Factor> generateEarningFactors(LocalDate startDate, boolean useCalendar, boolean useLinear) {
         LocalDate originDate = startDate;
-        int riskDuration = this.riskAttachingDuration;
+        int riskDuration = this.distributionDuration;
 
         if (useCalendar) {
             riskDuration = getNormlizedDuration(originDate, riskDuration);
@@ -71,21 +73,33 @@ public class PatternElement {
             riskDuration = elementDays;
         }
 
+        if (riskDuration <= 0) {
+            // Ensure at least one day to avoid division by zero
+            riskDuration = 1;
+        }
         List<Factor> factors = new ArrayList<>();
         double factorDistribution = this.distribution / riskDuration; 
-        double initialFactorDistribution = this.initialDistribution / riskDuration; 
+        double initialFactorDistribution = this.initial / riskDuration; 
         double scaleFactor = 1 / (double) elementDays;
 
         double lastFactorValue = 0;
+        double factorValue = 0;
         for (int i = 0; i < riskDuration; i++) {
-            if (i < elementDays) { 
-                int runInDay = i + 1;               
-                double runInFactor = (runInDay * scaleFactor);
-                double factorValue = (factorDistribution / 2) * runInFactor;
+            if (i < elementDays) {
+                if (!useLinear) {
+                    int runInDay = i + 1;               
+                    double runInFactor = (runInDay * scaleFactor);
+                    factorValue = (factorDistribution / 2) * runInFactor;
+                }
+                else {
+                    factorValue = factorDistribution / 2;
+                }
                 factors.add(new Factor(originDate, initialFactorDistribution, startDate.plusDays(i)));
                 factors.add(new Factor(originDate, factorValue + lastFactorValue, startDate.plusDays(i)));
                 factors.add(new Factor(originDate, factorValue + lastFactorValue, startDate.plusDays((long) riskDuration + elementDays - i -1)));
-                lastFactorValue = factorValue;
+                if (!useLinear) {
+                    lastFactorValue = factorValue;
+                }
             } else {
                 factors.add(new Factor(originDate, initialFactorDistribution, startDate.plusDays(i)));
                 factors.add(new Factor(originDate, factorDistribution, startDate.plusDays(i)));

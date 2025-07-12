@@ -1,7 +1,6 @@
 {
     "valuationDate": "2025-01-01",
     "precision": 9,
-    "amount": 100,
     "ultimateValues": [ {
         "type": "PREMIUM",
         "value": 5223801.49
@@ -14,9 +13,9 @@
         "type": "LOSSES",
         "value": -3961501.21
     } ],
-    "riskAttachingDuration": 360,
+    "defaultDuration": 360,
     "calendar": true,
-    "insuredPeriodStartDate": "2024-08-02",
+    "insuredPeriodStartDate": "2024-07-01",
     "factorType": "earning",
     "endOfPeriod": true,
     "inccuredTimeUnit": "QUARTER",

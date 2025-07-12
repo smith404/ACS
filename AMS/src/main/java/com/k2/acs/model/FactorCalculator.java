@@ -51,6 +51,7 @@ public class FactorCalculator implements DateCriteriaSummable {
     }
 
     private boolean useCalendar = true;
+    private boolean useLinear = false;
     private LocalDate writtenDate = LocalDate.now();
     private final int precision;
     private final Pattern pattern;
@@ -68,18 +69,12 @@ public class FactorCalculator implements DateCriteriaSummable {
         this.pattern = pattern;
     }
 
-    private double roundToPrecision(double value) {
-        return BigDecimal.valueOf(value)
-                         .setScale(precision, RoundingMode.HALF_UP)
-                         .doubleValue();
-    }
-
     public List<Factor> calculateDailyFactors(LocalDate startDate, FactorType factorType) {
         allFactors = new ArrayList<>();
         for (PatternElement element : pattern.getElements()) {
             List<Factor> factors = switch (factorType) {
                 case WRITING -> element.generateWritingFactors(startDate);
-                case EARNING -> element.generateEarningFactors(startDate, useCalendar);
+                case EARNING -> element.generateEarningFactors(startDate, useCalendar, useLinear);
             };
             // Only add factors with non-zero distribution
             factors.stream()
