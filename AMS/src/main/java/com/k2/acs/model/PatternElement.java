@@ -61,30 +61,36 @@ public class PatternElement {
     }
 
     public List<Factor> generateEarningFactors(LocalDate startDate, boolean useCalendar, boolean useLinear) {
-        int riskDuration = this.distributionDuration;
+        int upFrontDuration = this.initialDuration;
+        int shareDuration = this.distributionDuration;
 
         if (useCalendar) {
-            riskDuration = getNormalizedDuration(startDate, riskDuration);
+            upFrontDuration = getNormalizedDuration(startDate, upFrontDuration);
+            shareDuration = getNormalizedDuration(startDate, shareDuration);
         }
 
         int elementDays = FactorCalculator.getDaysForTypeWithCalendar(this.type, startDate);
 
-        if (riskDuration < elementDays) {
-            riskDuration = elementDays;
+        if (elementDays <= 0) {
+            elementDays = 1;
         }
 
-        if (riskDuration <= 0) {
-            // Ensure at least one day to avoid division by zero
-            riskDuration = 1;
+        if (upFrontDuration < elementDays) {
+            upFrontDuration = elementDays;
         }
+
+        if (shareDuration < elementDays) {
+            shareDuration = elementDays;
+        }
+
         List<Factor> factors = new ArrayList<>();
-        double factorDistribution = this.distribution / riskDuration;
-        double initialFactorDistribution = this.initial / riskDuration;
+        double initialFactorDistribution = this.initial / upFrontDuration;
+        double factorDistribution = this.distribution / shareDuration;
         double scaleFactor = 1 / (double) elementDays;
 
         double lastFactorValue = 0;
         double factorValue;
-        for (int i = 0; i < riskDuration; i++) {
+        for (int i = 0; i < shareDuration; i++) {
             if (i < elementDays) {
                 if (!useLinear) {
                     int runInDay = i + 1;
@@ -95,7 +101,7 @@ public class PatternElement {
                 }
                 factors.add(new Factor(startDate, startDate.plusDays(i), initialFactorDistribution));
                 factors.add(new Factor(startDate.plusDays(i), startDate.plusDays(i), factorValue + lastFactorValue));
-                factors.add(new Factor(startDate.plusDays(i), startDate.plusDays((long) riskDuration + elementDays - i - 1), factorValue + lastFactorValue));
+                factors.add(new Factor(startDate.plusDays(i), startDate.plusDays((long) shareDuration + elementDays - i - 1), factorValue + lastFactorValue));
                 if (!useLinear) {
                     lastFactorValue = factorValue;
                 }

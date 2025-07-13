@@ -103,7 +103,7 @@ public class Main {
             );
 
             if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
-                getLogger().info("Standard view Factor Matrix");
+                getLogger().info("Standard View Factor Matrix");
                 getLogger().info("\n" + standardMatrix.generateExposureMatrixTable(config.getPrecision()));
             }
 
