@@ -67,7 +67,7 @@ public class FactorCalculator implements DateCriteriaSummable {
         this.pattern = pattern;
     }
 
-    public List<Factor> calculateDailyFactors(LocalDate startDate, FactorType factorType) {
+    public void generateDailyFactors(LocalDate startDate, FactorType factorType) {
         allFactors = new ArrayList<>();
         for (PatternElement element : pattern.getElements()) {
             List<Factor> factors = switch (factorType) {
@@ -76,7 +76,7 @@ public class FactorCalculator implements DateCriteriaSummable {
             };
             // Only add factors with non-zero distribution
             factors.stream()
-                    .filter(factor -> factor.getDistribution() != 0.0)
+                    .filter(factor -> factor.getValue() != 0.0)
                     .forEach(factor -> {
                         if (factor.getExposureDate().isBefore(writtenDate)) {
                             factor.setWritten(true);
@@ -85,21 +85,18 @@ public class FactorCalculator implements DateCriteriaSummable {
                     });
             startDate = startDate.plusDays(FactorCalculator.getDaysForTypeWithCalendar(element.getType(), startDate));
         }
-        return allFactors;
     }
 
-    public void applyUltimateValueToPattern(UltimateValue ultimateValue) {
+    public List<Factor> applyUltimateValueToPattern(UltimateValue ultimateValue) {
         if (allFactors == null) {
             throw new IllegalStateException("allFactors must not be null before applying the ultimate value.");
         }
-        allFactors = allFactors.stream()
+        return allFactors.stream()
                 .map(factor -> new Factor(
                         factor.getIncurredDate(),
-                        factor.getDistribution(),
                         factor.getExposureDate(),
-                        factor.getDistribution() * ultimateValue.getAmount(),
-                        factor.isWritten()
-                ))
+                        factor.getValue() * ultimateValue.getAmount(),
+                        factor.isWritten()))
                 .toList();
     }
 
@@ -108,7 +105,7 @@ public class FactorCalculator implements DateCriteriaSummable {
             throw new IllegalStateException("allFactors must not be null before normalization.");
         }
         double totalDistribution = allFactors.stream()
-                .mapToDouble(Factor::getDistribution)
+                .mapToDouble(Factor::getValue)
                 .sum();
         if (totalDistribution == 0) {
             throw new IllegalArgumentException("Total value of factors cannot be zero for normalization.");
@@ -117,9 +114,8 @@ public class FactorCalculator implements DateCriteriaSummable {
         allFactors = allFactors.stream()
                 .map(factor -> new Factor(
                         factor.getIncurredDate(),
-                        factor.getDistribution() / totalDistribution,
                         factor.getExposureDate(),
-                        factor.getValue()
+                        factor.getValue() / totalDistribution
                 ))
                 .toList();
     }

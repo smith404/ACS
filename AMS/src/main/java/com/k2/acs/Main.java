@@ -51,42 +51,58 @@ public class Main {
             factorCalculator.setUseLinear(config.isLinear());
             factorCalculator.setWrittenDate(config.getValuationDateAsLocalDate());
 
-            factorCalculator.calculateDailyFactors(
+            factorCalculator.generateDailyFactors(
                     config.getInsuredPeriodStartDateAsLocalDate(),
                     FactorCalculator.FactorType.valueOf(config.getFactorType().toUpperCase())
             );
 
-            //printFactorsTable(factorCalculator.getAllFactors());
-
-            List<LocalDate> endPoints = ExposureMatrix.getEndDatesBetween(
+            List<LocalDate> accountingPeriods = ExposureMatrix.getEndDatesBetween(
                     factorCalculator.getEarliestExposureDate().getYear(),
                     factorCalculator.getLatestExposureDate().getYear(),
                     PatternElement.Type.valueOf(config.getExposedTimeUnit().toUpperCase())
             );
 
-            ExposureMatrix exposureMatrix = new ExposureMatrix(
+            List<LocalDate> developmentPeriods = ExposureMatrix.getBucketEndDates(
+                    config.getInsuredPeriodStartDateAsLocalDate(),
+                    30,
+                    PatternElement.Type.valueOf(config.getExposedTimeUnit().toUpperCase())
+            );
+
+            ExposureMatrix accountingMatrix = new ExposureMatrix(
                     factorCalculator.getAllFactors(),
                     config.getInsuredPeriodStartDateAsLocalDate(),
-                    endPoints,
-                    endPoints,
+                    accountingPeriods,
+                    accountingPeriods,
                     config.getPrecision(),
                     config.isEndOfPeriod()
             );
 
             if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
-                getLogger().info("Factor Matrix");
-                getLogger().info("\n" + exposureMatrix.generateExposureMatrixTable());
+                getLogger().info("Accounting Period Factor Matrix");
+                getLogger().info("\n" + accountingMatrix.generateExposureMatrixTable());
+            }
+
+            ExposureMatrix developmentMatrix = new ExposureMatrix(
+                    factorCalculator.getAllFactors(),
+                    config.getInsuredPeriodStartDateAsLocalDate(),
+                    developmentPeriods,
+                    developmentPeriods,
+                    config.getPrecision(),
+                    config.isEndOfPeriod()
+            );
+
+            if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
+                getLogger().info("Development Period Factor Matrix");
+                getLogger().info("\n" + developmentMatrix.generateExposureMatrixTable());
             }
 
             for (UltimateValue uv : ultimateValues) {
-                factorCalculator.applyUltimateValueToPattern(uv);
-
-                exposureMatrix = new ExposureMatrix(
-                        factorCalculator.getAllFactors(),
+                ExposureMatrix exposureMatrix = new ExposureMatrix(
+                        factorCalculator.applyUltimateValueToPattern(uv),
                         config.getInsuredPeriodStartDateAsLocalDate(),
-                        endPoints,
-                        endPoints,
-                        config.getPrecision(),
+                        accountingPeriods,
+                        accountingPeriods,
+                        2,
                         config.isEndOfPeriod()
                 );
 
@@ -117,15 +133,13 @@ public class Main {
 
     private static void printFactorsTable(List<Factor> factors) {
         StringBuilder table = new StringBuilder();
-        table.append(String.format("%-15s %-15s %-15s %-15s %-10s%n", "Incurred Date", "Exposure Date", "Distribution", "Value", "isWritten"));
-        table.append(String.format("%-15s %-15s %-15s %-15s %-10s%n", "-------------", "-------------", "------------", "-----", "---------"));
+        table.append(String.format("%-15s %-15s %-15s", "Incurred Date", "Exposure Date", "Factor"));
+        table.append(String.format("%-15s %-15s %-15s", "-------------", "-------------", "------"));
         for (Factor factor : factors) {
-            table.append(String.format("%-15s %-15s %-15.6f %-15.6f %-10s%n",
+            table.append(String.format("%-15s %-15s %-15.6f",
                     factor.getIncurredDate(),
                     factor.getExposureDate(),
-                    factor.getDistribution(),
-                    factor.getValue(),
-                    factor.isWritten()));
+                    factor.getValue()));
         }
         getLogger().info("\n" + table);
     }

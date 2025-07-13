@@ -50,10 +50,10 @@ public class PatternElement {
 
         for (int i = 0; i < elementDays; i++) {
             if (i == 0) {
-                factors.add(new Factor(startDate, this.initial, startDate));
-                factors.add(new Factor(startDate, factorDistribution + this.initial, startDate));
+                factors.add(new Factor(startDate, startDate, this.initial));
+                factors.add(new Factor(startDate, startDate, factorDistribution + this.initial));
             } else {
-                factors.add(new Factor(startDate, factorDistribution, startDate.plusDays(i)));
+                factors.add(new Factor(startDate, startDate.plusDays(i), factorDistribution));
             }
         }
 
@@ -93,15 +93,15 @@ public class PatternElement {
                 } else {
                     factorValue = factorDistribution / 2;
                 }
-                factors.add(new Factor(startDate, initialFactorDistribution, startDate.plusDays(i)));
-                factors.add(new Factor(startDate, factorValue + lastFactorValue, startDate.plusDays(i)));
-                factors.add(new Factor(startDate, factorValue + lastFactorValue, startDate.plusDays((long) riskDuration + elementDays - i - 1)));
+                factors.add(new Factor(startDate, startDate.plusDays(i), initialFactorDistribution));
+                factors.add(new Factor(startDate, startDate.plusDays(i), factorValue + lastFactorValue));
+                factors.add(new Factor(startDate, startDate.plusDays((long) riskDuration + elementDays - i - 1), factorValue + lastFactorValue));
                 if (!useLinear) {
                     lastFactorValue = factorValue;
                 }
             } else {
-                factors.add(new Factor(startDate, initialFactorDistribution, startDate.plusDays(i)));
-                factors.add(new Factor(startDate, factorDistribution, startDate.plusDays(i)));
+                factors.add(new Factor(startDate, startDate.plusDays(i), initialFactorDistribution));
+                factors.add(new Factor(startDate, startDate.plusDays(i), factorDistribution));
                 lastFactorValue = 0;
             }
         }
