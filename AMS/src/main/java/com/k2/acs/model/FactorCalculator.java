@@ -9,9 +9,13 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
+import java.util.logging.Logger;
+
 @Getter
 @Setter
 public class FactorCalculator implements DateCriteriaSummable {
+    private static final Logger logger = Logger.getLogger(FactorCalculator.class.getName());
+
     public enum FactorType {
         WRITING,
         EARNING
@@ -68,6 +72,7 @@ public class FactorCalculator implements DateCriteriaSummable {
     }
 
     public void generateDailyFactors(LocalDate startDate, FactorType factorType) {
+        long startTime = System.currentTimeMillis();
         allFactors = new ArrayList<>();
         for (PatternElement element : pattern.getElements()) {
             List<Factor> factors = switch (factorType) {
@@ -84,6 +89,10 @@ public class FactorCalculator implements DateCriteriaSummable {
                         allFactors.add(factor);
                     });
             startDate = startDate.plusDays(FactorCalculator.getDaysForTypeWithCalendar(element.getType(), startDate));
+        }
+        long endTime = System.currentTimeMillis();
+        if (logger.isLoggable(java.util.logging.Level.INFO)) {
+            logger.info(String.format("Generation of daily factors took %d ms to generate %d factors.", (endTime - startTime), allFactors.size()));
         }
     }
 
