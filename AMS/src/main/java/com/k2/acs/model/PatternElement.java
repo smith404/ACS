@@ -53,7 +53,7 @@ public class PatternElement {
                 factors.add(new Factor(startDate, startDate, this.initial));
                 factors.add(new Factor(startDate, startDate, factorDistribution + this.initial));
             } else {
-                factors.add(new Factor(startDate, startDate.plusDays(i), factorDistribution));
+                factors.add(new Factor(startDate.plusDays(i), startDate.plusDays(i), factorDistribution));
             }
         }
 
@@ -94,14 +94,15 @@ public class PatternElement {
                     factorValue = factorDistribution / 2;
                 }
                 factors.add(new Factor(startDate, startDate.plusDays(i), initialFactorDistribution));
-                factors.add(new Factor(startDate, startDate.plusDays(i), factorValue + lastFactorValue));
-                factors.add(new Factor(startDate, startDate.plusDays((long) riskDuration + elementDays - i - 1), factorValue + lastFactorValue));
+                factors.add(new Factor(startDate.plusDays(i), startDate.plusDays(i), factorValue + lastFactorValue));
+                factors.add(new Factor(startDate.plusDays(i), startDate.plusDays((long) riskDuration + elementDays - i - 1), factorValue + lastFactorValue));
                 if (!useLinear) {
                     lastFactorValue = factorValue;
                 }
             } else {
+                int offset = i % (elementDays-1);
                 factors.add(new Factor(startDate, startDate.plusDays(i), initialFactorDistribution));
-                factors.add(new Factor(startDate, startDate.plusDays(i), factorDistribution));
+                factors.add(new Factor(startDate.plusDays(offset), startDate.plusDays(i), factorDistribution));
                 lastFactorValue = 0;
             }
         }

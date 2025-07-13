@@ -94,17 +94,36 @@ public class Main {
                 getLogger().info("\n" + accountingMatrix.generateExposureMatrixTable(config.getPrecision()));
             }
 
+            ExposureMatrix standardMatrix = new ExposureMatrix(
+                    factorCalculator.getAllFactors(),
+                    config.getInsuredPeriodStartDateAsLocalDate(),
+                    developmentPeriods,
+                    accountingPeriods,
+                    config.isEndOfPeriod()
+            );
+
             if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
-                getLogger().info("Exposed Factor Vector");
+                getLogger().info("Standard view Factor Matrix");
+                getLogger().info("\n" + standardMatrix.generateExposureMatrixTable(config.getPrecision()));
+            }
+
+            if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
+                getLogger().info("Incurred Factor Vector");
                 getLogger().info("\n" + printExposureVector(
-                    accountingMatrix.generateExposureVector(), config.getPrecision()));
+                    standardMatrix.generateExposureVector(false), config.getPrecision()));
+            }
+
+            if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
+                getLogger().info("Earned Factor Vector");
+                getLogger().info("\n" + printExposureVector(
+                    standardMatrix.generateExposureVector(), config.getPrecision()));
             }
 
             for (UltimateValue uv : ultimateValues) {
                 ExposureMatrix exposureMatrix = new ExposureMatrix(
                         factorCalculator.applyUltimateValueToPattern(uv),
                         config.getInsuredPeriodStartDateAsLocalDate(),
-                        accountingPeriods,
+                        developmentPeriods,
                         accountingPeriods,
                         config.isEndOfPeriod()
                 );
