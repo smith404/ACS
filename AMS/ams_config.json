@@ -11,19 +11,19 @@
     "insuredPeriodStartDate": "2021-07-01",
     "factorType": "earning",
     "endOfPeriod": true,
-    "inccuredTimeUnit": "QUARTER",
-    "exposedTimeUnit": "QUARTER",
+    "inccuredTimeUnit": "quarter",
+    "exposedTimeUnit": "quarter",
     "elements": [ {
-        "type": "QUARTER",
+        "type": "quarter",
         "distribution": 0.25
     }, {
-        "type": "QUARTER",
+        "type": "quarter",
         "distribution": 0.25
     }, {
-        "type": "QUARTER",
+        "type": "quarter",
         "distribution": 0.25
     }, {
-        "type": "QUARTER",
+        "type": "quarter",
         "distribution": 0.25
     } ]
 }

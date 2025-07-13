@@ -68,6 +68,19 @@ public class Main {
                     PatternElement.Type.valueOf(config.getExposedTimeUnit().toUpperCase())
             );
 
+            ExposureMatrix developmentMatrix = new ExposureMatrix(
+                    factorCalculator.getAllFactors(),
+                    config.getInsuredPeriodStartDateAsLocalDate(),
+                    developmentPeriods,
+                    developmentPeriods,
+                    config.isEndOfPeriod()
+            );
+
+            if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
+                getLogger().info("Development Period Factor Matrix");
+                getLogger().info("\n" + developmentMatrix.generateExposureMatrixTable(config.getPrecision()));
+            }
+
             ExposureMatrix accountingMatrix = new ExposureMatrix(
                     factorCalculator.getAllFactors(),
                     config.getInsuredPeriodStartDateAsLocalDate(),
@@ -81,17 +94,10 @@ public class Main {
                 getLogger().info("\n" + accountingMatrix.generateExposureMatrixTable(config.getPrecision()));
             }
 
-            ExposureMatrix developmentMatrix = new ExposureMatrix(
-                    factorCalculator.getAllFactors(),
-                    config.getInsuredPeriodStartDateAsLocalDate(),
-                    developmentPeriods,
-                    developmentPeriods,
-                    config.isEndOfPeriod()
-            );
-
             if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
-                getLogger().info("Development Period Factor Matrix");
-                getLogger().info("\n" + developmentMatrix.generateExposureMatrixTable(config.getPrecision()));
+                getLogger().info("Exposed Factor Vector");
+                getLogger().info("\n" + printExposureVector(
+                    accountingMatrix.generateExposureVector(), config.getPrecision()));
             }
 
             for (UltimateValue uv : ultimateValues) {
@@ -108,7 +114,6 @@ public class Main {
                     getLogger().info("\n" + exposureMatrix.generateExposureMatrixTable(2));
                 }
             }
-
         } catch (Exception e) {
             getLogger().warning("Error processing the configuration file: " + e.getMessage());
         }
@@ -139,5 +144,23 @@ public class Main {
                     factor.getValue()));
         }
         getLogger().info("\n" + table);
+    }
+
+    /**
+     * Pretty prints a list of ExposureVectorEntry as a table.
+     * @param vector List of ExposureVectorEntry
+     * @param precision Number of decimal places to show for the sum
+     * @return String table representation
+     */
+    public static String printExposureVector(List<ExposureMatrix.ExposureVectorEntry> vector, int precision) {
+        StringBuilder sb = new StringBuilder();
+        String formatHeader = "%-15s %-15s%n";
+        String formatRow = "%-15s %-" + (10 + precision) + "." + precision + "f%n";
+        sb.append(String.format(formatHeader, "Date Bucket", "Sum"));
+        sb.append(String.format(formatHeader, "-----------", "---"));
+        for (var entry : vector) {
+            sb.append(String.format(formatRow, entry.getDateBucket(), entry.getSum()));
+        }
+        return sb.toString();
     }
 }
