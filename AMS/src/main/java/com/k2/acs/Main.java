@@ -73,13 +73,12 @@ public class Main {
                     config.getInsuredPeriodStartDateAsLocalDate(),
                     accountingPeriods,
                     accountingPeriods,
-                    config.getPrecision(),
                     config.isEndOfPeriod()
             );
 
             if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
                 getLogger().info("Accounting Period Factor Matrix");
-                getLogger().info("\n" + accountingMatrix.generateExposureMatrixTable());
+                getLogger().info("\n" + accountingMatrix.generateExposureMatrixTable(config.getPrecision()));
             }
 
             ExposureMatrix developmentMatrix = new ExposureMatrix(
@@ -87,13 +86,12 @@ public class Main {
                     config.getInsuredPeriodStartDateAsLocalDate(),
                     developmentPeriods,
                     developmentPeriods,
-                    config.getPrecision(),
                     config.isEndOfPeriod()
             );
 
             if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
                 getLogger().info("Development Period Factor Matrix");
-                getLogger().info("\n" + developmentMatrix.generateExposureMatrixTable());
+                getLogger().info("\n" + developmentMatrix.generateExposureMatrixTable(config.getPrecision()));
             }
 
             for (UltimateValue uv : ultimateValues) {
@@ -102,13 +100,12 @@ public class Main {
                         config.getInsuredPeriodStartDateAsLocalDate(),
                         accountingPeriods,
                         accountingPeriods,
-                        2,
                         config.isEndOfPeriod()
                 );
 
                 if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
                     getLogger().info("Applying UltimateValue of type: " + uv.getType() + " with amount: " + uv.getAmount());
-                    getLogger().info("\n" + exposureMatrix.generateExposureMatrixTable());
+                    getLogger().info("\n" + exposureMatrix.generateExposureMatrixTable(2));
                 }
             }
 

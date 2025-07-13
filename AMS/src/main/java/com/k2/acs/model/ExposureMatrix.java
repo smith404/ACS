@@ -32,6 +32,12 @@ public class ExposureMatrix implements DateCriteriaSummable {
         }
     }
 
+    private static double roundToPrecision(double value, int precision) {
+        return BigDecimal.valueOf(value)
+                .setScale(precision, RoundingMode.HALF_UP)
+                .doubleValue();
+    }
+
     public static List<LocalDate> getBucketEndDates(LocalDate startDate, int numBuckets, PatternElement.Type frequency) {
         List<LocalDate> endDates = new ArrayList<>();
         LocalDate current = startDate;
@@ -72,19 +78,13 @@ public class ExposureMatrix implements DateCriteriaSummable {
         return endDates;
     }
 
-    private final int precision;
     private final List<ExposureMatrixEntry> entries;
-    private final String formatString;
-    private final String formatDouble;
 
-    public ExposureMatrix(List<Factor> factors, LocalDate startDate, List<LocalDate> incurredBucketEndDates, List<LocalDate> exposureBucketEndDates, int precision) {
-        this(factors, startDate, incurredBucketEndDates, exposureBucketEndDates, precision, false);
+    public ExposureMatrix(List<Factor> factors, LocalDate startDate, List<LocalDate> incurredBucketEndDates, List<LocalDate> exposureBucketEndDates) {
+        this(factors, startDate, incurredBucketEndDates, exposureBucketEndDates, true);
     }
 
-    public ExposureMatrix(List<Factor> factors, LocalDate startDate, List<LocalDate> incurredBucketEndDates, List<LocalDate> exposureBucketEndDates, int precision, boolean toEnd) {
-        this.precision = precision;
-        formatString = "%" + (10 + precision) + "s";
-        formatDouble = "%" + (10 + precision) + "." + precision + "f";
+    public ExposureMatrix(List<Factor> factors, LocalDate startDate, List<LocalDate> incurredBucketEndDates, List<LocalDate> exposureBucketEndDates, boolean toEnd) {
         this.entries = generateExposureMatrix(factors, startDate, incurredBucketEndDates, exposureBucketEndDates, toEnd);
     }
 
@@ -137,17 +137,13 @@ public class ExposureMatrix implements DateCriteriaSummable {
         matrix.add(new ExposureMatrixEntry(
                 toEnd ? incurredEnd : incurredStart,
                 toEnd ? exposureEnd : exposureStart,
-                roundToPrecision(sum)));
+                sum));
     }
 
 
-    private double roundToPrecision(double value) {
-        return BigDecimal.valueOf(value)
-                .setScale(precision, RoundingMode.HALF_UP)
-                .doubleValue();
-    }
-
-    public String generateExposureMatrixTable() {
+    public String generateExposureMatrixTable(int precision) {
+        String formatString = "%" + (10 + precision) + "s";
+        String formatDouble = "%" + (10 + precision) + "." + precision + "f";
         List<LocalDate> exposureBucketEndDates = entries.stream()
                 .map(ExposureMatrixEntry::getExposureDateBucket)
                 .distinct()
@@ -175,7 +171,7 @@ public class ExposureMatrix implements DateCriteriaSummable {
                                 entry.getExposureDateBucket().equals(exposureDate))
                         .mapToDouble(ExposureMatrixEntry::getSum)
                         .sum();
-                table.append(String.format(formatDouble, roundToPrecision(sum)));
+                table.append(String.format(formatDouble, roundToPrecision(sum, precision)));
             }
             table.append("\n");
         }
