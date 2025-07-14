@@ -45,6 +45,9 @@ public class PatternElement {
 
     public List<Factor> generateWritingFactors(LocalDate startDate) {
         int elementDays = FactorCalculator.getDaysForTypeWithCalendar(this.type, startDate);
+        if (elementDays < 1) {
+            elementDays = 1;
+        } 
         List<Factor> factors = new ArrayList<>();
         double factorDistribution = this.distribution / elementDays;
 
@@ -61,27 +64,23 @@ public class PatternElement {
     }
 
     public List<Factor> generateEarningFactors(LocalDate startDate, boolean useCalendar, boolean useLinear) {
+        int elementDays = FactorCalculator.getDaysForTypeWithCalendar(this.type, startDate);
+        if (elementDays < 1) {
+            elementDays = 1;
+        } 
         int upFrontDuration = this.initialDuration;
         int shareDuration = this.distributionDuration;
-
         if (useCalendar) {
             upFrontDuration = getNormalizedDuration(startDate, upFrontDuration);
             shareDuration = getNormalizedDuration(startDate, shareDuration);
         }
-
-        int elementDays = FactorCalculator.getDaysForTypeWithCalendar(this.type, startDate);
-
-        if (elementDays <= 0) {
-            elementDays = 1;
+        if (upFrontDuration < 1) {
+            upFrontDuration = 1;
         }
-
-        if (upFrontDuration < elementDays) {
-            upFrontDuration = elementDays;
+        if (shareDuration < 1) {
+            shareDuration = 1;
         }
-
-        if (shareDuration < elementDays) {
-            shareDuration = elementDays;
-        }
+        int duration = Math.max(elementDays, Math.max(upFrontDuration, shareDuration));
 
         List<Factor> factors = new ArrayList<>();
         double initialFactorDistribution = this.initial / upFrontDuration;
@@ -90,7 +89,7 @@ public class PatternElement {
 
         double lastFactorValue = 0;
         double factorValue;
-        for (int i = 0; i < shareDuration; i++) {
+        for (int i = 0; i < duration; i++) {
             if (i < elementDays) {
                 if (!useLinear) {
                     int runInDay = i + 1;
@@ -99,16 +98,23 @@ public class PatternElement {
                 } else {
                     factorValue = factorDistribution / 2;
                 }
-                factors.add(new Factor(startDate, startDate.plusDays(i), initialFactorDistribution));
-                factors.add(new Factor(startDate.plusDays(i), startDate.plusDays(i), factorValue + lastFactorValue));
-                factors.add(new Factor(startDate.plusDays(i), startDate.plusDays((long) shareDuration + elementDays - i - 1), factorValue + lastFactorValue));
+                if (i < upFrontDuration) {
+                    factors.add(new Factor(startDate, startDate.plusDays(i), initialFactorDistribution));
+                } 
+                if (i < shareDuration) {
+                    factors.add(new Factor(startDate.plusDays(i), startDate.plusDays(i), factorValue + lastFactorValue));
+                    factors.add(new Factor(startDate.plusDays(i), startDate.plusDays((long) shareDuration + elementDays - i - 1), factorValue + lastFactorValue));
+                }
                 if (!useLinear) {
                     lastFactorValue = factorValue;
                 }
             } else {
-                int offset = i % (elementDays-1);
-                factors.add(new Factor(startDate, startDate.plusDays(i), initialFactorDistribution));
-                factors.add(new Factor(startDate.plusDays(offset), startDate.plusDays(i), factorDistribution));
+                if (i < upFrontDuration) {
+                    factors.add(new Factor(startDate, startDate.plusDays(i), initialFactorDistribution));
+                } 
+                if (i < shareDuration) {
+                    factors.add(new Factor(startDate.plusDays(i % (elementDays-1)), startDate.plusDays(i), factorDistribution));
+                }
                 lastFactorValue = 0;
             }
         }

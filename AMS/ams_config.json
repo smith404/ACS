@@ -5,25 +5,17 @@
         "type": "PREMIUM",
         "value": 1
     } ],
-    "defaultDuration": 399,
+    "defaultDuration": 1,
     "calendar": true,
-    "linear": true,
-    "insuredPeriodStartDate": "2021-07-01",
+    "linear": false,
+    "insuredPeriodStartDate": "2021-08-01",
     "factorType": "earning",
     "endOfPeriod": true,
     "inccuredTimeUnit": "quarter",
     "exposedTimeUnit": "quarter",
     "elements": [ {
         "type": "quarter",
-        "distribution": 0.25
-    }, {
-        "type": "quarter",
-        "distribution": 0.25
-    }, {
-        "type": "quarter",
-        "distribution": 0.25
-    }, {
-        "type": "quarter",
-        "distribution": 0.25
+        "initial": 1,
+        "distribution": 0
     } ]
 }

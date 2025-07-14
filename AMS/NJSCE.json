@@ -1,0 +1,40 @@
+{
+    "valuationDate": "2025-01-01",
+    "precision": 9,
+    "ultimateValues": [ {
+        "type": "PREMIUM",
+        "value": 3528.01
+    },
+    {
+        "type": "COSTS",
+        "value": -917.29
+    },
+    {
+        "type": "LOSSES",
+        "value": -1838.07
+    } ],
+    "defaultDuration": 360,
+    "calendar": true,
+    "insuredPeriodStartDate": "2024-12-19",
+    "factorType": "earning",
+    "endOfPeriod": true,
+    "inccuredTimeUnit": "month",
+    "exposedTimeUnit": "quarter",
+    "elements": [ {
+        "type": "quarter",
+        "duration": 900,
+        "distribution": 0.16
+    }, {
+        "type": "quarter",
+        "duration": 540,
+        "distribution": 0.12
+    }, {
+        "type": "quarter",
+        "duration": 1080,
+        "distribution": 0.32
+    }, {
+        "type": "quarter",
+        "duration": 900,
+        "distribution": 0.4
+    } ]
+}

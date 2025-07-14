@@ -40,6 +40,8 @@ public class AmsConfig {
 
     private String factorType;
 
+    private List<Element> riskProfile;
+
     private List<Element> elements;
 
     public LocalDate getValuationDateAsLocalDate() {
