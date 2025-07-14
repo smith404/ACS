@@ -56,7 +56,7 @@ public class Main {
                     FactorCalculator.FactorType.valueOf(config.getFactorType().toUpperCase())
             );
 
-            List<LocalDate> accountingPeriodsExposure = ExposureMatrix.getEndDatesBetween(
+            List<LocalDate> financialPeriodsExposure = ExposureMatrix.getEndDatesBetween(
                     factorCalculator.getEarliestExposureDate().getYear(),
                     factorCalculator.getLatestExposureDate().getYear(),
                     PatternElement.Type.valueOf(config.getExposedTimeUnit().toUpperCase())
@@ -68,7 +68,7 @@ public class Main {
                     PatternElement.Type.valueOf(config.getExposedTimeUnit().toUpperCase())
             );
 
-            List<LocalDate> accountingPeriodsIncurred = ExposureMatrix.getEndDatesBetween(
+            List<LocalDate> financialPeriodsIncurred = ExposureMatrix.getEndDatesBetween(
                     factorCalculator.getEarliestExposureDate().getYear(),
                     factorCalculator.getLatestExposureDate().getYear(),
                     PatternElement.Type.valueOf(config.getIncurredTimeUnit().toUpperCase())
@@ -94,24 +94,24 @@ public class Main {
                 getLogger().info("\n" + developmentMatrix.generateExposureMatrixTable(config.getPrecision()));
             }
 
-            ExposureMatrix accountingMatrix = new ExposureMatrix(
+            ExposureMatrix financialMatrix = new ExposureMatrix(
                     factorCalculator.getAllFactors(),
                     config.getInsuredPeriodStartDateAsLocalDate(),
-                    accountingPeriodsIncurred,
-                    accountingPeriodsExposure,
+                    financialPeriodsIncurred,
+                    financialPeriodsExposure,
                     config.isEndOfPeriod()
             );
 
             if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
-                getLogger().info("Accounting Period Factor Matrix");
-                getLogger().info("\n" + accountingMatrix.generateExposureMatrixTable(config.getPrecision()));
+                getLogger().info("Financial Period Factor Matrix");
+                getLogger().info("\n" + financialMatrix.generateExposureMatrixTable(config.getPrecision()));
             }
 
             ExposureMatrix standardMatrix = new ExposureMatrix(
                     factorCalculator.getAllFactors(),
                     config.getInsuredPeriodStartDateAsLocalDate(),
                     developmentPeriodsIncurred,
-                    accountingPeriodsExposure,
+                    financialPeriodsExposure,
                     config.isEndOfPeriod()
             );
 
@@ -121,15 +121,15 @@ public class Main {
             }
 
             if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
-                getLogger().info("Incurred Factor Vector");
+                getLogger().info("Incurred Factor Vector (Financial Periods)");
                 getLogger().info("\n" + printExposureVector(
-                    standardMatrix.generateExposureVector(false), config.getPrecision()));
+                    financialMatrix.generateExposureVector(false), config.getPrecision()));
             }
 
             if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
-                getLogger().info("Earned Factor Vector");
+                getLogger().info("Earned Factor Vector (Financial Periods)");
                 getLogger().info("\n" + printExposureVector(
-                    standardMatrix.generateExposureVector(), config.getPrecision()));
+                    financialMatrix.generateExposureVector(), config.getPrecision()));
             }
 
             for (UltimateValue uv : ultimateValues) {
@@ -137,7 +137,7 @@ public class Main {
                         factorCalculator.applyUltimateValueToPattern(uv),
                         config.getInsuredPeriodStartDateAsLocalDate(),
                         developmentPeriodsIncurred,
-                        accountingPeriodsExposure,
+                        financialPeriodsExposure,
                         config.isEndOfPeriod()
                 );
 
