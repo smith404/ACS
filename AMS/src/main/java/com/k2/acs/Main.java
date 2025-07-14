@@ -56,23 +56,36 @@ public class Main {
                     FactorCalculator.FactorType.valueOf(config.getFactorType().toUpperCase())
             );
 
-            List<LocalDate> accountingPeriods = ExposureMatrix.getEndDatesBetween(
+            List<LocalDate> accountingPeriodsExposure = ExposureMatrix.getEndDatesBetween(
                     factorCalculator.getEarliestExposureDate().getYear(),
                     factorCalculator.getLatestExposureDate().getYear(),
                     PatternElement.Type.valueOf(config.getExposedTimeUnit().toUpperCase())
             );
 
-            List<LocalDate> developmentPeriods = ExposureMatrix.getBucketEndDates(
+            List<LocalDate> developmentPeriodsExposure = ExposureMatrix.getBucketEndDates(
                     config.getInsuredPeriodStartDateAsLocalDate(),
                     30,
                     PatternElement.Type.valueOf(config.getExposedTimeUnit().toUpperCase())
             );
 
+            List<LocalDate> accountingPeriodsIncurred = ExposureMatrix.getEndDatesBetween(
+                    factorCalculator.getEarliestExposureDate().getYear(),
+                    factorCalculator.getLatestExposureDate().getYear(),
+                    PatternElement.Type.valueOf(config.getIncurredTimeUnit().toUpperCase())
+            );
+
+            List<LocalDate> developmentPeriodsIncurred = ExposureMatrix.getBucketEndDates(
+                    config.getInsuredPeriodStartDateAsLocalDate(),
+                    30,
+                    PatternElement.Type.valueOf(config.getIncurredTimeUnit().toUpperCase())
+            );
+
+
             ExposureMatrix developmentMatrix = new ExposureMatrix(
                     factorCalculator.getAllFactors(),
                     config.getInsuredPeriodStartDateAsLocalDate(),
-                    developmentPeriods,
-                    developmentPeriods,
+                    developmentPeriodsIncurred,
+                    developmentPeriodsExposure,
                     config.isEndOfPeriod()
             );
 
@@ -84,8 +97,8 @@ public class Main {
             ExposureMatrix accountingMatrix = new ExposureMatrix(
                     factorCalculator.getAllFactors(),
                     config.getInsuredPeriodStartDateAsLocalDate(),
-                    accountingPeriods,
-                    accountingPeriods,
+                    accountingPeriodsIncurred,
+                    accountingPeriodsExposure,
                     config.isEndOfPeriod()
             );
 
@@ -97,8 +110,8 @@ public class Main {
             ExposureMatrix standardMatrix = new ExposureMatrix(
                     factorCalculator.getAllFactors(),
                     config.getInsuredPeriodStartDateAsLocalDate(),
-                    developmentPeriods,
-                    accountingPeriods,
+                    developmentPeriodsIncurred,
+                    accountingPeriodsExposure,
                     config.isEndOfPeriod()
             );
 
@@ -123,8 +136,8 @@ public class Main {
                 ExposureMatrix exposureMatrix = new ExposureMatrix(
                         factorCalculator.applyUltimateValueToPattern(uv),
                         config.getInsuredPeriodStartDateAsLocalDate(),
-                        developmentPeriods,
-                        accountingPeriods,
+                        developmentPeriodsIncurred,
+                        accountingPeriodsExposure,
                         config.isEndOfPeriod()
                 );
 

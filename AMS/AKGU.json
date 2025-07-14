@@ -19,7 +19,7 @@
     "insuredPeriodStartDate": "1976-03-01",
     "factorType": "earning",
     "endOfPeriod": true,
-    "inccuredTimeUnit": "quarter",
+    "incurredTimeUnit": "quarter",
     "exposedTimeUnit": "quarter",
     "elements": [ {
         "type": "quarter",

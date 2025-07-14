@@ -18,8 +18,8 @@
     "insuredPeriodStartDate": "2024-12-19",
     "factorType": "earning",
     "endOfPeriod": true,
-    "inccuredTimeUnit": "month",
-    "exposedTimeUnit": "quarter",
+    "incurredTimeUnit": "quarter",
+    "exposedTimeUnit": "month",
     "elements": [ {
         "type": "quarter",
         "duration": 900,
