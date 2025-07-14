@@ -113,6 +113,7 @@ public class PatternElement {
                     factors.add(new Factor(startDate, startDate.plusDays(i), initialFactorDistribution));
                 } 
                 if (i < shareDuration) {
+                    // This is not quite right, but it is close enough for now.
                     factors.add(new Factor(startDate.plusDays(i % (elementDays-1)), startDate.plusDays(i), factorDistribution));
                 }
                 lastFactorValue = 0;
