@@ -41,19 +41,27 @@ public class ExposureMatrix implements DateCriteriaSummable {
                 .doubleValue();
     }
 
-    public static List<LocalDate> getBucketEndDates(LocalDate startDate, int numBuckets, PatternElement.Type frequency) {
+    public static List<LocalDate> getBucketEndDates(LocalDate startDate, int endYear, PatternElement.Type frequency) {
+        LocalDate endDate = LocalDate.of(endYear, 12, 31);
+        return getBucketEndDates(startDate, endDate, frequency);
+    }
+
+    public static List<LocalDate> getBucketEndDates(LocalDate startDate, LocalDate endDate, PatternElement.Type frequency) {
         List<LocalDate> endDates = new ArrayList<>();
-        LocalDate current = startDate;
-        for (int i = 0; i < numBuckets; i++) {
+        LocalDate currentDate = startDate;
+        while (!currentDate.isAfter(endDate)) {
             switch (frequency) {
-                case DAY -> current = current.plusDays(1);
-                case WEEK -> current = current.plusWeeks(1);
-                case MONTH -> current = current.plusMonths(1);
-                case QUARTER -> current = current.plusMonths(3);
-                case YEAR -> current = current.plusYears(1);
+                case DAY -> currentDate = currentDate.plusDays(1);
+                case WEEK -> currentDate = currentDate.plusWeeks(1);
+                case MONTH -> currentDate = currentDate.plusMonths(1);
+                case QUARTER -> currentDate = currentDate.plusMonths(3);
+                case YEAR -> currentDate = currentDate.plusYears(1);
                 default -> throw new IllegalArgumentException("Unsupported frequency type: " + frequency);
             }
-            endDates.add(current.minusDays(1));
+            LocalDate previousDate = currentDate.minusDays(1);
+            if (!previousDate.isAfter(endDate) || previousDate.isEqual(endDate)) {
+                endDates.add(previousDate);
+            }
         }
         return endDates;
     }

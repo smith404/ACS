@@ -64,7 +64,7 @@ public class Main {
 
             List<LocalDate> developmentPeriodsExposure = ExposureMatrix.getBucketEndDates(
                     config.getInsuredPeriodStartDateAsLocalDate(),
-                    30,
+                    factorCalculator.getLatestExposureDate().getYear(),
                     PatternElement.Type.valueOf(config.getExposedTimeUnit().toUpperCase())
             );
 
@@ -76,7 +76,7 @@ public class Main {
 
             List<LocalDate> developmentPeriodsIncurred = ExposureMatrix.getBucketEndDates(
                     config.getInsuredPeriodStartDateAsLocalDate(),
-                    30,
+                    factorCalculator.getLatestIncurredDate().getYear(),
                     PatternElement.Type.valueOf(config.getIncurredTimeUnit().toUpperCase())
             );
 
