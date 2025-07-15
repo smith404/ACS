@@ -146,9 +146,100 @@ public class Main {
                     getLogger().info("\n" + exposureMatrix.generateExposureMatrixTable(2));
                 }
             }
+
+           logger.setUseParentHandlers(true);
+           String outputString = args[1];
+            if (outputString != null && !outputString.isEmpty()) {
+                if (!isValidOutputString(outputString)) {
+                    getLogger().warning("Invalid output string format. Must be exactly 4 characters: " +
+                            "1st character: E or W, 2nd and 3rd characters: F or D, 4th character: C, R, or M");
+                    return;
+                }
+
+                // Determine FactorType based on first character of outputString
+                FactorCalculator.FactorType factorType = outputString.toUpperCase().charAt(0) == 'E' 
+                    ? FactorCalculator.FactorType.EARNING 
+                    : FactorCalculator.FactorType.WRITING;
+
+                factorCalculator.generateDailyFactors(
+                        config.getInsuredPeriodStartDateAsLocalDate(),
+                        factorType
+                );
+
+                // Determine periods for ExposureMatrix based on outputString
+                List<LocalDate> incurredPeriods;
+                List<LocalDate> exposurePeriods;
+                char secondChar = Character.toUpperCase(outputString.charAt(1));
+                char thirdChar = Character.toUpperCase(outputString.charAt(2));
+
+                if (secondChar == 'D') {
+                    incurredPeriods = developmentPeriodsIncurred;
+                } else {
+                    incurredPeriods = financialPeriodsIncurred;
+                }
+
+                if (thirdChar == 'D') {
+                    exposurePeriods = developmentPeriodsExposure;
+                } else {
+                    exposurePeriods = financialPeriodsExposure;
+                }
+
+                ExposureMatrix outputMatrix = new ExposureMatrix(
+                        factorCalculator.getAllFactors(),
+                        config.getInsuredPeriodStartDateAsLocalDate(),
+                        incurredPeriods,
+                        exposurePeriods,
+                        config.isEndOfPeriod()
+                );
+
+                char fourthChar = Character.toUpperCase(outputString.charAt(3));
+                if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
+                    if (fourthChar == 'M') {
+                        getLogger().info("Output ExposureMatrix (Matrix View):");
+                        getLogger().info("\n" + outputMatrix.generateExposureMatrixTable(config.getPrecision()));
+                    } else if (fourthChar == 'C') {
+                        getLogger().info("Output ExposureMatrix (Cumulative Columns):");
+                        getLogger().info("\n" + printExposureVector(outputMatrix.generateExposureVector(), config.getPrecision()));
+                    } else if (fourthChar == 'R') {
+                        getLogger().info("Output ExposureMatrix (Cumulative Rows):");
+                        getLogger().info("\n" + printExposureVector(outputMatrix.generateExposureVector(false), config.getPrecision()));
+                    }
+                }
+                
+            }
+            
         } catch (Exception e) {
             getLogger().warning("Error processing the configuration file: " + e.getMessage());
         }
+    }
+
+     private static boolean isValidOutputString(String outputString) {
+        if (outputString == null || outputString.length() != 4) {
+            return false;
+        }
+        
+        String upper = outputString.toUpperCase();
+        
+        // First character must be E or W
+        char first = upper.charAt(0);
+        if (first != 'E' && first != 'W') {
+            return false;
+        }
+        
+        // Second and third characters must be F or D
+        char second = upper.charAt(1);
+        char third = upper.charAt(2);
+        if ((second != 'F' && second != 'D') || (third != 'F' && third != 'D')) {
+            return false;
+        }
+        
+        // Fourth character must be C, R, or M
+        char fourth = upper.charAt(3);
+        if (fourth != 'C' && fourth != 'R' && fourth != 'M') {
+            return false;
+        }
+        
+        return true;
     }
 
     private static Pattern createPattern(AmsConfig config) {
