@@ -89,34 +89,32 @@ public class PatternElement {
 
         double lastFactorValue = 0;
         double factorValue;
-        for (int i = 0; i < duration; i++) {
-            if (i < elementDays) {
-                if (!useLinear) {
-                    int runInDay = i + 1;
-                    double runInFactor = (runInDay * scaleFactor);
-                    factorValue = (factorDistribution / 2) * runInFactor;
-                } else {
-                    factorValue = factorDistribution / 2;
-                }
-                if (i < upFrontDuration) {
-                    factors.add(new Factor(startDate, startDate.plusDays(i), initialFactorDistribution));
-                } 
-                if (i < shareDuration) {
-                    factors.add(new Factor(startDate.plusDays(i), startDate.plusDays(i), factorValue + lastFactorValue));
-                    factors.add(new Factor(startDate.plusDays(i), startDate.plusDays((long) shareDuration + elementDays - i - 1), factorValue + lastFactorValue));
-                }
-                if (!useLinear) {
-                    lastFactorValue = factorValue;
-                }
+        for (int i = 0; i < elementDays; i++) {
+            if (!useLinear) {
+                int runInDay = i + 1;
+                double runInFactor = (runInDay * scaleFactor);
+                factorValue = (factorDistribution / 2) * runInFactor;
             } else {
-                if (i < upFrontDuration) {
-                    factors.add(new Factor(startDate, startDate.plusDays(i), initialFactorDistribution));
-                } 
-                if (i < shareDuration) {
-                    // This is not quite right, but it is close enough for now.
-                    factors.add(new Factor(startDate.plusDays(i % (elementDays-1)), startDate.plusDays(i), factorDistribution));
-                }
-                lastFactorValue = 0;
+                factorValue = factorDistribution / 2;
+            }
+            if (i < upFrontDuration) {
+                factors.add(new Factor(startDate, startDate.plusDays(i), initialFactorDistribution));
+            } 
+            if (i < shareDuration) {
+                factors.add(new Factor(startDate.plusDays(i), startDate.plusDays(i), factorValue + lastFactorValue));
+                factors.add(new Factor(startDate.plusDays(i), startDate.plusDays((long) shareDuration + elementDays - i - 1), factorValue + lastFactorValue));
+            }
+            if (!useLinear) {
+                lastFactorValue = factorValue;
+            }
+        }
+        for (int i = elementDays; i < duration; i++) {
+            if (i < upFrontDuration) {
+                factors.add(new Factor(startDate, startDate.plusDays(i), initialFactorDistribution));
+            } 
+            if (i < shareDuration) {
+                // This is not quite right, but it is close enough for now.
+                factors.add(new Factor(startDate.plusDays(i % (elementDays-1)), startDate.plusDays(i), factorDistribution));
             }
         }
 
