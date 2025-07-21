@@ -5,7 +5,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class ScenarioValuation extends Scenario{
+public class ScenarioValuation extends Scenario {
     private String financialPeriod;
     private String currency;
     private double amount;

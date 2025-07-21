@@ -1,17 +1,17 @@
 {
     "valuationDate": "2025-01-01",
     "precision": 9,
-    "amount": 1,
     "ultimateValues": [ {
         "type": "PREMIUM",
         "value": 1
     } ],
-    "riskAttachingDuration": 360,
+    "defaultDuration": 360,
     "calendar": true,
-    "insuredPeriodStartDate": "2023-08-02",
+    "linear": false,
+    "insuredPeriodStartDate": "2024-02-01",
     "factorType": "earning",
     "endOfPeriod": true,
-    "inccuredTimeUnit": "quarter",
+    "incurredTimeUnit": "quarter",
     "exposedTimeUnit": "quarter",
     "elements": [ {
         "type": "quarter",

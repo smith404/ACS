@@ -14,12 +14,12 @@
         "type": "LOSSES",
         "value": -10125.15
     } ],
-    "riskAttachingDuration": 360,
+    "defaultDuration": 360,
     "calendar": true,
     "insuredPeriodStartDate": "1976-03-01",
     "factorType": "earning",
     "endOfPeriod": true,
-    "inccuredTimeUnit": "quarter",
+    "incurredTimeUnit": "quarter",
     "exposedTimeUnit": "quarter",
     "elements": [ {
         "type": "quarter",

@@ -1,27 +1,28 @@
 package com.k2.acs.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
-import lombok.Getter;
-import lombok.Setter;
-
-import java.io.Console;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.ArrayList;
+import java.util.logging.Logger;
 
 @Getter
 @Setter
 public class FactorCalculator implements DateCriteriaSummable {
+    private static final Logger logger = Logger.getLogger(FactorCalculator.class.getName());
+
     public enum FactorType {
         WRITING,
         EARNING
     }
 
     private static final Map<PatternElement.Type, Integer> typeToDaysMap = new EnumMap<>(PatternElement.Type.class);
+
     static {
         typeToDaysMap.put(PatternElement.Type.DAY, 1);
         typeToDaysMap.put(PatternElement.Type.WEEK, 7);
@@ -29,6 +30,7 @@ public class FactorCalculator implements DateCriteriaSummable {
         typeToDaysMap.put(PatternElement.Type.QUARTER, 90);
         typeToDaysMap.put(PatternElement.Type.YEAR, 360);
     }
+
     public static void updateTypeToDays(PatternElement.Type type, int days) {
         typeToDaysMap.put(type, days);
     }
@@ -51,6 +53,7 @@ public class FactorCalculator implements DateCriteriaSummable {
     }
 
     private boolean useCalendar = true;
+    private boolean useLinear = false;
     private LocalDate writtenDate = LocalDate.now();
     private final int precision;
     private final Pattern pattern;
@@ -68,46 +71,42 @@ public class FactorCalculator implements DateCriteriaSummable {
         this.pattern = pattern;
     }
 
-    private double roundToPrecision(double value) {
-        return BigDecimal.valueOf(value)
-                         .setScale(precision, RoundingMode.HALF_UP)
-                         .doubleValue();
-    }
-
-    public List<Factor> calculateDailyFactors(LocalDate startDate, FactorType factorType) {
+    public void generateDailyFactors(LocalDate startDate, FactorType factorType) {
+        long startTime = System.currentTimeMillis();
         allFactors = new ArrayList<>();
         for (PatternElement element : pattern.getElements()) {
             List<Factor> factors = switch (factorType) {
                 case WRITING -> element.generateWritingFactors(startDate);
-                case EARNING -> element.generateEarningFactors(startDate, useCalendar);
+                case EARNING -> element.generateEarningFactors(startDate, useCalendar, useLinear);
             };
             // Only add factors with non-zero distribution
             factors.stream()
-                   .filter(factor -> factor.getDistribution() != 0.0)
-                   .forEach(factor -> {
-                       if (factor.getExposureDate().compareTo(writtenDate) < 0) {
-                           factor.setWritten(true);
-                       }
-                       allFactors.add(factor);
-                   });
-            startDate = startDate.plusDays(FactorCalculator.getDaysForTypeWithCalendar(element.getType(), startDate)); 
+                    .filter(factor -> factor.getValue() != 0.0)
+                    .forEach(factor -> {
+                        if (factor.getExposureDate().isBefore(writtenDate)) {
+                            factor.setWritten(true);
+                        }
+                        allFactors.add(factor);
+                    });
+            startDate = startDate.plusDays(FactorCalculator.getDaysForTypeWithCalendar(element.getType(), startDate));
         }
-        return allFactors;
+        long endTime = System.currentTimeMillis();
+        if (logger.isLoggable(java.util.logging.Level.INFO)) {
+            logger.info(String.format("Generation of daily factors took %d ms to generate %d factors.", (endTime - startTime), allFactors.size()));
+        }
     }
 
-    public void applyUltimateValueToPattern(UltimateValue ultimateValue) {
+    public List<Factor> applyUltimateValueToPattern(UltimateValue ultimateValue) {
         if (allFactors == null) {
             throw new IllegalStateException("allFactors must not be null before applying the ultimate value.");
         }
-        allFactors = allFactors.stream()
-                               .map(factor -> new Factor(
-                                     factor.getIncurredDate(),
-                                     factor.getDistribution(),
-                                     factor.getExposureDate(),
-                                     factor.getDistribution() * ultimateValue.getAmount(),
-                                     factor.isWritten()
-                               ))
-                               .toList();
+        return allFactors.stream()
+                .map(factor -> new Factor(
+                        factor.getIncurredDate(),
+                        factor.getExposureDate(),
+                        factor.getValue() * ultimateValue.getAmount(),
+                        factor.isWritten()))
+                .toList();
     }
 
     public void normalizeFactors() {
@@ -115,20 +114,19 @@ public class FactorCalculator implements DateCriteriaSummable {
             throw new IllegalStateException("allFactors must not be null before normalization.");
         }
         double totalDistribution = allFactors.stream()
-                                   .mapToDouble(Factor::getDistribution)
-                                   .sum();
+                .mapToDouble(Factor::getValue)
+                .sum();
         if (totalDistribution == 0) {
             throw new IllegalArgumentException("Total value of factors cannot be zero for normalization.");
         }
 
-        allFactors =  allFactors.stream()
-                      .map(factor -> new Factor(
+        allFactors = allFactors.stream()
+                .map(factor -> new Factor(
                         factor.getIncurredDate(),
-                          factor.getDistribution() / totalDistribution,
-                          factor.getExposureDate(),
-                          factor.getValue()
-                      ))
-                      .toList();
+                        factor.getExposureDate(),
+                        factor.getValue() / totalDistribution
+                ))
+                .toList();
     }
 
     public LocalDate getEarliestIncurredDate() {
@@ -136,9 +134,9 @@ public class FactorCalculator implements DateCriteriaSummable {
             throw new IllegalStateException("allFactors must not be null or empty.");
         }
         return allFactors.stream()
-                         .map(Factor::getIncurredDate)
-                         .min(LocalDate::compareTo)
-                         .orElseThrow(() -> new IllegalStateException("Unable to determine the earliest incurred date."));
+                .map(Factor::getIncurredDate)
+                .min(LocalDate::compareTo)
+                .orElseThrow(() -> new IllegalStateException("Unable to determine the earliest incurred date."));
     }
 
     public LocalDate getLatestIncurredDate() {
@@ -146,9 +144,9 @@ public class FactorCalculator implements DateCriteriaSummable {
             throw new IllegalStateException("allFactors must not be null or empty.");
         }
         return allFactors.stream()
-                         .map(Factor::getIncurredDate)
-                         .max(LocalDate::compareTo)
-                         .orElseThrow(() -> new IllegalStateException("Unable to determine the latest incurred date."));
+                .map(Factor::getIncurredDate)
+                .max(LocalDate::compareTo)
+                .orElseThrow(() -> new IllegalStateException("Unable to determine the latest incurred date."));
     }
 
     public LocalDate getEarliestExposureDate() {
@@ -156,9 +154,9 @@ public class FactorCalculator implements DateCriteriaSummable {
             throw new IllegalStateException("allFactors must not be null or empty.");
         }
         return allFactors.stream()
-                         .map(Factor::getExposureDate)
-                         .min(LocalDate::compareTo)
-                         .orElseThrow(() -> new IllegalStateException("Unable to determine the earliest exposure date."));
+                .map(Factor::getExposureDate)
+                .min(LocalDate::compareTo)
+                .orElseThrow(() -> new IllegalStateException("Unable to determine the earliest exposure date."));
     }
 
     public LocalDate getLatestExposureDate() {
@@ -166,20 +164,20 @@ public class FactorCalculator implements DateCriteriaSummable {
             throw new IllegalStateException("allFactors must not be null or empty.");
         }
         return allFactors.stream()
-                         .map(Factor::getExposureDate)
-                         .max(LocalDate::compareTo)
-                         .orElseThrow(() -> new IllegalStateException("Unable to determine the latest exposure date."));
+                .map(Factor::getExposureDate)
+                .max(LocalDate::compareTo)
+                .orElseThrow(() -> new IllegalStateException("Unable to determine the latest exposure date."));
     }
 
     @Override
-    public double getSumByDateCriteria(LocalDate date, 
-                                       String incurredDateComparison, 
+    public double getSumByDateCriteria(LocalDate date,
+                                       String incurredDateComparison,
                                        String exposureDateComparison) {
         return allFactors.stream()
-                         .filter(factor -> compareDates(factor.getIncurredDate(), date, incurredDateComparison) &&
-                                           compareDates(factor.getExposureDate(), date, exposureDateComparison))
-                         .mapToDouble(Factor::getValue)
-                         .sum();
+                .filter(factor -> compareDates(factor.getIncurredDate(), date, incurredDateComparison) &&
+                        compareDates(factor.getExposureDate(), date, exposureDateComparison))
+                .mapToDouble(Factor::getValue)
+                .sum();
     }
 
     private boolean compareDates(LocalDate bucketDate, LocalDate targetDate, String comparison) {

@@ -3,35 +3,39 @@
     "precision": 9,
     "ultimateValues": [ {
         "type": "PREMIUM",
-        "value": 5223801.49
+        "value": 3528.01
     },
     {
         "type": "COSTS",
-        "value": -1160224.77
+        "value": -917.29
     },
     {
         "type": "LOSSES",
-        "value": -3961501.21
+        "value": -1838.07
     } ],
     "defaultDuration": 360,
     "calendar": true,
-    "insuredPeriodStartDate": "2024-08-02",
+    "insuredPeriodStartDate": "2024-12-19",
     "factorType": "earning",
     "endOfPeriod": true,
+    "linear": false,
     "incurredTimeUnit": "quarter",
     "exposedTimeUnit": "quarter",
     "elements": [ {
         "type": "quarter",
-        "initial": 0.1284,
-        "distribution": 0.2179
+        "duration": 900,
+        "distribution": 0.16
     }, {
         "type": "quarter",
-        "distribution": 0.2179
+        "duration": 540,
+        "distribution": 0.12
     }, {
         "type": "quarter",
-        "distribution": 0.2179
+        "duration": 1080,
+        "distribution": 0.32
     }, {
         "type": "quarter",
-        "distribution": 0.2179
+        "duration": 900,
+        "distribution": 0.4
     } ]
 }
