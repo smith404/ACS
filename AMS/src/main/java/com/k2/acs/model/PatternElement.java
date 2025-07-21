@@ -67,7 +67,10 @@ public class PatternElement {
         int elementDays = FactorCalculator.getDaysForTypeWithCalendar(this.type, startDate);
         if (elementDays < 1) {
             elementDays = 1;
-        } 
+        }
+
+        System.out.println("Quick factor: " + getQuarterAlignmentPercentage(startDate, startDate.plusDays((long)elementDays - 1)));
+
         int upFrontDuration = this.initialDuration;
         int shareDuration = this.distributionDuration;
         if (useCalendar) {
@@ -102,7 +105,7 @@ public class PatternElement {
             } 
             if (i < shareDuration) {
                 factors.add(new Factor(startDate.plusDays(i), startDate.plusDays(i), factorValue + lastFactorValue));
-                factors.add(new Factor(startDate.plusDays(i), startDate.plusDays((long) shareDuration + elementDays - i - 1), factorValue + lastFactorValue));
+                factors.add(new Factor(startDate.plusDays((long) elementDays - i), startDate.plusDays(((long) shareDuration + (long) elementDays - i - 1L)), factorValue + lastFactorValue));
             }
             if (!useLinear) {
                 lastFactorValue = factorValue;
@@ -113,8 +116,10 @@ public class PatternElement {
                 factors.add(new Factor(startDate, startDate.plusDays(i), initialFactorDistribution));
             } 
             if (i < shareDuration) {
-                // This is not quite right, but it is close enough for now.
-                factors.add(new Factor(startDate.plusDays(i % (elementDays-1)), startDate.plusDays(i), factorDistribution));
+                factorValue = factorDistribution / elementDays;
+                for (int j = 0; j < elementDays; j++) {
+                    factors.add(new Factor(startDate.plusDays(j), startDate.plusDays(i), factorValue));
+                }
             }
         }
 
@@ -127,5 +132,39 @@ public class PatternElement {
 
     public enum Type {
         DAY, WEEK, MONTH, QUARTER, YEAR
+    }
+
+    public double getQuarterAlignmentPercentage(LocalDate startDate, LocalDate endDate) {
+        // Check if start and end dates exactly match a calendar quarter
+        LocalDate quarterStart = getQuarterStart(startDate);
+        LocalDate quarterEnd = getQuarterEnd(quarterStart);
+        
+        if (startDate.equals(quarterStart) && endDate.equals(quarterEnd)) {
+            return 100.0;
+        }
+        
+        // Find if any quarter starts within the given date range
+        LocalDate currentQuarterStart = quarterStart;
+        while (!currentQuarterStart.isAfter(endDate)) {
+            if (currentQuarterStart.isAfter(startDate) && !currentQuarterStart.isAfter(endDate)) {
+                // Quarter starts within the range - calculate percentage
+                long totalDays = java.time.temporal.ChronoUnit.DAYS.between(startDate, endDate) + 1;
+                long daysToQuarterStart = java.time.temporal.ChronoUnit.DAYS.between(startDate, currentQuarterStart);
+                return (double) daysToQuarterStart / totalDays * 100.0;
+            }
+            currentQuarterStart = currentQuarterStart.plusMonths(3);
+        }
+        
+        return 0.0;
+    }
+    
+    private LocalDate getQuarterStart(LocalDate date) {
+        int quarter = (date.getMonthValue() - 1) / 3;
+        int quarterStartMonth = quarter * 3 + 1;
+        return LocalDate.of(date.getYear(), quarterStartMonth, 1);
+    }
+    
+    private LocalDate getQuarterEnd(LocalDate quarterStart) {
+        return quarterStart.plusMonths(3).minusDays(1);
     }
 }
