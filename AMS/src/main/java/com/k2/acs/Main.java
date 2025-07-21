@@ -46,109 +46,13 @@ public class Main {
                 }
             }
 
-            FactorCalculator factorCalculator = new FactorCalculator(config.getPrecision(), pattern);
-            factorCalculator.setUseCalendar(config.isCalendar());
-            factorCalculator.setUseLinear(config.isLinear());
-            factorCalculator.setWrittenDate(config.getValuationDateAsLocalDate());
+            logger.setUseParentHandlers(true);
 
-            factorCalculator.generateDailyFactors(
-                    config.getInsuredPeriodStartDateAsLocalDate(),
-                    FactorCalculator.FactorType.valueOf(config.getFactorType().toUpperCase())
-            );
-
-            List<LocalDate> financialPeriodsExposure = ExposureMatrix.getEndDatesBetween(
-                    factorCalculator.getEarliestExposureDate().getYear(),
-                    factorCalculator.getLatestExposureDate().getYear(),
-                    PatternElement.Type.valueOf(config.getExposedTimeUnit().toUpperCase())
-            );
-
-            List<LocalDate> developmentPeriodsExposure = ExposureMatrix.getBucketEndDates(
-                    config.getInsuredPeriodStartDateAsLocalDate(),
-                    factorCalculator.getLatestExposureDate().getYear(),
-                    PatternElement.Type.valueOf(config.getExposedTimeUnit().toUpperCase())
-            );
-
-            List<LocalDate> financialPeriodsIncurred = ExposureMatrix.getEndDatesBetween(
-                    factorCalculator.getEarliestExposureDate().getYear(),
-                    factorCalculator.getLatestExposureDate().getYear(),
-                    PatternElement.Type.valueOf(config.getIncurredTimeUnit().toUpperCase())
-            );
-
-            List<LocalDate> developmentPeriodsIncurred = ExposureMatrix.getBucketEndDates(
-                    config.getInsuredPeriodStartDateAsLocalDate(),
-                    factorCalculator.getLatestIncurredDate().getYear(),
-                    PatternElement.Type.valueOf(config.getIncurredTimeUnit().toUpperCase())
-            );
-
-
-            ExposureMatrix developmentMatrix = new ExposureMatrix(
-                    factorCalculator.getAllFactors(),
-                    config.getInsuredPeriodStartDateAsLocalDate(),
-                    developmentPeriodsIncurred,
-                    developmentPeriodsExposure,
-                    config.isEndOfPeriod()
-            );
-
-            if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
-                getLogger().info("Development Period Factor Matrix");
-                getLogger().info("\n" + developmentMatrix.generateExposureMatrixTable(config.getPrecision()));
+            if (args.length < 2) {
+                return;
             }
 
-            ExposureMatrix financialMatrix = new ExposureMatrix(
-                    factorCalculator.getAllFactors(),
-                    config.getInsuredPeriodStartDateAsLocalDate(),
-                    financialPeriodsIncurred,
-                    financialPeriodsExposure,
-                    config.isEndOfPeriod()
-            );
-
-            if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
-                getLogger().info("Financial Period Factor Matrix");
-                getLogger().info("\n" + financialMatrix.generateExposureMatrixTable(config.getPrecision()));
-            }
-
-            ExposureMatrix standardMatrix = new ExposureMatrix(
-                    factorCalculator.getAllFactors(),
-                    config.getInsuredPeriodStartDateAsLocalDate(),
-                    developmentPeriodsIncurred,
-                    financialPeriodsExposure,
-                    config.isEndOfPeriod()
-            );
-
-            if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
-                getLogger().info("Standard View Factor Matrix");
-                getLogger().info("\n" + standardMatrix.generateExposureMatrixTable(config.getPrecision()));
-            }
-
-            if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
-                getLogger().info("Incurred Factor Vector (Financial Periods)");
-                getLogger().info("\n" + printExposureVector(
-                    financialMatrix.generateExposureVector(false), config.getPrecision()));
-            }
-
-            if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
-                getLogger().info("Earned Factor Vector (Financial Periods)");
-                getLogger().info("\n" + printExposureVector(
-                    financialMatrix.generateExposureVector(), config.getPrecision()));
-            }
-
-            for (UltimateValue uv : ultimateValues) {
-                ExposureMatrix exposureMatrix = new ExposureMatrix(
-                        factorCalculator.applyUltimateValueToPattern(uv),
-                        config.getInsuredPeriodStartDateAsLocalDate(),
-                        developmentPeriodsIncurred,
-                        financialPeriodsExposure,
-                        config.isEndOfPeriod()
-                );
-
-                if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
-                    getLogger().info("Applying UltimateValue of type: " + uv.getType() + " with amount: " + uv.getAmount());
-                    getLogger().info("\n" + exposureMatrix.generateExposureMatrixTable(2));
-                }
-            }
-
-           logger.setUseParentHandlers(true);
-           String outputString = args[1];
+            String outputString = args[1];
             if (outputString != null && !outputString.isEmpty()) {
                 if (!isValidOutputString(outputString)) {
                     getLogger().warning("Invalid output string format. Must be exactly 4 characters: " +
@@ -161,9 +65,39 @@ public class Main {
                     ? FactorCalculator.FactorType.EARNING 
                     : FactorCalculator.FactorType.WRITING;
 
+                FactorCalculator factorCalculator = new FactorCalculator(config.getPrecision(), pattern);
+                factorCalculator.setUseCalendar(config.isCalendar());
+                factorCalculator.setUseLinear(config.isLinear());
+                factorCalculator.setFast(config.isFast());
+                factorCalculator.setWrittenDate(config.getValuationDateAsLocalDate());
+
                 factorCalculator.generateDailyFactors(
                         config.getInsuredPeriodStartDateAsLocalDate(),
                         factorType
+                );
+
+                List<LocalDate> financialPeriodsExposure = ExposureMatrix.getEndDatesBetween(
+                        factorCalculator.getEarliestExposureDate().getYear(),
+                        factorCalculator.getLatestExposureDate().getYear(),
+                        PatternElement.Type.valueOf(config.getExposedTimeUnit().toUpperCase())
+                );
+
+                List<LocalDate> developmentPeriodsExposure = ExposureMatrix.getBucketEndDates(
+                        config.getInsuredPeriodStartDateAsLocalDate(),
+                        factorCalculator.getLatestExposureDate().getYear(),
+                        PatternElement.Type.valueOf(config.getExposedTimeUnit().toUpperCase())
+                );
+
+                List<LocalDate> financialPeriodsIncurred = ExposureMatrix.getEndDatesBetween(
+                        factorCalculator.getEarliestExposureDate().getYear(),
+                        factorCalculator.getLatestExposureDate().getYear(),
+                        PatternElement.Type.valueOf(config.getIncurredTimeUnit().toUpperCase())
+                );
+
+                List<LocalDate> developmentPeriodsIncurred = ExposureMatrix.getBucketEndDates(
+                        config.getInsuredPeriodStartDateAsLocalDate(),
+                        factorCalculator.getLatestIncurredDate().getYear(),
+                        PatternElement.Type.valueOf(config.getIncurredTimeUnit().toUpperCase())
                 );
 
                 // Determine periods for ExposureMatrix based on outputString
@@ -257,14 +191,33 @@ public class Main {
     }
 
     private static void printFactorsTable(List<Factor> factors) {
+        printFactorsTable(factors, false);
+    }
+
+    /**
+     * Prints a table of factors. If csv is true, outputs as comma-separated values.
+     * @param factors List of Factor
+     * @param csv If true, outputs as CSV
+     */
+    private static void printFactorsTable(List<Factor> factors, boolean csv) {
         StringBuilder table = new StringBuilder();
-        table.append(String.format("%-15s %-15s %-15s", "Incurred Date", "Exposure Date", "Factor"));
-        table.append(String.format("%-15s %-15s %-15s", "-------------", "-------------", "------"));
-        for (Factor factor : factors) {
-            table.append(String.format("%-15s %-15s %-15.6f",
-                    factor.getIncurredDate(),
-                    factor.getExposureDate(),
-                    factor.getValue()));
+        if (csv) {
+            table.append(String.format("Incurred Date,Exposure Date,Factor%n"));
+            for (Factor factor : factors) {
+                table.append(String.format("%s,%s,%.6f%n",
+                        factor.getIncurredDate(),
+                        factor.getExposureDate(),
+                        factor.getValue()));
+            }
+        } else {
+            table.append(String.format("%-15s %-15s %-15s%n", "Incurred Date", "Exposure Date", "Factor"));
+            table.append(String.format("%-15s %-15s %-15s%n", "-------------", "-------------", "------"));
+            for (Factor factor : factors) {
+                table.append(String.format("%-15s %-15s %-15.6f%n",
+                        factor.getIncurredDate(),
+                        factor.getExposureDate(),
+                        factor.getValue()));
+            }
         }
         getLogger().info("\n" + table);
     }
@@ -276,13 +229,31 @@ public class Main {
      * @return String table representation
      */
     public static String printExposureVector(List<ExposureMatrix.ExposureVectorEntry> vector, int precision) {
+        return printExposureVector(vector, precision, false);
+    }
+
+    /**
+     * Pretty prints a list of ExposureVectorEntry as a table or CSV.
+     * @param vector List of ExposureVectorEntry
+     * @param precision Number of decimal places to show for the sum
+     * @param csv If true, outputs as CSV
+     * @return String table or CSV representation
+     */
+    public static String printExposureVector(List<ExposureMatrix.ExposureVectorEntry> vector, int precision, boolean csv) {
         StringBuilder sb = new StringBuilder();
-        String formatHeader = "%-15s %-15s%n";
-        String formatRow = "%-15s %-" + (10 + precision) + "." + precision + "f%n";
-        sb.append(String.format(formatHeader, "Date Bucket", "Sum"));
-        sb.append(String.format(formatHeader, "-----------", "---"));
-        for (var entry : vector) {
-            sb.append(String.format(formatRow, entry.getDateBucket(), entry.getSum()));
+        if (csv) {
+            sb.append("Date Bucket,Sum\n");
+            for (var entry : vector) {
+                sb.append(String.format("%s,%." + "%d" + "f\n", entry.getDateBucket(), precision, entry.getSum()));
+            }
+        } else {
+            String formatHeader = "%-15s %-15s%n";
+            String formatRow = "%-15s %-" + (10 + precision) + "." + precision + "f%n";
+            sb.append(String.format(formatHeader, "Date Bucket", "Sum"));
+            sb.append(String.format(formatHeader, "-----------", "---"));
+            for (var entry : vector) {
+                sb.append(String.format(formatRow, entry.getDateBucket(), entry.getSum()));
+            }
         }
         return sb.toString();
     }

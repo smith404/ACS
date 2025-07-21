@@ -54,6 +54,7 @@ public class FactorCalculator implements DateCriteriaSummable {
 
     private boolean useCalendar = true;
     private boolean useLinear = false;
+    private boolean fast = false;
     private LocalDate writtenDate = LocalDate.now();
     private final int precision;
     private final Pattern pattern;
@@ -77,7 +78,7 @@ public class FactorCalculator implements DateCriteriaSummable {
         for (PatternElement element : pattern.getElements()) {
             List<Factor> factors = switch (factorType) {
                 case WRITING -> element.generateWritingFactors(startDate);
-                case EARNING -> element.generateEarningFactors(startDate, useCalendar, useLinear);
+                case EARNING -> element.generateEarningFactors(startDate, useCalendar, useLinear, fast);
             };
             // Only add factors with non-zero distribution
             factors.stream()

@@ -11,6 +11,10 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 public class PatternElement {
+    public enum Type {
+        DAY, WEEK, MONTH, QUARTER, YEAR
+    }
+
     private final String uuid = UUID.randomUUID().toString();
     private Pattern parentPattern;
     private Type type;
@@ -63,13 +67,11 @@ public class PatternElement {
         return factors;
     }
 
-    public List<Factor> generateEarningFactors(LocalDate startDate, boolean useCalendar, boolean useLinear) {
+    public List<Factor> generateEarningFactors(LocalDate startDate, boolean useCalendar, boolean useLinear, boolean fast) {
         int elementDays = FactorCalculator.getDaysForTypeWithCalendar(this.type, startDate);
         if (elementDays < 1) {
             elementDays = 1;
         }
-
-        System.out.println("Quick factor: " + getQuarterAlignmentPercentage(startDate, startDate.plusDays((long)elementDays - 1)));
 
         int upFrontDuration = this.initialDuration;
         int shareDuration = this.distributionDuration;
@@ -105,7 +107,7 @@ public class PatternElement {
             } 
             if (i < shareDuration) {
                 factors.add(new Factor(startDate.plusDays(i), startDate.plusDays(i), factorValue + lastFactorValue));
-                factors.add(new Factor(startDate.plusDays((long) elementDays - i), startDate.plusDays(((long) shareDuration + (long) elementDays - i - 1L)), factorValue + lastFactorValue));
+                factors.add(new Factor(startDate.plusDays(elementDays - i -1L), startDate.plusDays((shareDuration + elementDays - i - 1L)), factorValue + lastFactorValue));
             }
             if (!useLinear) {
                 lastFactorValue = factorValue;
@@ -116,9 +118,17 @@ public class PatternElement {
                 factors.add(new Factor(startDate, startDate.plusDays(i), initialFactorDistribution));
             } 
             if (i < shareDuration) {
-                factorValue = factorDistribution / elementDays;
-                for (int j = 0; j < elementDays; j++) {
-                    factors.add(new Factor(startDate.plusDays(j), startDate.plusDays(i), factorValue));
+                if (fast) {
+                    double hack = getQuarterAlignmentPercentage(startDate, startDate.plusDays((long)elementDays - 1));
+                    factors.add(new Factor(startDate.plusDays(0), startDate.plusDays(i), factorDistribution * (hack/100)));
+                    factors.add(new Factor(startDate.plusDays(elementDays-1L), startDate.plusDays(i), factorDistribution * (1-(hack/100))));
+                }
+                else
+                {
+                    factorValue = factorDistribution / elementDays;
+                    for (int j = 0; j < elementDays; j++) {
+                        factors.add(new Factor(startDate.plusDays(j), startDate.plusDays(i), factorValue));
+                    }
                 }
             }
         }
@@ -128,10 +138,6 @@ public class PatternElement {
 
     public int getLength() {
         return FactorCalculator.getDaysForType(this.type);
-    }
-
-    public enum Type {
-        DAY, WEEK, MONTH, QUARTER, YEAR
     }
 
     public double getQuarterAlignmentPercentage(LocalDate startDate, LocalDate endDate) {
