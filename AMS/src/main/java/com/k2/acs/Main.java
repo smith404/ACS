@@ -26,13 +26,17 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        if (args.length < 1) {
-            getLogger().warning("Please provide the path to the JSON configuration file as the first argument.");
+        Arguments arguments = parseArguments(args);
+        if (arguments == null) {
             return;
         }
 
         try {
-            String configFilePath = args[0];
+            String configFilePath = arguments.configFile;
+            if (!configFilePath.endsWith(".json")) {
+                configFilePath += ".json";
+            }
+            
             AmsConfig config = AmsConfig.parseConfig(configFilePath);
 
             Pattern pattern = createPattern(config);
@@ -48,20 +52,15 @@ public class Main {
 
             logger.setUseParentHandlers(true);
 
-            if (args.length < 2) {
-                return;
-            }
-
-            String outputString = args[1];
-            if (outputString != null && !outputString.isEmpty()) {
-                if (!isValidOutputString(outputString)) {
+            if (arguments.resultString != null && !arguments.resultString.isEmpty()) {
+                if (!isValidOutputString(arguments.resultString)) {
                     getLogger().warning("Invalid output string format. Must be exactly 4 characters: " +
                             "1st character: E or W, 2nd and 3rd characters: F or D, 4th character: C, R, or M");
                     return;
                 }
 
                 // Determine FactorType based on first character of outputString
-                FactorCalculator.FactorType factorType = outputString.toUpperCase().charAt(0) == 'E' 
+                FactorCalculator.FactorType factorType = arguments.resultString.toUpperCase().charAt(0) == 'E' 
                     ? FactorCalculator.FactorType.EARNING 
                     : FactorCalculator.FactorType.WRITING;
 
@@ -103,8 +102,8 @@ public class Main {
                 // Determine periods for ExposureMatrix based on outputString
                 List<LocalDate> incurredPeriods;
                 List<LocalDate> exposurePeriods;
-                char secondChar = Character.toUpperCase(outputString.charAt(1));
-                char thirdChar = Character.toUpperCase(outputString.charAt(2));
+                char secondChar = Character.toUpperCase(arguments.resultString.charAt(1));
+                char thirdChar = Character.toUpperCase(arguments.resultString.charAt(2));
 
                 if (secondChar == 'D') {
                     incurredPeriods = developmentPeriodsIncurred;
@@ -126,25 +125,75 @@ public class Main {
                         config.isEndOfPeriod()
                 );
 
-                char fourthChar = Character.toUpperCase(outputString.charAt(3));
+                char fourthChar = Character.toUpperCase(arguments.resultString.charAt(3));
                 if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
                     if (fourthChar == 'M') {
                         getLogger().info("Output ExposureMatrix (Matrix View):");
-                        getLogger().info("\n" + outputMatrix.generateExposureMatrixTable(config.getPrecision()));
+                        getLogger().info("\n" + outputMatrix.generateExposureMatrixTable(config.getPrecision(), arguments.csv));
                     } else if (fourthChar == 'C') {
                         getLogger().info("Output ExposureMatrix (Cumulative Columns):");
-                        getLogger().info("\n" + printExposureVector(outputMatrix.generateExposureVector(), config.getPrecision()));
+                        getLogger().info("\n" + printExposureVector(outputMatrix.generateExposureVector(), config.getPrecision(), arguments.csv));
                     } else if (fourthChar == 'R') {
                         getLogger().info("Output ExposureMatrix (Cumulative Rows):");
-                        getLogger().info("\n" + printExposureVector(outputMatrix.generateExposureVector(false), config.getPrecision()));
+                        getLogger().info("\n" + printExposureVector(outputMatrix.generateExposureVector(false), config.getPrecision(), arguments.csv));
                     }
                 }
-                
             }
             
         } catch (Exception e) {
             getLogger().warning("Error processing the configuration file: " + e.getMessage());
+            System.err.println("Error: " + e.getMessage());
+            e.printStackTrace();
         }
+    }
+
+    private static class Arguments {
+        String configFile;
+        String resultString;
+        boolean csv;
+    }
+
+    private static Arguments parseArguments(String[] args) {
+        if (args.length == 0) {
+            getLogger().warning("Usage: -config <config_file> [-result <result_string>] [-csv]");
+            return null;
+        }
+
+        Arguments arguments = new Arguments();
+        
+        for (int i = 0; i < args.length; i++) {
+            switch (args[i]) {
+                case "-config":
+                    if (i + 1 < args.length) {
+                        arguments.configFile = args[++i];
+                    } else {
+                        getLogger().warning("Please provide a value for -config parameter.");
+                        return null;
+                    }
+                    break;
+                case "-result":
+                    if (i + 1 < args.length) {
+                        arguments.resultString = args[++i];
+                    } else {
+                        getLogger().warning("Please provide a value for -result parameter.");
+                        return null;
+                    }
+                    break;
+                case "-csv":
+                    arguments.csv = true;
+                    break;
+                default:
+                    getLogger().warning("Unknown parameter: " + args[i]);
+                    return null;
+            }
+        }
+
+        if (arguments.configFile == null) {
+            getLogger().warning("Please provide the -config parameter with the path to the JSON configuration file.");
+            return null;
+        }
+
+        return arguments;
     }
 
      private static boolean isValidOutputString(String outputString) {
@@ -244,7 +293,7 @@ public class Main {
         if (csv) {
             sb.append("Date Bucket,Sum\n");
             for (var entry : vector) {
-                sb.append(String.format("%s,%." + "%d" + "f\n", entry.getDateBucket(), precision, entry.getSum()));
+                sb.append(String.format("%s,%-" + (10 + precision) + "." + precision + "f%n", entry.getDateBucket(), entry.getSum()));
             }
         } else {
             String formatHeader = "%-15s %-15s%n";
