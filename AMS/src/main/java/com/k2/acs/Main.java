@@ -81,6 +81,20 @@ public class Main {
                         PatternElement.Type.valueOf(config.getExposedTimeUnit().toUpperCase())
                 );
 
+                List<LocalDate> combinedPeriodsExposue = ExposureMatrix.getEndDatesBetween(
+                        factorCalculator.getEarliestExposureDate().getYear(),
+                        factorCalculator.getLatestExposureDate().getYear(),
+                        PatternElement.Type.valueOf(config.getExposedTimeUnit().toUpperCase())
+                );
+                combinedPeriodsExposue.addAll(ExposureMatrix.getBucketEndDates(
+                        config.getInsuredPeriodStartDateAsLocalDate(),
+                        factorCalculator.getLatestExposureDate().getYear(),
+                        PatternElement.Type.valueOf(config.getExposedTimeUnit().toUpperCase())));
+                combinedPeriodsExposue = combinedPeriodsExposue.stream()
+                        .distinct()
+                        .sorted()
+                        .toList();
+
                 List<LocalDate> developmentPeriodsExposure = ExposureMatrix.getBucketEndDates(
                         config.getInsuredPeriodStartDateAsLocalDate(),
                         factorCalculator.getLatestExposureDate().getYear(),
@@ -92,6 +106,21 @@ public class Main {
                         factorCalculator.getLatestExposureDate().getYear(),
                         PatternElement.Type.valueOf(config.getIncurredTimeUnit().toUpperCase())
                 );
+
+                List<LocalDate> combinedPeriodsIncurred = ExposureMatrix.getEndDatesBetween(
+                        factorCalculator.getEarliestExposureDate().getYear(),
+                        factorCalculator.getLatestExposureDate().getYear(),
+                        PatternElement.Type.valueOf(config.getIncurredTimeUnit().toUpperCase())
+                );
+                combinedPeriodsIncurred.addAll(ExposureMatrix.getBucketEndDates(
+                        config.getInsuredPeriodStartDateAsLocalDate(),
+                        factorCalculator.getLatestIncurredDate().getYear(),
+                        PatternElement.Type.valueOf(config.getIncurredTimeUnit().toUpperCase())));
+                // Remove duplicates and sort
+                combinedPeriodsIncurred = combinedPeriodsIncurred.stream()
+                        .distinct()
+                        .sorted()
+                        .toList();
 
                 List<LocalDate> developmentPeriodsIncurred = ExposureMatrix.getBucketEndDates(
                         config.getInsuredPeriodStartDateAsLocalDate(),
@@ -105,12 +134,18 @@ public class Main {
                 char secondChar = Character.toUpperCase(arguments.resultString.charAt(1));
                 char thirdChar = Character.toUpperCase(arguments.resultString.charAt(2));
 
+                if (secondChar == 'C') {
+                    incurredPeriods = combinedPeriodsIncurred;
+                } else
                 if (secondChar == 'D') {
                     incurredPeriods = developmentPeriodsIncurred;
                 } else {
                     incurredPeriods = financialPeriodsIncurred;
                 }
 
+                if (secondChar == 'C') {
+                    exposurePeriods = combinedPeriodsExposue;
+                } else
                 if (thirdChar == 'D') {
                     exposurePeriods = developmentPeriodsExposure;
                 } else {
@@ -212,7 +247,7 @@ public class Main {
         // Second and third characters must be F or D
         char second = upper.charAt(1);
         char third = upper.charAt(2);
-        if ((second != 'F' && second != 'D') || (third != 'F' && third != 'D')) {
+        if ((second != 'F' && second != 'D' && second != 'C') || (third != 'F' && third != 'D' && second != 'C')) {
             return false;
         }
         
