@@ -13,13 +13,17 @@ import java.util.logging.SimpleFormatter;
 public class Main {
     @Getter
     private static final Logger logger = Logger.getLogger(Main.class.getName());
+    
+    private static final String USAGE_MESSAGE = "Usage: -config <config_file> [-result <result_string>] [-csv]";
+    private static final String VALID_OUTPUT_FORMAT = "Invalid output string format. Must be exactly 4 characters: " +
+            "1st character: E or W, 2nd and 3rd characters: F, D, or C, 4th character: C, R, or M";
 
     static {
         try {
-            FileHandler fileHandler = new FileHandler("acs.log", false); // overwrite log file each run
+            FileHandler fileHandler = new FileHandler("acs.log", false);
             fileHandler.setFormatter(new SimpleFormatter());
             logger.addHandler(fileHandler);
-            logger.setUseParentHandlers(false); // stop log writing to console
+            logger.setUseParentHandlers(false);
         } catch (Exception e) {
             System.err.println("Failed to set up file logging: " + e.getMessage());
         }
@@ -32,154 +36,170 @@ public class Main {
         }
 
         try {
-            String configFilePath = arguments.configFile;
-            if (!configFilePath.endsWith(".json")) {
-                configFilePath += ".json";
-            }
-            
-            AmsConfig config = AmsConfig.parseConfig(configFilePath);
-
-            Pattern pattern = createPattern(config);
-
-            List<UltimateValue> ultimateValues = new ArrayList<>();
-            if (config.getUltimateValues() != null) {
-                for (AmsConfig.UV uv : config.getUltimateValues()) {
-                    UltimateValue.Type type = UltimateValue.Type.valueOf(uv.getType().toUpperCase());
-                    double amount = uv.getValue() != null ? uv.getValue() : 1.0;
-                    ultimateValues.add(new UltimateValue(type, amount));
-                }
-            }
-
-            logger.setUseParentHandlers(true);
-
-            if (arguments.resultString != null && !arguments.resultString.isEmpty()) {
-                if (!isValidOutputString(arguments.resultString)) {
-                    getLogger().warning("Invalid output string format. Must be exactly 4 characters: " +
-                            "1st character: E or W, 2nd and 3rd characters: F or D, 4th character: C, R, or M");
-                    return;
-                }
-
-                // Determine FactorType based on first character of outputString
-                FactorCalculator.FactorType factorType = arguments.resultString.toUpperCase().charAt(0) == 'E' 
-                    ? FactorCalculator.FactorType.EARNING 
-                    : FactorCalculator.FactorType.WRITING;
-
-                FactorCalculator factorCalculator = new FactorCalculator(config.getPrecision(), pattern);
-                factorCalculator.setUseCalendar(config.isCalendar());
-                factorCalculator.setUseLinear(config.isLinear());
-                factorCalculator.setFast(config.isFast());
-                factorCalculator.setWrittenDate(config.getValuationDateAsLocalDate());
-
-                factorCalculator.generateDailyFactors(
-                        config.getInsuredPeriodStartDateAsLocalDate(),
-                        factorType
-                );
-
-                List<LocalDate> financialPeriodsExposure = ExposureMatrix.getEndDatesBetween(
-                        factorCalculator.getEarliestExposureDate().getYear(),
-                        factorCalculator.getLatestExposureDate().getYear(),
-                        PatternElement.Type.valueOf(config.getExposedTimeUnit().toUpperCase())
-                );
-
-                List<LocalDate> combinedPeriodsExposue = ExposureMatrix.getEndDatesBetween(
-                        factorCalculator.getEarliestExposureDate().getYear(),
-                        factorCalculator.getLatestExposureDate().getYear(),
-                        PatternElement.Type.valueOf(config.getExposedTimeUnit().toUpperCase())
-                );
-                combinedPeriodsExposue.addAll(ExposureMatrix.getBucketEndDates(
-                        config.getInsuredPeriodStartDateAsLocalDate(),
-                        factorCalculator.getLatestExposureDate().getYear(),
-                        PatternElement.Type.valueOf(config.getExposedTimeUnit().toUpperCase())));
-                combinedPeriodsExposue = combinedPeriodsExposue.stream()
-                        .distinct()
-                        .sorted()
-                        .toList();
-
-                List<LocalDate> developmentPeriodsExposure = ExposureMatrix.getBucketEndDates(
-                        config.getInsuredPeriodStartDateAsLocalDate(),
-                        factorCalculator.getLatestExposureDate().getYear(),
-                        PatternElement.Type.valueOf(config.getExposedTimeUnit().toUpperCase())
-                );
-
-                List<LocalDate> financialPeriodsIncurred = ExposureMatrix.getEndDatesBetween(
-                        factorCalculator.getEarliestExposureDate().getYear(),
-                        factorCalculator.getLatestExposureDate().getYear(),
-                        PatternElement.Type.valueOf(config.getIncurredTimeUnit().toUpperCase())
-                );
-
-                List<LocalDate> combinedPeriodsIncurred = ExposureMatrix.getEndDatesBetween(
-                        factorCalculator.getEarliestExposureDate().getYear(),
-                        factorCalculator.getLatestExposureDate().getYear(),
-                        PatternElement.Type.valueOf(config.getIncurredTimeUnit().toUpperCase())
-                );
-                combinedPeriodsIncurred.addAll(ExposureMatrix.getBucketEndDates(
-                        config.getInsuredPeriodStartDateAsLocalDate(),
-                        factorCalculator.getLatestIncurredDate().getYear(),
-                        PatternElement.Type.valueOf(config.getIncurredTimeUnit().toUpperCase())));
-                // Remove duplicates and sort
-                combinedPeriodsIncurred = combinedPeriodsIncurred.stream()
-                        .distinct()
-                        .sorted()
-                        .toList();
-
-                List<LocalDate> developmentPeriodsIncurred = ExposureMatrix.getBucketEndDates(
-                        config.getInsuredPeriodStartDateAsLocalDate(),
-                        factorCalculator.getLatestIncurredDate().getYear(),
-                        PatternElement.Type.valueOf(config.getIncurredTimeUnit().toUpperCase())
-                );
-
-                // Determine periods for ExposureMatrix based on outputString
-                List<LocalDate> incurredPeriods;
-                List<LocalDate> exposurePeriods;
-                char secondChar = Character.toUpperCase(arguments.resultString.charAt(1));
-                char thirdChar = Character.toUpperCase(arguments.resultString.charAt(2));
-
-                if (secondChar == 'C') {
-                    incurredPeriods = combinedPeriodsIncurred;
-                } else
-                if (secondChar == 'D') {
-                    incurredPeriods = developmentPeriodsIncurred;
-                } else {
-                    incurredPeriods = financialPeriodsIncurred;
-                }
-
-                if (secondChar == 'C') {
-                    exposurePeriods = combinedPeriodsExposue;
-                } else
-                if (thirdChar == 'D') {
-                    exposurePeriods = developmentPeriodsExposure;
-                } else {
-                    exposurePeriods = financialPeriodsExposure;
-                }
-
-                ExposureMatrix outputMatrix = new ExposureMatrix(
-                        factorCalculator.getAllFactors(),
-                        config.getInsuredPeriodStartDateAsLocalDate(),
-                        incurredPeriods,
-                        exposurePeriods,
-                        config.isEndOfPeriod()
-                );
-
-                char fourthChar = Character.toUpperCase(arguments.resultString.charAt(3));
-                if (getLogger().isLoggable(java.util.logging.Level.INFO)) {
-                    if (fourthChar == 'M') {
-                        getLogger().info("Output ExposureMatrix (Matrix View):");
-                        getLogger().info("\n" + outputMatrix.generateExposureMatrixTable(config.getPrecision(), arguments.csv));
-                    } else if (fourthChar == 'C') {
-                        getLogger().info("Output ExposureMatrix (Cumulative Columns):");
-                        getLogger().info("\n" + printExposureVector(outputMatrix.generateExposureVector(), config.getPrecision(), arguments.csv));
-                    } else if (fourthChar == 'R') {
-                        getLogger().info("Output ExposureMatrix (Cumulative Rows):");
-                        getLogger().info("\n" + printExposureVector(outputMatrix.generateExposureVector(false), config.getPrecision(), arguments.csv));
-                    }
-                }
-            }
-            
+            processConfiguration(arguments);
         } catch (Exception e) {
-            getLogger().warning("Error processing the configuration file: " + e.getMessage());
-            System.err.println("Error: " + e.getMessage());
-            e.printStackTrace();
+            handleProcessingError(e);
         }
+    }
+
+    private static void processConfiguration(Arguments arguments) throws Exception {
+        AmsConfig config = loadConfiguration(arguments.configFile);
+        Pattern pattern = createPattern(config);
+        List<UltimateValue> ultimateValues = createUltimateValues(config);
+
+        logger.setUseParentHandlers(true);
+
+        if (arguments.resultString != null && !arguments.resultString.isEmpty()) {
+            processResultOutput(arguments, config, pattern);
+        }
+    }
+
+    private static AmsConfig loadConfiguration(String configFile) throws Exception {
+        String configFilePath = configFile.endsWith(".json") ? configFile : configFile + ".json";
+        return AmsConfig.parseConfig(configFilePath);
+    }
+
+    private static List<UltimateValue> createUltimateValues(AmsConfig config) {
+        List<UltimateValue> ultimateValues = new ArrayList<>();
+        if (config.getUltimateValues() != null) {
+            for (AmsConfig.UV uv : config.getUltimateValues()) {
+                UltimateValue.Type type = UltimateValue.Type.valueOf(uv.getType().toUpperCase());
+                double amount = uv.getValue() != null ? uv.getValue() : 1.0;
+                ultimateValues.add(new UltimateValue(type, amount));
+            }
+        }
+        return ultimateValues;
+    }
+
+    private static void processResultOutput(Arguments arguments, AmsConfig config, Pattern pattern) {
+        if (!isValidOutputString(arguments.resultString)) {
+            logger.warning(VALID_OUTPUT_FORMAT);
+            return;
+        }
+
+        FactorCalculator factorCalculator = createFactorCalculator(arguments, config, pattern);
+        PeriodConfiguration periodConfig = createPeriodConfiguration(arguments, config, factorCalculator);
+        ExposureMatrix outputMatrix = createExposureMatrix(config, factorCalculator, periodConfig);
+
+        logOutputMatrix(arguments.resultString, outputMatrix, config.getPrecision(), arguments.csv);
+    }
+
+    private static FactorCalculator createFactorCalculator(Arguments arguments, AmsConfig config, Pattern pattern) {
+        FactorCalculator.FactorType factorType = arguments.resultString.toUpperCase().charAt(0) == 'E' 
+            ? FactorCalculator.FactorType.EARNING 
+            : FactorCalculator.FactorType.WRITING;
+
+        FactorCalculator factorCalculator = new FactorCalculator(config.getPrecision(), pattern);
+        factorCalculator.setUseCalendar(config.isCalendar());
+        factorCalculator.setUseLinear(config.isLinear());
+        factorCalculator.setFast(config.isFast());
+        factorCalculator.setWrittenDate(config.getValuationDateAsLocalDate());
+
+        factorCalculator.generateDailyFactors(
+                config.getInsuredPeriodStartDateAsLocalDate(),
+                factorType
+        );
+
+        return factorCalculator;
+    }
+
+    private static PeriodConfiguration createPeriodConfiguration(Arguments arguments, AmsConfig config, FactorCalculator factorCalculator) {
+        PatternElement.Type exposureTimeUnit = PatternElement.Type.valueOf(config.getExposedTimeUnit().toUpperCase());
+        PatternElement.Type incurredTimeUnit = PatternElement.Type.valueOf(config.getIncurredTimeUnit().toUpperCase());
+
+        List<LocalDate> financialPeriodsExposure = ExposureMatrix.getEndDatesBetween(
+                factorCalculator.getEarliestExposureDate().getYear(),
+                factorCalculator.getLatestExposureDate().getYear(),
+                exposureTimeUnit
+        );
+
+        List<LocalDate> combinedPeriodsExposure = createCombinedPeriods(
+                financialPeriodsExposure,
+                config.getInsuredPeriodStartDateAsLocalDate(),
+                factorCalculator.getLatestExposureDate().getYear(),
+                exposureTimeUnit
+        );
+
+        List<LocalDate> developmentPeriodsExposure = ExposureMatrix.getBucketEndDates(
+                config.getInsuredPeriodStartDateAsLocalDate(),
+                factorCalculator.getLatestExposureDate().getYear(),
+                exposureTimeUnit
+        );
+
+        List<LocalDate> financialPeriodsIncurred = ExposureMatrix.getEndDatesBetween(
+                factorCalculator.getEarliestExposureDate().getYear(),
+                factorCalculator.getLatestExposureDate().getYear(),
+                incurredTimeUnit
+        );
+
+        List<LocalDate> combinedPeriodsIncurred = createCombinedPeriods(
+                financialPeriodsIncurred,
+                config.getInsuredPeriodStartDateAsLocalDate(),
+                factorCalculator.getLatestIncurredDate().getYear(),
+                incurredTimeUnit
+        );
+
+        List<LocalDate> developmentPeriodsIncurred = ExposureMatrix.getBucketEndDates(
+                config.getInsuredPeriodStartDateAsLocalDate(),
+                factorCalculator.getLatestIncurredDate().getYear(),
+                incurredTimeUnit
+        );
+
+        return new PeriodConfiguration(
+                financialPeriodsExposure, combinedPeriodsExposure, developmentPeriodsExposure,
+                financialPeriodsIncurred, combinedPeriodsIncurred, developmentPeriodsIncurred,
+                arguments.resultString
+        );
+    }
+
+    private static List<LocalDate> createCombinedPeriods(List<LocalDate> financialPeriods, 
+                                                         LocalDate insuredPeriodStart, 
+                                                         int latestYear, 
+                                                         PatternElement.Type timeUnit) {
+        List<LocalDate> combined = new ArrayList<>(financialPeriods);
+        combined.addAll(ExposureMatrix.getBucketEndDates(insuredPeriodStart, latestYear, timeUnit));
+        return combined.stream().distinct().sorted().toList();
+    }
+
+    private static ExposureMatrix createExposureMatrix(AmsConfig config, FactorCalculator factorCalculator, PeriodConfiguration periodConfig) {
+        List<LocalDate> incurredPeriods = periodConfig.getIncurredPeriods();
+        List<LocalDate> exposurePeriods = periodConfig.getExposurePeriods();
+
+        return new ExposureMatrix(
+                factorCalculator.getAllFactors(),
+                config.getInsuredPeriodStartDateAsLocalDate(),
+                incurredPeriods,
+                exposurePeriods,
+                config.isEndOfPeriod()
+        );
+    }
+
+    private static void logOutputMatrix(String resultString, ExposureMatrix outputMatrix, int precision, boolean csv) {
+        if (!logger.isLoggable(java.util.logging.Level.INFO)) {
+            return;
+        }
+
+        char outputType = Character.toUpperCase(resultString.charAt(3));
+        switch (outputType) {
+            case 'M':
+                logger.info("Output ExposureMatrix (Matrix View):");
+                logger.info("\n" + outputMatrix.generateExposureMatrixTable(precision, csv));
+                break;
+            case 'C':
+                logger.info("Output ExposureMatrix (Cumulative Columns):");
+                logger.info("\n" + printExposureVector(outputMatrix.generateExposureVector(), precision, csv));
+                break;
+            case 'R':
+                logger.info("Output ExposureMatrix (Cumulative Rows):");
+                logger.info("\n" + printExposureVector(outputMatrix.generateExposureVector(false), precision, csv));
+                break;
+        }
+    }
+
+    private static void handleProcessingError(Exception e) {
+        logger.warning("Error processing the configuration file: " + e.getMessage());
+        System.err.println("Error: " + e.getMessage());
+        e.printStackTrace();
     }
 
     private static class Arguments {
@@ -188,9 +208,51 @@ public class Main {
         boolean csv;
     }
 
+    private static class PeriodConfiguration {
+        private final List<LocalDate> financialPeriodsExposure;
+        private final List<LocalDate> combinedPeriodsExposure;
+        private final List<LocalDate> developmentPeriodsExposure;
+        private final List<LocalDate> financialPeriodsIncurred;
+        private final List<LocalDate> combinedPeriodsIncurred;
+        private final List<LocalDate> developmentPeriodsIncurred;
+        private final String resultString;
+
+        public PeriodConfiguration(List<LocalDate> financialPeriodsExposure, List<LocalDate> combinedPeriodsExposure,
+                                 List<LocalDate> developmentPeriodsExposure, List<LocalDate> financialPeriodsIncurred,
+                                 List<LocalDate> combinedPeriodsIncurred, List<LocalDate> developmentPeriodsIncurred,
+                                 String resultString) {
+            this.financialPeriodsExposure = financialPeriodsExposure;
+            this.combinedPeriodsExposure = combinedPeriodsExposure;
+            this.developmentPeriodsExposure = developmentPeriodsExposure;
+            this.financialPeriodsIncurred = financialPeriodsIncurred;
+            this.combinedPeriodsIncurred = combinedPeriodsIncurred;
+            this.developmentPeriodsIncurred = developmentPeriodsIncurred;
+            this.resultString = resultString;
+        }
+
+        public List<LocalDate> getIncurredPeriods() {
+            char secondChar = Character.toUpperCase(resultString.charAt(1));
+            return switch (secondChar) {
+                case 'C' -> combinedPeriodsIncurred;
+                case 'D' -> developmentPeriodsIncurred;
+                default -> financialPeriodsIncurred;
+            };
+        }
+
+        public List<LocalDate> getExposurePeriods() {
+            char thirdChar = Character.toUpperCase(resultString.charAt(2));
+            return switch (thirdChar) {
+                case 'C' -> combinedPeriodsExposure;
+                case 'D' -> developmentPeriodsExposure;
+                default -> financialPeriodsExposure;
+            };
+
+        }
+    }
+
     private static Arguments parseArguments(String[] args) {
         if (args.length == 0) {
-            getLogger().warning("Usage: -config <config_file> [-result <result_string>] [-csv]");
+            logger.warning(USAGE_MESSAGE);
             return null;
         }
 
@@ -202,7 +264,7 @@ public class Main {
                     if (i + 1 < args.length) {
                         arguments.configFile = args[++i];
                     } else {
-                        getLogger().warning("Please provide a value for -config parameter.");
+                        logger.warning("Please provide a value for -config parameter.");
                         return null;
                     }
                     break;
@@ -210,7 +272,7 @@ public class Main {
                     if (i + 1 < args.length) {
                         arguments.resultString = args[++i];
                     } else {
-                        getLogger().warning("Please provide a value for -result parameter.");
+                        logger.warning("Please provide a value for -result parameter.");
                         return null;
                     }
                     break;
@@ -218,20 +280,28 @@ public class Main {
                     arguments.csv = true;
                     break;
                 default:
-                    getLogger().warning("Unknown parameter: " + args[i]);
+                    logger.warning("Unknown parameter: " + args[i]);
                     return null;
             }
         }
 
         if (arguments.configFile == null) {
-            getLogger().warning("Please provide the -config parameter with the path to the JSON configuration file.");
+            logger.warning("Please provide the -config parameter with the path to the JSON configuration file.");
             return null;
         }
 
         return arguments;
     }
 
-     private static boolean isValidOutputString(String outputString) {
+    /**
+     * Validates the output string format.
+     * Expected format: 4 characters where:
+     * - 1st character: E (Earning) or W (Writing)
+     * - 2nd character: F (Financial), D (Development), or C (Combined) for incurred periods
+     * - 3rd character: F (Financial), D (Development), or C (Combined) for exposure periods  
+     * - 4th character: C (Columns), R (Rows), or M (Matrix)
+     */
+    private static boolean isValidOutputString(String outputString) {
         if (outputString == null || outputString.length() != 4) {
             return false;
         }
@@ -244,10 +314,10 @@ public class Main {
             return false;
         }
         
-        // Second and third characters must be F or D
+        // Second and third characters must be F, D, or C
         char second = upper.charAt(1);
         char third = upper.charAt(2);
-        if ((second != 'F' && second != 'D' && second != 'C') || (third != 'F' && third != 'D' && second != 'C')) {
+        if (!isValidPeriodChar(second) || !isValidPeriodChar(third)) {
             return false;
         }
         
@@ -260,6 +330,15 @@ public class Main {
         return true;
     }
 
+    private static boolean isValidPeriodChar(char c) {
+        return c == 'F' || c == 'D' || c == 'C';
+    }
+
+    /**
+     * Creates a pattern from the AMS configuration.
+     * @param config AMS configuration
+     * @return Pattern object
+     */
     private static Pattern createPattern(AmsConfig config) {
         Pattern pattern = new Pattern();
         for (AmsConfig.Element element : config.getElements()) {
@@ -272,10 +351,6 @@ public class Main {
             pattern.addElement(patternElement);
         }
         return pattern;
-    }
-
-    private static void printFactorsTable(List<Factor> factors) {
-        printFactorsTable(factors, false);
     }
 
     /**

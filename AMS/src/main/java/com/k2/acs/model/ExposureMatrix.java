@@ -8,8 +8,17 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
+/**
+ * Represents an exposure matrix that aggregates factors into date buckets for incurred and exposure dates.
+ * Provides functionality to generate matrix tables and vector summaries with configurable precision.
+ */
 public class ExposureMatrix implements DateCriteriaSummable {
+
+    private static final String EXPOSURE_HEADER = "Exp x Inc";
+    private static final int COLUMN_WIDTH = 10;
+    private static final double ZERO_THRESHOLD = 1e-10;
 
     public enum ExposureType {
         INCURRED,
@@ -35,60 +44,6 @@ public class ExposureMatrix implements DateCriteriaSummable {
         private ExposureType exposureType;
     }
 
-    private static double roundToPrecision(double value, int precision) {
-        return BigDecimal.valueOf(value)
-                .setScale(precision, RoundingMode.HALF_UP)
-                .doubleValue();
-    }
-
-    public static List<LocalDate> getBucketEndDates(LocalDate startDate, int endYear, PatternElement.Type frequency) {
-        LocalDate endDate = LocalDate.of(endYear, 12, 31);
-        return getBucketEndDates(startDate, endDate, frequency);
-    }
-
-    public static List<LocalDate> getBucketEndDates(LocalDate startDate, LocalDate endDate, PatternElement.Type frequency) {
-        List<LocalDate> endDates = new ArrayList<>();
-        LocalDate currentDate = startDate;
-        while (!currentDate.isAfter(endDate)) {
-            switch (frequency) {
-                case DAY -> currentDate = currentDate.plusDays(1);
-                case WEEK -> currentDate = currentDate.plusWeeks(1);
-                case MONTH -> currentDate = currentDate.plusMonths(1);
-                case QUARTER -> currentDate = currentDate.plusMonths(3);
-                case YEAR -> currentDate = currentDate.plusYears(1);
-                default -> throw new IllegalArgumentException("Unsupported frequency type: " + frequency);
-            }
-            LocalDate previousDate = currentDate.minusDays(1);
-            if (!previousDate.isAfter(endDate) || previousDate.isEqual(endDate)) {
-                endDates.add(previousDate);
-            }
-        }
-        return endDates;
-    }
-
-    public static List<LocalDate> getEndDatesBetween(int startYear, int endYear, PatternElement.Type frequency) {
-        List<LocalDate> endDates = new ArrayList<>();
-        LocalDate currentDate = LocalDate.of(startYear, 1, 1);
-        LocalDate endDate = LocalDate.of(endYear, 12, 31);
-
-        while (!currentDate.isAfter(endDate)) {
-            switch (frequency) {
-                case DAY -> currentDate = currentDate.plusDays(1);
-                case WEEK -> currentDate = currentDate.plusWeeks(1);
-                case MONTH -> currentDate = currentDate.plusMonths(1);
-                case QUARTER -> currentDate = currentDate.plusMonths(3);
-                case YEAR -> currentDate = currentDate.plusYears(1);
-                default -> throw new IllegalArgumentException("Unsupported frequency type: " + frequency);
-            }
-            LocalDate previousDate = currentDate.minusDays(1);
-            if (!previousDate.isAfter(endDate) || previousDate.isEqual(endDate)) {
-                endDates.add(previousDate);
-            }
-        }
-
-        return endDates;
-    }
-
     private List<ExposureMatrixEntry> matrixEntries;
 
     public ExposureMatrix(List<Factor> factors, LocalDate startDate, List<LocalDate> incurredBucketEndDates, List<LocalDate> exposureBucketEndDates) {
@@ -96,63 +51,83 @@ public class ExposureMatrix implements DateCriteriaSummable {
     }
 
     public ExposureMatrix(List<Factor> factors, LocalDate startDate, List<LocalDate> incurredBucketEndDates, List<LocalDate> exposureBucketEndDates, boolean toEnd) {
+        validateConstructorInputs(factors, startDate, incurredBucketEndDates, exposureBucketEndDates);
         this.matrixEntries = generateExposureMatrix(factors, startDate, incurredBucketEndDates, exposureBucketEndDates, toEnd);
     }
 
-    private List<ExposureMatrixEntry> generateExposureMatrix(List<Factor> factors, LocalDate startDate, List<LocalDate> incurredBucketEndDates, List<LocalDate> exposureBucketEndDates, boolean toEnd) {
-        matrixEntries = new ArrayList<>();
+    /**
+     * Rounds a value to the specified precision using HALF_UP rounding.
+     * @param value The value to round
+     * @param precision Number of decimal places
+     * @return Rounded value
+     */
+    private static double roundToPrecision(double value, int precision) {
+        return BigDecimal.valueOf(value)
+                .setScale(precision, RoundingMode.HALF_UP)
+                .doubleValue();
+    }
 
-        for (int i = 0; i < incurredBucketEndDates.size(); i++) {
-            LocalDate incurredStart = getStartDate(startDate, incurredBucketEndDates, i);
-            LocalDate incurredEnd = incurredBucketEndDates.get(i);
-            if (incurredStart.isAfter(incurredEnd)) {
-                // Skip if the start date is after the end date
-                continue;
-            }
+    /**
+     * Generates bucket end dates from a start date to the end of a specified year.
+     * @param startDate Starting date for bucket generation
+     * @param endYear Year to end bucket generation
+     * @param frequency Frequency of buckets (DAY, WEEK, MONTH, QUARTER, YEAR)
+     * @return List of bucket end dates
+     */
+    public static List<LocalDate> getBucketEndDates(LocalDate startDate, int endYear, PatternElement.Type frequency) {
+        validateBucketInputs(startDate, frequency);
+        LocalDate endDate = LocalDate.of(endYear, 12, 31);
+        return getBucketEndDates(startDate, endDate, frequency);
+    }
 
-            for (int j = 0; j < exposureBucketEndDates.size(); j++) {
-                LocalDate exposureStart = getStartDate(startDate, exposureBucketEndDates, j);
-                LocalDate exposureEnd = exposureBucketEndDates.get(j);
-                if (exposureStart.isAfter(exposureEnd)) {
-                    // Skip if the start date is after the end date
-                    continue;
-                }
-                double sum = calculateSum(factors, incurredStart, incurredEnd, exposureStart, exposureEnd);
-                addMatrixEntry(toEnd, incurredStart, incurredEnd, exposureStart, exposureEnd, sum, ExposureType.INCURRED);
+    /**
+     * Generates bucket end dates between two dates with specified frequency.
+     * @param startDate Starting date for bucket generation
+     * @param endDate Ending date for bucket generation
+     * @param frequency Frequency of buckets (DAY, WEEK, MONTH, QUARTER, YEAR)
+     * @return List of bucket end dates
+     */
+    public static List<LocalDate> getBucketEndDates(LocalDate startDate, LocalDate endDate, PatternElement.Type frequency) {
+        validateDateRangeInputs(startDate, endDate, frequency);
+        
+        List<LocalDate> endDates = new ArrayList<>();
+        LocalDate currentDate = startDate;
+        
+        while (!currentDate.isAfter(endDate)) {
+            currentDate = advanceDateByFrequency(currentDate, frequency);
+            LocalDate bucketEndDate = currentDate.minusDays(1);
+            
+            if (isBucketEndDateValid(bucketEndDate, endDate)) {
+                endDates.add(bucketEndDate);
             }
         }
-
-        return matrixEntries;
+        
+        return endDates;
     }
 
-    private LocalDate getStartDate(LocalDate startDate, List<LocalDate> buckets, int index) {
-        return index == 0 ? startDate : buckets.get(index - 1).plusDays(1);
-    }
-
-    private double calculateSum(List<Factor> factors, LocalDate incurredStart, LocalDate incurredEnd, LocalDate exposureStart, LocalDate exposureEnd) {
-        return factors.stream()
-                .filter(factor -> isWithinRange(factor.getIncurredDate(), incurredStart, incurredEnd))
-                .filter(factor -> isWithinRange(factor.getExposureDate(), exposureStart, exposureEnd))
-                .mapToDouble(Factor::getValue)
-                .sum();
-    }
-
-    private boolean isWithinRange(LocalDate date, LocalDate start, LocalDate end) {
-        return !date.isBefore(start) && !date.isAfter(end);
-    }
-
-    private void addMatrixEntry(boolean toEnd, LocalDate incurredStart, LocalDate incurredEnd, LocalDate exposureStart, LocalDate exposureEnd, double sum, ExposureType exposureType) {
-        if (sum == 0) {
-            return;
+    /**
+     * Generates end dates between two years with specified frequency, starting from January 1st.
+     * @param startYear Starting year
+     * @param endYear Ending year
+     * @param frequency Frequency of buckets (DAY, WEEK, MONTH, QUARTER, YEAR)
+     * @return List of bucket end dates
+     */
+    public static List<LocalDate> getEndDatesBetween(int startYear, int endYear, PatternElement.Type frequency) {
+        validateYearRange(startYear, endYear);
+        if (frequency == null) {
+            throw new IllegalArgumentException("Frequency cannot be null");
         }
-        matrixEntries.add(new ExposureMatrixEntry(
-                toEnd ? incurredEnd : incurredStart,
-                toEnd ? exposureEnd : exposureStart,
-                sum,
-                exposureType));
+        
+        LocalDate startDate = LocalDate.of(startYear, 1, 1);
+        LocalDate endDate = LocalDate.of(endYear, 12, 31);
+        return getBucketEndDates(startDate, endDate, frequency);
     }
 
-
+    /**
+     * Generates the exposure matrix as a formatted table.
+     * @param precision Number of decimal places
+     * @return String table representation
+     */
     public String generateExposureMatrixTable(int precision) {
         return generateExposureMatrixTable(precision, false);
     }
@@ -164,110 +139,40 @@ public class ExposureMatrix implements DateCriteriaSummable {
      * @return String table or CSV representation
      */
     public String generateExposureMatrixTable(int precision, boolean csv) {
-        List<LocalDate> exposureBucketEndDates = matrixEntries.stream()
-                .map(ExposureMatrixEntry::getExposureDateBucket)
-                .distinct()
-                .sorted()
-                .toList();
-        List<LocalDate> incurredBucketEndDates = matrixEntries.stream()
-                .map(ExposureMatrixEntry::getIncurredDateBucket)
-                .distinct()
-                .sorted()
-                .toList();
-
-        if (csv) {
-            return generateExposureMatrixCsvTable(precision, exposureBucketEndDates, incurredBucketEndDates);
-        } else {
-            return generateExposureMatrixFormattedTable(precision, exposureBucketEndDates, incurredBucketEndDates);
-        }
+        validatePrecision(precision);
+        
+        MatrixDimensions dimensions = extractMatrixDimensions();
+        
+        return csv ? 
+            generateCsvTable(precision, dimensions) : 
+            generateFormattedTable(precision, dimensions);
     }
 
-    private String generateExposureMatrixCsvTable(int precision, List<LocalDate> exposureBucketEndDates, List<LocalDate> incurredBucketEndDates) {
-        StringBuilder table = new StringBuilder();
-        // Header row
-        table.append("Exp x Inc");
-        for (LocalDate exposureDate : exposureBucketEndDates) {
-            table.append(",").append(exposureDate);
-        }
-        table.append("\n");
-        // Data rows
-        for (LocalDate incurredDate : incurredBucketEndDates) {
-            table.append(incurredDate);
-            for (LocalDate exposureDate : exposureBucketEndDates) {
-                double sum = matrixEntries.stream()
-                        .filter(entry -> entry.getIncurredDateBucket().equals(incurredDate) &&
-                                entry.getExposureDateBucket().equals(exposureDate))
-                        .mapToDouble(ExposureMatrixEntry::getSum)
-                        .sum();
-                table.append(",").append(String.format("%." + precision + "f", roundToPrecision(sum, precision)));
-            }
-            table.append("\n");
-        }
-        return table.toString();
-    }
-
-    private String generateExposureMatrixFormattedTable(int precision, List<LocalDate> exposureBucketEndDates, List<LocalDate> incurredBucketEndDates) {
-        StringBuilder table = new StringBuilder();
-        String formatString = "%" + (10 + precision) + "s";
-        String formatDouble = "%" + (10 + precision) + "." + precision + "f";
-        table.append(String.format("%10s", "Exp x Inc"));
-        for (LocalDate exposureDate : exposureBucketEndDates) {
-            table.append(String.format(formatString, exposureDate));
-        }
-        table.append("\n");
-        for (LocalDate incurredDate : incurredBucketEndDates) {
-            table.append(String.format("%10s", incurredDate));
-            for (LocalDate exposureDate : exposureBucketEndDates) {
-                double sum = matrixEntries.stream()
-                        .filter(entry -> entry.getIncurredDateBucket().equals(incurredDate) &&
-                                entry.getExposureDateBucket().equals(exposureDate))
-                        .mapToDouble(ExposureMatrixEntry::getSum)
-                        .sum();
-                table.append(String.format(formatDouble, roundToPrecision(sum, precision)));
-            }
-            table.append("\n");
-        }
-        return table.toString();
-    }
-
-
+    /**
+     * Generates an exposure vector by aggregating matrix entries.
+     * @return List of exposure vector entries aggregated by exposure date
+     */
     public List<ExposureVectorEntry> generateExposureVector() {
         return generateExposureVector(true);
     }
 
+    /**
+     * Generates an exposure vector by aggregating matrix entries.
+     * @param isExposure If true, aggregates by exposure date; if false, by incurred date
+     * @return List of vector entries
+     */
     public List<ExposureVectorEntry> generateExposureVector(boolean isExposure) {
-        List<ExposureVectorEntry> vector = new ArrayList<>();
         if (matrixEntries == null || matrixEntries.isEmpty()) {
-            return vector;
+            return new ArrayList<>();
         }
 
-        if (isExposure) {
-            // Aggregate by exposureDateBucket
-            matrixEntries.stream()
-                .collect(java.util.stream.Collectors.groupingBy(
-                    ExposureMatrixEntry::getExposureDateBucket,
-                    java.util.stream.Collectors.summingDouble(ExposureMatrixEntry::getSum)
-                ))
-                .forEach((date, sum) -> vector.add(
-                    new ExposureVectorEntry(date, sum, ExposureType.INCURRED)
-                ));
-        } else {
-            // Aggregate by incurredDateBucket
-            matrixEntries.stream()
-                .collect(java.util.stream.Collectors.groupingBy(
-                    ExposureMatrixEntry::getIncurredDateBucket,
-                    java.util.stream.Collectors.summingDouble(ExposureMatrixEntry::getSum)
-                ))
-                .forEach((date, sum) -> vector.add(
-                    new ExposureVectorEntry(date, sum, ExposureType.INCURRED)
-                ));
-        }
-
-        // Sort by date
-        vector.sort(java.util.Comparator.comparing(ExposureVectorEntry::getDateBucket));
-        return vector;
+        return isExposure ? aggregateByExposureDate() : aggregateByIncurredDate();
     }
 
+    /**
+     * Gets all unique exposure bucket dates from the matrix.
+     * @return Sorted list of exposure bucket dates
+     */
     public List<LocalDate> getExposureBuckets() {
         return matrixEntries.stream()
                 .map(ExposureMatrixEntry::getExposureDateBucket)
@@ -276,6 +181,10 @@ public class ExposureMatrix implements DateCriteriaSummable {
                 .toList();
     }
 
+    /**
+     * Gets all unique incurred bucket dates from the matrix.
+     * @return Sorted list of incurred bucket dates
+     */
     public List<LocalDate> getIncurredBuckets() {
         return matrixEntries.stream()
                 .map(ExposureMatrixEntry::getIncurredDateBucket)
@@ -285,14 +194,224 @@ public class ExposureMatrix implements DateCriteriaSummable {
     }
 
     @Override
-    public double getSumByDateCriteria(LocalDate date,
-                                       String incurredDateComparison,
-                                       String exposureDateComparison) {
+    public double getSumByDateCriteria(LocalDate date, String incurredDateComparison, String exposureDateComparison) {
+        validateDateCriteriaInputs(date, incurredDateComparison, exposureDateComparison);
+        
         return matrixEntries.stream()
-                .filter(entry -> compareDates(entry.getIncurredDateBucket(), date, incurredDateComparison) &&
-                        compareDates(entry.getExposureDateBucket(), date, exposureDateComparison))
+                .filter(entry -> matchesDateCriteria(entry, date, incurredDateComparison, exposureDateComparison))
                 .mapToDouble(ExposureMatrixEntry::getSum)
                 .sum();
+    }
+
+    // Private helper methods
+
+    private static void validateConstructorInputs(List<Factor> factors, LocalDate startDate, 
+                                                List<LocalDate> incurredBuckets, List<LocalDate> exposureBuckets) {
+        if (factors == null) {
+            throw new IllegalArgumentException("Factors list cannot be null");
+        }
+        if (startDate == null) {
+            throw new IllegalArgumentException("Start date cannot be null");
+        }
+        if (incurredBuckets == null) {
+            throw new IllegalArgumentException("Incurred bucket end dates cannot be null");
+        }
+        if (exposureBuckets == null) {
+            throw new IllegalArgumentException("Exposure bucket end dates cannot be null");
+        }
+    }
+
+    private static void validateBucketInputs(LocalDate startDate, PatternElement.Type frequency) {
+        if (startDate == null) {
+            throw new IllegalArgumentException("Start date cannot be null");
+        }
+        if (frequency == null) {
+            throw new IllegalArgumentException("Frequency cannot be null");
+        }
+    }
+
+    private static void validateDateRangeInputs(LocalDate startDate, LocalDate endDate, PatternElement.Type frequency) {
+        validateBucketInputs(startDate, frequency);
+        if (endDate == null) {
+            throw new IllegalArgumentException("End date cannot be null");
+        }
+        if (startDate.isAfter(endDate)) {
+            throw new IllegalArgumentException("Start date cannot be after end date");
+        }
+    }
+
+    private static void validateYearRange(int startYear, int endYear) {
+        if (startYear > endYear) {
+            throw new IllegalArgumentException("Start year cannot be after end year");
+        }
+    }
+
+    private static void validatePrecision(int precision) {
+        if (precision < 0) {
+            throw new IllegalArgumentException("Precision must be non-negative");
+        }
+    }
+
+    private static LocalDate advanceDateByFrequency(LocalDate date, PatternElement.Type frequency) {
+        return switch (frequency) {
+            case DAY -> date.plusDays(1);
+            case WEEK -> date.plusWeeks(1);
+            case MONTH -> date.plusMonths(1);
+            case QUARTER -> date.plusMonths(3);
+            case YEAR -> date.plusYears(1);
+            default -> throw new IllegalArgumentException("Unsupported frequency type: " + frequency);
+        };
+    }
+
+    private static boolean isBucketEndDateValid(LocalDate bucketEndDate, LocalDate endDate) {
+        return !bucketEndDate.isAfter(endDate);
+    }
+
+    private List<ExposureMatrixEntry> generateExposureMatrix(List<Factor> factors, LocalDate startDate, 
+                                                           List<LocalDate> incurredBuckets, List<LocalDate> exposureBuckets, boolean toEnd) {
+        List<ExposureMatrixEntry> entries = new ArrayList<>();
+
+        for (int i = 0; i < incurredBuckets.size(); i++) {
+            DateRange incurredRange = createDateRange(startDate, incurredBuckets, i);
+            if (!incurredRange.isValid()) continue;
+
+            for (int j = 0; j < exposureBuckets.size(); j++) {
+                DateRange exposureRange = createDateRange(startDate, exposureBuckets, j);
+                if (!exposureRange.isValid()) continue;
+
+                double sum = calculateFactorSum(factors, incurredRange, exposureRange);
+                addMatrixEntryIfSignificant(entries, incurredRange, exposureRange, sum, toEnd);
+            }
+        }
+
+        return entries;
+    }
+
+    private DateRange createDateRange(LocalDate startDate, List<LocalDate> buckets, int index) {
+        LocalDate rangeStart = index == 0 ? startDate : buckets.get(index - 1).plusDays(1);
+        LocalDate rangeEnd = buckets.get(index);
+        return new DateRange(rangeStart, rangeEnd);
+    }
+
+    private double calculateFactorSum(List<Factor> factors, DateRange incurredRange, DateRange exposureRange) {
+        return factors.stream()
+                .filter(factor -> incurredRange.contains(factor.getIncurredDate()))
+                .filter(factor -> exposureRange.contains(factor.getExposureDate()))
+                .mapToDouble(Factor::getValue)
+                .sum();
+    }
+
+    private void addMatrixEntryIfSignificant(List<ExposureMatrixEntry> entries, DateRange incurredRange, 
+                                           DateRange exposureRange, double sum, boolean toEnd) {
+        if (Math.abs(sum) > ZERO_THRESHOLD) {
+            LocalDate incurredDate = toEnd ? incurredRange.end : incurredRange.start;
+            LocalDate exposureDate = toEnd ? exposureRange.end : exposureRange.start;
+            
+            entries.add(new ExposureMatrixEntry(incurredDate, exposureDate, sum, ExposureType.INCURRED));
+        }
+    }
+
+    private MatrixDimensions extractMatrixDimensions() {
+        List<LocalDate> exposureBuckets = getExposureBuckets();
+        List<LocalDate> incurredBuckets = getIncurredBuckets();
+        return new MatrixDimensions(exposureBuckets, incurredBuckets);
+    }
+
+    private String generateCsvTable(int precision, MatrixDimensions dimensions) {
+        StringBuilder table = new StringBuilder();
+        
+        // Header row
+        table.append(EXPOSURE_HEADER);
+        dimensions.exposureBuckets.forEach(date -> table.append(",").append(date));
+        table.append("\n");
+        
+        // Data rows
+        for (LocalDate incurredDate : dimensions.incurredBuckets) {
+            table.append(incurredDate);
+            for (LocalDate exposureDate : dimensions.exposureBuckets) {
+                double sum = getMatrixValue(incurredDate, exposureDate);
+                table.append(",").append(String.format("%." + precision + "f", roundToPrecision(sum, precision)));
+            }
+            table.append("\n");
+        }
+        
+        return table.toString();
+    }
+
+    private String generateFormattedTable(int precision, MatrixDimensions dimensions) {
+        StringBuilder table = new StringBuilder();
+        String columnFormat = "%" + (COLUMN_WIDTH + precision) + "s";
+        String doubleFormat = "%" + (COLUMN_WIDTH + precision) + "." + precision + "f";
+        
+        // Header row
+        table.append(String.format("%" + COLUMN_WIDTH + "s", EXPOSURE_HEADER));
+        dimensions.exposureBuckets.forEach(date -> table.append(String.format(columnFormat, date)));
+        table.append("\n");
+        
+        // Data rows
+        for (LocalDate incurredDate : dimensions.incurredBuckets) {
+            table.append(String.format("%" + COLUMN_WIDTH + "s", incurredDate));
+            for (LocalDate exposureDate : dimensions.exposureBuckets) {
+                double sum = getMatrixValue(incurredDate, exposureDate);
+                table.append(String.format(doubleFormat, roundToPrecision(sum, precision)));
+            }
+            table.append("\n");
+        }
+        
+        return table.toString();
+    }
+
+    private double getMatrixValue(LocalDate incurredDate, LocalDate exposureDate) {
+        return matrixEntries.stream()
+                .filter(entry -> entry.getIncurredDateBucket().equals(incurredDate) &&
+                               entry.getExposureDateBucket().equals(exposureDate))
+                .mapToDouble(ExposureMatrixEntry::getSum)
+                .sum();
+    }
+
+    private List<ExposureVectorEntry> aggregateByExposureDate() {
+        return matrixEntries.stream()
+                .collect(Collectors.groupingBy(
+                    ExposureMatrixEntry::getExposureDateBucket,
+                    Collectors.summingDouble(ExposureMatrixEntry::getSum)
+                ))
+                .entrySet().stream()
+                .map(entry -> new ExposureVectorEntry(entry.getKey(), entry.getValue(), ExposureType.INCURRED))
+                .sorted(java.util.Comparator.comparing(ExposureVectorEntry::getDateBucket))
+                .toList();
+    }
+
+    private List<ExposureVectorEntry> aggregateByIncurredDate() {
+        return matrixEntries.stream()
+                .collect(Collectors.groupingBy(
+                    ExposureMatrixEntry::getIncurredDateBucket,
+                    Collectors.summingDouble(ExposureMatrixEntry::getSum)
+                ))
+                .entrySet().stream()
+                .map(entry -> new ExposureVectorEntry(entry.getKey(), entry.getValue(), ExposureType.INCURRED))
+                .sorted(java.util.Comparator.comparing(ExposureVectorEntry::getDateBucket))
+                .toList();
+    }
+
+    private void validateDateCriteriaInputs(LocalDate date, String incurredComparison, String exposureComparison) {
+        if (date == null) {
+            throw new IllegalArgumentException("Date cannot be null");
+        }
+        validateComparisonOperator(incurredComparison, "incurred date comparison");
+        validateComparisonOperator(exposureComparison, "exposure date comparison");
+    }
+
+    private void validateComparisonOperator(String operator, String context) {
+        if (operator == null || (!operator.equals("<") && !operator.equals("<=") && 
+                                !operator.equals(">") && !operator.equals(">="))) {
+            throw new IllegalArgumentException("Invalid comparison operator for " + context + ": " + operator);
+        }
+    }
+
+    private boolean matchesDateCriteria(ExposureMatrixEntry entry, LocalDate date, 
+                                      String incurredComparison, String exposureComparison) {
+        return compareDates(entry.getIncurredDateBucket(), date, incurredComparison) &&
+               compareDates(entry.getExposureDateBucket(), date, exposureComparison);
     }
 
     private boolean compareDates(LocalDate bucketDate, LocalDate targetDate, String comparison) {
@@ -303,5 +422,35 @@ public class ExposureMatrix implements DateCriteriaSummable {
             case ">=" -> !bucketDate.isBefore(targetDate);
             default -> throw new IllegalArgumentException("Invalid comparison operator: " + comparison);
         };
+    }
+
+    // Helper classes for better organization
+
+    private static class DateRange {
+        final LocalDate start;
+        final LocalDate end;
+
+        DateRange(LocalDate start, LocalDate end) {
+            this.start = start;
+            this.end = end;
+        }
+
+        boolean isValid() {
+            return !start.isAfter(end);
+        }
+
+        boolean contains(LocalDate date) {
+            return !date.isBefore(start) && !date.isAfter(end);
+        }
+    }
+
+    private static class MatrixDimensions {
+        final List<LocalDate> exposureBuckets;
+        final List<LocalDate> incurredBuckets;
+
+        MatrixDimensions(List<LocalDate> exposureBuckets, List<LocalDate> incurredBuckets) {
+            this.exposureBuckets = exposureBuckets;
+            this.incurredBuckets = incurredBuckets;
+        }
     }
 }

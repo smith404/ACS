@@ -8,12 +8,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Represents a pattern element that defines how factors are distributed over time.
+ * Each element has a type (DAY, WEEK, MONTH, QUARTER, YEAR), an initial value,
+ * and a distribution value that gets spread over a duration.
+ */
 @Data
 @AllArgsConstructor
 public class PatternElement {
+    
     public enum Type {
         DAY, WEEK, MONTH, QUARTER, YEAR
     }
+
+    private static final int DAYS_PER_YEAR = 360;
+    private static final int DAYS_PER_MONTH = 30;
+    private static final int MONTHS_PER_QUARTER = 3;
 
     private final String uuid = UUID.randomUUID().toString();
     private Pattern parentPattern;
@@ -22,17 +32,6 @@ public class PatternElement {
     private double initial = 0;
     private int distributionDuration = 0;
     private int initialDuration = 0;
-
-    public static int getNormalizedDuration(LocalDate initialDate, int duration) {
-        if (initialDate == null) {
-            return 0;
-        }
-        int years = duration / 360;
-        int months = (duration % 360) / 30;
-        int days = duration % 30;
-        LocalDate normalizedDate = initialDate.plusYears(years).plusMonths(months).plusDays(days);
-        return (int) java.time.temporal.ChronoUnit.DAYS.between(initialDate, normalizedDate);
-    }
 
     public PatternElement(double initial, double distribution, Type type, int initialDuration, int distributionDuration) {
         this.initial = initial;
@@ -47,130 +46,248 @@ public class PatternElement {
         this.type = type;
     }
 
-    public List<Factor> generateWritingFactors(LocalDate startDate) {
-        int elementDays = FactorCalculator.getDaysForTypeWithCalendar(this.type, startDate);
-        if (elementDays < 1) {
-            elementDays = 1;
-        } 
-        List<Factor> factors = new ArrayList<>();
-        double factorDistribution = this.distribution / elementDays;
+    /**
+     * Converts a duration in days (using 360-day year convention) to actual calendar days.
+     * @param initialDate Starting date for the calculation
+     * @param duration Duration in 360-day convention
+     * @return Actual calendar days between initialDate and the calculated end date
+     */
+    public static int getNormalizedDuration(LocalDate initialDate, int duration) {
+        if (initialDate == null) {
+            return 0;
+        }
+        
+        int years = duration / DAYS_PER_YEAR;
+        int months = (duration % DAYS_PER_YEAR) / DAYS_PER_MONTH;
+        int days = duration % DAYS_PER_MONTH;
+        
+        LocalDate normalizedDate = initialDate.plusYears(years).plusMonths(months).plusDays(days);
+        return (int) java.time.temporal.ChronoUnit.DAYS.between(initialDate, normalizedDate);
+    }
 
-        for (int i = 0; i < elementDays; i++) {
-            if (i == 0) {
-                factors.add(new Factor(startDate, startDate, this.initial));
-                factors.add(new Factor(startDate, startDate, factorDistribution + this.initial));
-            } else {
-                factors.add(new Factor(startDate.plusDays(i), startDate.plusDays(i), factorDistribution));
+    /**
+     * Generates writing factors where both incurred and exposure dates are the same.
+     * The initial value is applied on the first day, and distribution is spread evenly.
+     */
+    public List<Factor> generateWritingFactors(LocalDate startDate) {
+        int elementDays = getElementDays(startDate);
+        List<Factor> factors = new ArrayList<>();
+        
+        if (elementDays == 1) {
+            // Single day: combine initial and distribution
+            factors.add(new Factor(startDate, startDate, this.initial + this.distribution));
+        } else {
+            // Multiple days: initial on first day, then distribute remainder
+            double dailyDistribution = this.distribution / elementDays;
+            
+            // First day gets initial plus its share of distribution
+            factors.add(new Factor(startDate, startDate, this.initial + dailyDistribution));
+            
+            // Remaining days get their share of distribution
+            for (int i = 1; i < elementDays; i++) {
+                LocalDate currentDate = startDate.plusDays(i);
+                factors.add(new Factor(currentDate, currentDate, dailyDistribution));
             }
         }
 
         return factors;
     }
 
+    /**
+     * Generates earning factors with complex distribution patterns including
+     * initial upfront amounts and progressive distribution over time.
+     */
     public List<Factor> generateEarningFactors(LocalDate startDate, boolean useCalendar, boolean useLinear, boolean fast) {
-        int elementDays = FactorCalculator.getDaysForTypeWithCalendar(this.type, startDate);
-        if (elementDays < 1) {
-            elementDays = 1;
-        }
+        int elementDays = getElementDays(startDate);
+        DurationConfig durationConfig = calculateDurations(startDate, useCalendar, elementDays);
+        
+        List<Factor> factors = new ArrayList<>();
+        
+        generateInitialFactors(factors, startDate, durationConfig);
+        generateDistributionFactors(factors, startDate, durationConfig, elementDays, useLinear, fast);
+        
+        return factors;
+    }
 
+    private int getElementDays(LocalDate startDate) {
+        int days = FactorCalculator.getDaysForTypeWithCalendar(this.type, startDate);
+        return Math.max(days, 1);
+    }
+
+    private DurationConfig calculateDurations(LocalDate startDate, boolean useCalendar, int elementDays) {
         int upFrontDuration = this.initialDuration;
         int shareDuration = this.distributionDuration;
+        
         if (useCalendar) {
             upFrontDuration = getNormalizedDuration(startDate, upFrontDuration);
             shareDuration = getNormalizedDuration(startDate, shareDuration);
         }
-        if (upFrontDuration < 1) {
-            upFrontDuration = 1;
-        }
-        if (shareDuration < 1) {
-            shareDuration = 1;
-        }
-        int duration = Math.max(elementDays, Math.max(upFrontDuration, shareDuration));
-
-        List<Factor> factors = new ArrayList<>();
-        double initialFactorDistribution = this.initial / upFrontDuration;
-        double factorDistribution = this.distribution / shareDuration;
-        double scaleFactor = 1 / (double) elementDays;
-
-        double lastFactorValue = 0;
-        double factorValue;
-        for (int i = 0; i < elementDays; i++) {
-            if (!useLinear) {
-                int runInDay = i + 1;
-                double runInFactor = (runInDay * scaleFactor);
-                factorValue = (factorDistribution / 2) * runInFactor;
-            } else {
-                factorValue = factorDistribution / 2;
-            }
-            if (i < upFrontDuration) {
-                factors.add(new Factor(startDate, startDate.plusDays(i), initialFactorDistribution));
-            } 
-            if (i < shareDuration) {
-                factors.add(new Factor(startDate.plusDays(i), startDate.plusDays(i), factorValue + lastFactorValue));
-                factors.add(new Factor(startDate.plusDays(elementDays - i -1L), startDate.plusDays((shareDuration + elementDays - i - 1L)), factorValue + lastFactorValue));
-            }
-            if (!useLinear) {
-                lastFactorValue = factorValue;
-            }
-        }
-        for (int i = elementDays; i < duration; i++) {
-            if (i < upFrontDuration) {
-                factors.add(new Factor(startDate, startDate.plusDays(i), initialFactorDistribution));
-            } 
-            if (i < shareDuration) {
-                if (fast) {
-                    double hack = getQuarterAlignmentPercentage(startDate, startDate.plusDays((long)elementDays - 1));
-                    factors.add(new Factor(startDate.plusDays(0), startDate.plusDays(i), factorDistribution * (hack/100)));
-                    factors.add(new Factor(startDate.plusDays(elementDays-1L), startDate.plusDays(i), factorDistribution * (1-(hack/100))));
-                }
-                else
-                {
-                    factorValue = factorDistribution / elementDays;
-                    for (int j = 0; j < elementDays; j++) {
-                        factors.add(new Factor(startDate.plusDays(j), startDate.plusDays(i), factorValue));
-                    }
-                }
-            }
-        }
-
-        return factors;
+        
+        upFrontDuration = Math.max(upFrontDuration, 1);
+        shareDuration = Math.max(shareDuration, 1);
+        int totalDuration = Math.max(elementDays, Math.max(upFrontDuration, shareDuration));
+        
+        return new DurationConfig(upFrontDuration, shareDuration, totalDuration, elementDays);
     }
 
+    private void generateInitialFactors(List<Factor> factors, LocalDate startDate, DurationConfig config) {
+        if (this.initial <= 0) return;
+        
+        double dailyInitialDistribution = this.initial / config.upFrontDuration;
+        
+        for (int i = 0; i < config.upFrontDuration; i++) {
+            factors.add(new Factor(startDate, startDate.plusDays(i), dailyInitialDistribution));
+        }
+    }
+
+    private void generateDistributionFactors(List<Factor> factors, LocalDate startDate, DurationConfig config, 
+                                           int elementDays, boolean useLinear, boolean fast) {
+        double factorDistribution = this.distribution / config.shareDuration;
+        double scaleFactor = 1.0 / elementDays;
+        
+        generateElementPeriodFactors(factors, startDate, config, elementDays, factorDistribution, scaleFactor, useLinear);
+        generateExtendedPeriodFactors(factors, startDate, config, elementDays, factorDistribution, fast);
+    }
+
+    private void generateElementPeriodFactors(List<Factor> factors, LocalDate startDate, DurationConfig config,
+                                            int elementDays, double factorDistribution, double scaleFactor, boolean useLinear) {
+        double cumulativeFactorValue = 0;
+        
+        for (int i = 0; i < elementDays && i < config.shareDuration; i++) {
+            double factorValue = calculateFactorValue(i, elementDays, factorDistribution, scaleFactor, useLinear);
+            
+            // Forward factor (incurred to exposure)
+            factors.add(new Factor(
+                startDate.plusDays(i), 
+                startDate.plusDays(i), 
+                factorValue + cumulativeFactorValue
+            ));
+            
+            // Backward factor (exposure to incurred + share duration)
+            factors.add(new Factor(
+                startDate.plusDays(elementDays - i - 1L), 
+                startDate.plusDays(config.shareDuration + elementDays - i - 1L), 
+                factorValue + cumulativeFactorValue
+            ));
+            
+            if (!useLinear) {
+                cumulativeFactorValue = factorValue;
+            }
+        }
+    }
+
+    private double calculateFactorValue(int dayIndex, int elementDays, double factorDistribution, 
+                                      double scaleFactor, boolean useLinear) {
+        if (useLinear) {
+            return factorDistribution / 2;
+        } else {
+            int runInDay = dayIndex + 1;
+            double runInFactor = runInDay * scaleFactor;
+            return (factorDistribution / 2) * runInFactor;
+        }
+    }
+
+    private void generateExtendedPeriodFactors(List<Factor> factors, LocalDate startDate, DurationConfig config,
+                                             int elementDays, double factorDistribution, boolean fast) {
+        for (int i = elementDays; i < config.totalDuration && i < config.shareDuration; i++) {
+            if (fast) {
+                generateFastFactors(factors, startDate, elementDays, i, factorDistribution);
+            } else {
+                generateDetailedFactors(factors, startDate, elementDays, i, factorDistribution);
+            }
+        }
+    }
+
+    private void generateFastFactors(List<Factor> factors, LocalDate startDate, int elementDays, 
+                                   int currentDay, double factorDistribution) {
+        double quarterAlignment = getQuarterAlignmentPercentage(startDate, startDate.plusDays(elementDays - 1L));
+        double alignmentFactor = quarterAlignment / 100.0;
+        
+        factors.add(new Factor(
+            startDate, 
+            startDate.plusDays(currentDay), 
+            factorDistribution * alignmentFactor
+        ));
+        
+        factors.add(new Factor(
+            startDate.plusDays(elementDays - 1L), 
+            startDate.plusDays(currentDay), 
+            factorDistribution * (1 - alignmentFactor)
+        ));
+    }
+
+    private void generateDetailedFactors(List<Factor> factors, LocalDate startDate, int elementDays, 
+                                       int currentDay, double factorDistribution) {
+        double dailyFactorValue = factorDistribution / elementDays;
+        
+        for (int j = 0; j < elementDays; j++) {
+            factors.add(new Factor(
+                startDate.plusDays(j), 
+                startDate.plusDays(currentDay), 
+                dailyFactorValue
+            ));
+        }
+    }
+
+    /**
+     * Gets the length of this pattern element in days using standard day counts.
+     */
     public int getLength() {
         return FactorCalculator.getDaysForType(this.type);
     }
 
+    /**
+     * Calculates the percentage alignment with calendar quarters for the given date range.
+     * Returns 100% if the dates exactly match a quarter, or the percentage of days
+     * until the next quarter start if a quarter boundary falls within the range.
+     */
     public double getQuarterAlignmentPercentage(LocalDate startDate, LocalDate endDate) {
-        // Check if start and end dates exactly match a calendar quarter
         LocalDate quarterStart = getQuarterStart(startDate);
         LocalDate quarterEnd = getQuarterEnd(quarterStart);
         
+        // Perfect quarter alignment
         if (startDate.equals(quarterStart) && endDate.equals(quarterEnd)) {
             return 100.0;
         }
         
-        // Find if any quarter starts within the given date range
+        // Check for quarter start within the date range
         LocalDate currentQuarterStart = quarterStart;
         while (!currentQuarterStart.isAfter(endDate)) {
             if (currentQuarterStart.isAfter(startDate) && !currentQuarterStart.isAfter(endDate)) {
-                // Quarter starts within the range - calculate percentage
                 long totalDays = java.time.temporal.ChronoUnit.DAYS.between(startDate, endDate) + 1;
                 long daysToQuarterStart = java.time.temporal.ChronoUnit.DAYS.between(startDate, currentQuarterStart);
                 return (double) daysToQuarterStart / totalDays * 100.0;
             }
-            currentQuarterStart = currentQuarterStart.plusMonths(3);
+            currentQuarterStart = currentQuarterStart.plusMonths(MONTHS_PER_QUARTER);
         }
         
         return 0.0;
     }
     
     private LocalDate getQuarterStart(LocalDate date) {
-        int quarter = (date.getMonthValue() - 1) / 3;
-        int quarterStartMonth = quarter * 3 + 1;
+        int quarter = (date.getMonthValue() - 1) / MONTHS_PER_QUARTER;
+        int quarterStartMonth = quarter * MONTHS_PER_QUARTER + 1;
         return LocalDate.of(date.getYear(), quarterStartMonth, 1);
     }
     
     private LocalDate getQuarterEnd(LocalDate quarterStart) {
-        return quarterStart.plusMonths(3).minusDays(1);
+        return quarterStart.plusMonths(MONTHS_PER_QUARTER).minusDays(1);
+    }
+
+    /**
+     * Internal class to hold duration configuration for factor generation.
+     */
+    private static class DurationConfig {
+        final int upFrontDuration;
+        final int shareDuration;
+        final int totalDuration;
+        final int elementDays;
+
+        DurationConfig(int upFrontDuration, int shareDuration, int totalDuration, int elementDays) {
+            this.upFrontDuration = upFrontDuration;
+            this.shareDuration = shareDuration;
+            this.totalDuration = totalDuration;
+            this.elementDays = elementDays;
+        }
     }
 }
