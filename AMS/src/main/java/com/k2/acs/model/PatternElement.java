@@ -76,18 +76,18 @@ public class PatternElement {
         
         if (elementDays == 1) {
             // Single day: combine initial and distribution
-            factors.add(new Factor(startDate, startDate, this.initial + this.distribution, "U&D"));
+            factors.add(new Factor(startDate, startDate, this.initial + this.distribution, Factor.Type.DIST));
         } else {
             // Multiple days: initial on first day, then distribute remainder
             double dailyDistribution = this.distribution / elementDays;
             
             // First day gets initial plus its share of distribution
-            factors.add(new Factor(startDate, startDate, this.initial + dailyDistribution, "U&D"));
+            factors.add(new Factor(startDate, startDate, this.initial + dailyDistribution, Factor.Type.DIST));
             
             // Remaining days get their share of distribution
             for (int i = 1; i < elementDays; i++) {
                 LocalDate currentDate = startDate.plusDays(i);
-                factors.add(new Factor(currentDate, currentDate, dailyDistribution, "D"));
+                factors.add(new Factor(currentDate, currentDate, dailyDistribution, Factor.Type.DIST));
             }
         }
 
@@ -137,7 +137,7 @@ public class PatternElement {
         double dailyInitialDistribution = this.initial / config.upFrontDuration;
         
         for (int i = 0; i < config.upFrontDuration; i++) {
-            factors.add(new Factor(startDate, startDate.plusDays(i), dailyInitialDistribution, "U"));
+            factors.add(new Factor(startDate, startDate.plusDays(i), dailyInitialDistribution, Factor.Type.UPFRONT));
         }
     }
 
@@ -173,14 +173,14 @@ public class PatternElement {
                     startDate.plusDays(j), 
                     startDate.plusDays(i), 
                     distributedFactorValue,
-                    "F"
+                    Factor.Type.UPFRONT
                 ));
                 // Backward factor (exposure to incurred + share duration)
                 factors.add(new Factor(
                     startDate.plusDays(elementDays - j - 1L), 
                     startDate.plusDays((long) config.shareDuration + i), 
                     distributedFactorValue,
-                    "B"
+                    Factor.Type.DIST
                 ));
             }
         }
@@ -217,14 +217,14 @@ public class PatternElement {
             startDate, 
             startDate.plusDays(currentDay), 
             factorDistribution * alignmentFactor,
-            "DF"
+            Factor.Type.DIST
         ));
         
         factors.add(new Factor(
             startDate.plusDays(elementDays - 1L), 
             startDate.plusDays(currentDay), 
             factorDistribution * (1 - alignmentFactor),
-            "DF"
+            Factor.Type.DIST
         ));
     }
 
@@ -237,7 +237,7 @@ public class PatternElement {
                 startDate.plusDays(j), 
                 startDate.plusDays(currentDay), 
                 dailyFactorValue,
-                "D"
+                Factor.Type.DIST
             ));
         }
     }

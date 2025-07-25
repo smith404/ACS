@@ -344,10 +344,10 @@ public class Main {
     private static Pattern createPattern(AmsConfig config) {
         Pattern pattern = new Pattern();
         for (AmsConfig.Element element : config.getElements()) {
-            PatternElement patternElement = new PatternElement(
+            PatternFactor patternElement = new PatternFactor(
+                    PatternFactor.Type.valueOf(element.getType().toUpperCase()),
                     element.getInitial(),
                     element.getDistribution(),
-                    PatternElement.Type.valueOf(element.getType().toUpperCase()),
                     element.getInitialDuration() > 0 ? element.getInitialDuration() : config.getDefaultDuration(),
                     element.getDuration() > 0 ? element.getDuration() : config.getDefaultDuration());
             pattern.addElement(patternElement);

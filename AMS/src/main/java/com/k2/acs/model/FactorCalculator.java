@@ -113,10 +113,11 @@ public class FactorCalculator implements DateCriteriaSummable {
         allFactors = new ArrayList<>();
         
         LocalDate currentStartDate = startDate;
-        for (PatternElement element : pattern.getElements()) {
-            List<Factor> elementFactors = generateElementFactors(element, currentStartDate, factorType);
+        for (PatternFactor element : pattern.getElements()) {
+            List<Factor> elementFactors = element.getFactors(currentStartDate, true, false);
             processAndAddFactors(elementFactors);
-            currentStartDate = advanceToNextElement(element, currentStartDate);
+            currentStartDate = currentStartDate.plusDays(element.getNormalizedElementDays());
+            System.out.println("Processed element: " + element.getType() + " from " + currentStartDate);
         }
         
         logFactorGenerationComplete(startTime);
@@ -254,17 +255,14 @@ public class FactorCalculator implements DateCriteriaSummable {
     private void processAndAddFactors(List<Factor> factors) {
         factors.stream()
                 .filter(this::isSignificantFactor)
-                .forEach(this::addFactorWithWrittenStatus);
+                .forEach(this::addFactor);
     }
 
     private boolean isSignificantFactor(Factor factor) {
         return Math.abs(factor.getValue()) > ZERO_THRESHOLD;
     }
 
-    private void addFactorWithWrittenStatus(Factor factor) {
-        if (factor.getExposureDate().isBefore(writtenDate)) {
-            factor.setWritten(true);
-        }
+    private void addFactor(Factor factor) {
         allFactors.add(factor);
     }
 
@@ -305,8 +303,7 @@ public class FactorCalculator implements DateCriteriaSummable {
                 factor.getIncurredDate(),
                 factor.getExposureDate(),
                 factor.getValue() * ultimateValue.getAmount(),
-                factor.getFactorType(),
-                factor.isWritten()
+                factor.getFactorType()
         );
     }
 

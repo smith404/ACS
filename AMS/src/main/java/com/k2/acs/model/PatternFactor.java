@@ -97,6 +97,7 @@ public class PatternFactor {
 
         factors.addAll(upFrontFactors(startDate));
         for(int i = 0; i < normalizedElementDays; i++) {
+            factors.addAll(distributionFactors(startDate.plusDays(i)));
         }
 
         return factors;
@@ -107,7 +108,7 @@ public class PatternFactor {
 
         double dailyFactor = upFront / normalizedUpFrontDuration;
         for (int i = 0; i < normalizedUpFrontDuration; i++) {
-            factors.add(new Factor(incurredDate, incurredDate.plusDays(i), dailyFactor, "UPFRONT"));
+            factors.add(new Factor(incurredDate, incurredDate.plusDays(i), dailyFactor, Factor.Type.UPFRONT));
         }
 
         return factors;
@@ -119,12 +120,12 @@ public class PatternFactor {
         double dailyFactor = distribution / normalizedDistributionDuration / normalizedElementDays;
         for (int i = 0; i < normalizedDistributionDuration; i++) {
             if (i == 0) {
-                factors.add(new Factor(incurredDate, incurredDate.plusDays(i), dailyFactor/2, "DISTRIBUTION"));
+                factors.add(new Factor(incurredDate, incurredDate.plusDays(i), dailyFactor/2, Factor.Type.DIST));
                 continue;
             }
-            factors.add(new Factor(incurredDate, incurredDate.plusDays(i), dailyFactor, "DISTRIBUTION"));
+            factors.add(new Factor(incurredDate, incurredDate.plusDays(i), dailyFactor, Factor.Type.DIST));
         }
-        factors.add(new Factor(incurredDate, incurredDate.plusDays(normalizedDistributionDuration), dailyFactor/2, "DISTRIBUTION"));
+        factors.add(new Factor(incurredDate, incurredDate.plusDays(normalizedDistributionDuration), dailyFactor/2, Factor.Type.DIST));
 
         return factors;
     }   
