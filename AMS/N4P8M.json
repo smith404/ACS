@@ -19,6 +19,7 @@
     "factorType": "earning",
     "endOfPeriod": true,
     "fast": false,
+    "linear": false,
     "incurredTimeUnit": "quarter",
     "exposedTimeUnit": "quarter",
     "elements": [ {

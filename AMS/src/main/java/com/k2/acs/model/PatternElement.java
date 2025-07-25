@@ -2,6 +2,7 @@ package com.k2.acs.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.ToString;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -75,18 +76,18 @@ public class PatternElement {
         
         if (elementDays == 1) {
             // Single day: combine initial and distribution
-            factors.add(new Factor(startDate, startDate, this.initial + this.distribution));
+            factors.add(new Factor(startDate, startDate, this.initial + this.distribution, "U&D"));
         } else {
             // Multiple days: initial on first day, then distribute remainder
             double dailyDistribution = this.distribution / elementDays;
             
             // First day gets initial plus its share of distribution
-            factors.add(new Factor(startDate, startDate, this.initial + dailyDistribution));
+            factors.add(new Factor(startDate, startDate, this.initial + dailyDistribution, "U&D"));
             
             // Remaining days get their share of distribution
             for (int i = 1; i < elementDays; i++) {
                 LocalDate currentDate = startDate.plusDays(i);
-                factors.add(new Factor(currentDate, currentDate, dailyDistribution));
+                factors.add(new Factor(currentDate, currentDate, dailyDistribution, "D"));
             }
         }
 
@@ -136,7 +137,7 @@ public class PatternElement {
         double dailyInitialDistribution = this.initial / config.upFrontDuration;
         
         for (int i = 0; i < config.upFrontDuration; i++) {
-            factors.add(new Factor(startDate, startDate.plusDays(i), dailyInitialDistribution));
+            factors.add(new Factor(startDate, startDate.plusDays(i), dailyInitialDistribution, "U"));
         }
     }
 
@@ -144,39 +145,48 @@ public class PatternElement {
                                            int elementDays, boolean useLinear, boolean fast) {
         double factorDistribution = this.distribution / config.shareDuration;
         double scaleFactor = 1.0 / elementDays;
-        
+
         generateElementPeriodFactors(factors, startDate, config, elementDays, factorDistribution, scaleFactor, useLinear);
         generateExtendedPeriodFactors(factors, startDate, config, elementDays, factorDistribution, fast);
     }
 
     private void generateElementPeriodFactors(List<Factor> factors, LocalDate startDate, DurationConfig config,
                                             int elementDays, double factorDistribution, double scaleFactor, boolean useLinear) {
-        double cumulativeFactorValue = 0;
+        double factorValue = factorDistribution / 2;
+        double distributedFactorValue = (factorValue * elementDays) / sumDownToOne(elementDays);
+        System.out.println("Factor Distribution: " + factorDistribution);
+        System.out.println("Sum Down To One: " + sumDownToOne(elementDays));
+        System.out.println("Factor Value: " + factorValue);
+        System.out.println("Distributed Factor Value: " + distributedFactorValue);
+        System.out.println("Element Days: " + elementDays);
+        System.out.println("Share Duration: " + config.shareDuration);
+
         
         for (int i = 0; i < elementDays && i < config.shareDuration; i++) {
-            double factorValue = calculateFactorValue(i, elementDays, factorDistribution, scaleFactor, useLinear);
-            
-            // Forward factor (incurred to exposure)
-            factors.add(new Factor(
-                startDate.plusDays(i), 
-                startDate.plusDays(i), 
-                factorValue + cumulativeFactorValue
-            ));
-            
-            // Backward factor (exposure to incurred + share duration)
-            factors.add(new Factor(
-                startDate.plusDays(elementDays - i - 1L), 
-                startDate.plusDays(config.shareDuration + elementDays - i - 1L), 
-                factorValue + cumulativeFactorValue
-            ));
-            
-            if (!useLinear) {
-                cumulativeFactorValue = factorValue;
+            if (useLinear) {
+                distributedFactorValue = factorValue / (i + 1);
+            }
+
+            for (int j = 0; j <= i; j++) {
+                // Forward factor (incurred to exposure)
+                factors.add(new Factor(
+                    startDate.plusDays(j), 
+                    startDate.plusDays(i), 
+                    distributedFactorValue,
+                    "F"
+                ));
+                // Backward factor (exposure to incurred + share duration)
+                factors.add(new Factor(
+                    startDate.plusDays(elementDays - j - 1L), 
+                    startDate.plusDays((long) config.shareDuration + i), 
+                    distributedFactorValue,
+                    "B"
+                ));
             }
         }
     }
 
-    private double calculateFactorValue(int dayIndex, int elementDays, double factorDistribution, 
+    private double calculateFactorValue(int dayIndex, double factorDistribution, 
                                       double scaleFactor, boolean useLinear) {
         if (useLinear) {
             return factorDistribution / 2;
@@ -206,13 +216,15 @@ public class PatternElement {
         factors.add(new Factor(
             startDate, 
             startDate.plusDays(currentDay), 
-            factorDistribution * alignmentFactor
+            factorDistribution * alignmentFactor,
+            "DF"
         ));
         
         factors.add(new Factor(
             startDate.plusDays(elementDays - 1L), 
             startDate.plusDays(currentDay), 
-            factorDistribution * (1 - alignmentFactor)
+            factorDistribution * (1 - alignmentFactor),
+            "DF"
         ));
     }
 
@@ -224,7 +236,8 @@ public class PatternElement {
             factors.add(new Factor(
                 startDate.plusDays(j), 
                 startDate.plusDays(currentDay), 
-                dailyFactorValue
+                dailyFactorValue,
+                "D"
             ));
         }
     }
@@ -275,8 +288,17 @@ public class PatternElement {
     }
 
     /**
+     * Returns the sum n + (n-1) + ... + 1 for a given n >= 1.
+     */
+    public static int sumDownToOne(int n) {
+        if (n <= 0) return 1;
+        return n * (n + 1) / 2;
+    }
+
+    /**
      * Internal class to hold duration configuration for factor generation.
      */
+    @ToString
     private static class DurationConfig {
         final int upFrontDuration;
         final int shareDuration;

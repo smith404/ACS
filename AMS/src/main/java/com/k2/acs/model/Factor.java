@@ -11,9 +11,10 @@ public class Factor {
     private LocalDate incurredDate;
     private LocalDate exposureDate;
     private double value;
+    private String factorType;
     private boolean isWritten;
 
-    public Factor(LocalDate incurredDate, LocalDate exposureDate, double value) {
-        this(incurredDate, exposureDate, value, false);
+    public Factor(LocalDate incurredDate, LocalDate exposureDate, double value, String factorType) {
+        this(incurredDate, exposureDate, value, factorType, false);
     }
 }

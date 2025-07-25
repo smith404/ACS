@@ -165,6 +165,8 @@ public class Main {
         List<LocalDate> incurredPeriods = periodConfig.getIncurredPeriods();
         List<LocalDate> exposurePeriods = periodConfig.getExposurePeriods();
 
+        //printFactorsTable(factorCalculator.getAllFactors(), true);
+
         return new ExposureMatrix(
                 factorCalculator.getAllFactors(),
                 config.getInsuredPeriodStartDateAsLocalDate(),
@@ -359,23 +361,38 @@ public class Main {
      * @param csv If true, outputs as CSV
      */
     private static void printFactorsTable(List<Factor> factors, boolean csv) {
+        // Sort factors by incurred date first, then by exposure date
+        List<Factor> sortedFactors = factors.stream()
+                .sorted((f1, f2) -> {
+                    int incurredComparison = f1.getIncurredDate().compareTo(f2.getIncurredDate());
+                    if (incurredComparison != 0) {
+                        return incurredComparison;
+                    }
+                    return f1.getExposureDate().compareTo(f2.getExposureDate());
+                })
+                .toList();
+        
         StringBuilder table = new StringBuilder();
         if (csv) {
-            table.append(String.format("Incurred Date,Exposure Date,Factor%n"));
-            for (Factor factor : factors) {
-                table.append(String.format("%s,%s,%.6f%n",
+            table.append(String.format("Incurred Date,Exposure Date,Factor,Factor Type%n"));
+            for (Factor factor : sortedFactors) {
+                table.append(String.format("%s,%s,%.6f,%s%n",
                         factor.getIncurredDate(),
                         factor.getExposureDate(),
-                        factor.getValue()));
+                        factor.getValue(),
+                        factor.getFactorType() // assumes getFactorType() exists
+                ));
             }
         } else {
-            table.append(String.format("%-15s %-15s %-15s%n", "Incurred Date", "Exposure Date", "Factor"));
-            table.append(String.format("%-15s %-15s %-15s%n", "-------------", "-------------", "------"));
-            for (Factor factor : factors) {
-                table.append(String.format("%-15s %-15s %-15.6f%n",
+            table.append(String.format("%-15s %-15s %-15s %-15s%n", "Incurred Date", "Exposure Date", "Factor", "Factor Type"));
+            table.append(String.format("%-15s %-15s %-15s %-15s%n", "-------------", "-------------", "------", "-----------"));
+            for (Factor factor : sortedFactors) {
+                table.append(String.format("%-15s %-15s %-15.6f %-15s%n",
                         factor.getIncurredDate(),
                         factor.getExposureDate(),
-                        factor.getValue()));
+                        factor.getValue(),
+                        factor.getFactorType() // assumes getFactorType() exists
+                ));
             }
         }
         getLogger().info("\n" + table);

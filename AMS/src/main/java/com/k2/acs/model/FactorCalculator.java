@@ -305,6 +305,7 @@ public class FactorCalculator implements DateCriteriaSummable {
                 factor.getIncurredDate(),
                 factor.getExposureDate(),
                 factor.getValue() * ultimateValue.getAmount(),
+                factor.getFactorType(),
                 factor.isWritten()
         );
     }
@@ -323,7 +324,8 @@ public class FactorCalculator implements DateCriteriaSummable {
         return new Factor(
                 factor.getIncurredDate(),
                 factor.getExposureDate(),
-                factor.getValue() / totalDistribution
+                factor.getValue() / totalDistribution,
+                factor.getFactorType()
         );
     }
 
