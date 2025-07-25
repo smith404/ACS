@@ -74,7 +74,7 @@ public class ExposureMatrix implements DateCriteriaSummable {
      * @param frequency Frequency of buckets (DAY, WEEK, MONTH, QUARTER, YEAR)
      * @return List of bucket end dates
      */
-    public static List<LocalDate> getBucketEndDates(LocalDate startDate, int endYear, PatternElement.Type frequency) {
+    public static List<LocalDate> getBucketEndDates(LocalDate startDate, int endYear, PatternFactor.Type frequency) {
         validateBucketInputs(startDate, frequency);
         LocalDate endDate = LocalDate.of(endYear, 12, 31);
         return getBucketEndDates(startDate, endDate, frequency);
@@ -87,7 +87,7 @@ public class ExposureMatrix implements DateCriteriaSummable {
      * @param frequency Frequency of buckets (DAY, WEEK, MONTH, QUARTER, YEAR)
      * @return List of bucket end dates
      */
-    public static List<LocalDate> getBucketEndDates(LocalDate startDate, LocalDate endDate, PatternElement.Type frequency) {
+    public static List<LocalDate> getBucketEndDates(LocalDate startDate, LocalDate endDate, PatternFactor.Type frequency) {
         validateDateRangeInputs(startDate, endDate, frequency);
         
         List<LocalDate> endDates = new ArrayList<>();
@@ -112,7 +112,7 @@ public class ExposureMatrix implements DateCriteriaSummable {
      * @param frequency Frequency of buckets (DAY, WEEK, MONTH, QUARTER, YEAR)
      * @return List of bucket end dates
      */
-    public static List<LocalDate> getEndDatesBetween(int startYear, int endYear, PatternElement.Type frequency) {
+    public static List<LocalDate> getEndDatesBetween(int startYear, int endYear, PatternFactor.Type frequency) {
         validateYearRange(startYear, endYear);
         if (frequency == null) {
             throw new IllegalArgumentException("Frequency cannot be null");
@@ -204,7 +204,6 @@ public class ExposureMatrix implements DateCriteriaSummable {
     }
 
     // Private helper methods
-
     private static void validateConstructorInputs(List<Factor> factors, LocalDate startDate, 
                                                 List<LocalDate> incurredBuckets, List<LocalDate> exposureBuckets) {
         if (factors == null) {
@@ -221,7 +220,7 @@ public class ExposureMatrix implements DateCriteriaSummable {
         }
     }
 
-    private static void validateBucketInputs(LocalDate startDate, PatternElement.Type frequency) {
+    private static void validateBucketInputs(LocalDate startDate, PatternFactor.Type frequency) {
         if (startDate == null) {
             throw new IllegalArgumentException("Start date cannot be null");
         }
@@ -230,7 +229,7 @@ public class ExposureMatrix implements DateCriteriaSummable {
         }
     }
 
-    private static void validateDateRangeInputs(LocalDate startDate, LocalDate endDate, PatternElement.Type frequency) {
+    private static void validateDateRangeInputs(LocalDate startDate, LocalDate endDate, PatternFactor.Type frequency) {
         validateBucketInputs(startDate, frequency);
         if (endDate == null) {
             throw new IllegalArgumentException("End date cannot be null");
@@ -252,7 +251,7 @@ public class ExposureMatrix implements DateCriteriaSummable {
         }
     }
 
-    private static LocalDate advanceDateByFrequency(LocalDate date, PatternElement.Type frequency) {
+    private static LocalDate advanceDateByFrequency(LocalDate date, PatternFactor.Type frequency) {
         return switch (frequency) {
             case DAY -> date.plusDays(1);
             case WEEK -> date.plusWeeks(1);

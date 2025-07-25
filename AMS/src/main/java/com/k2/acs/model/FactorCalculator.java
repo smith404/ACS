@@ -29,16 +29,6 @@ public class FactorCalculator implements DateCriteriaSummable {
         EARNING
     }
 
-    private static final Map<PatternElement.Type, Integer> TYPE_TO_DAYS_MAP = new EnumMap<>(PatternElement.Type.class);
-
-    static {
-        TYPE_TO_DAYS_MAP.put(PatternElement.Type.DAY, 1);
-        TYPE_TO_DAYS_MAP.put(PatternElement.Type.WEEK, 7);
-        TYPE_TO_DAYS_MAP.put(PatternElement.Type.MONTH, 30);
-        TYPE_TO_DAYS_MAP.put(PatternElement.Type.QUARTER, 90);
-        TYPE_TO_DAYS_MAP.put(PatternElement.Type.YEAR, 360);
-    }
-
     // Configuration properties
     private boolean useCalendar = true;
     private boolean useLinear = false;
@@ -54,50 +44,6 @@ public class FactorCalculator implements DateCriteriaSummable {
         validateConstructorInputs(precision, pattern);
         this.precision = precision;
         this.pattern = pattern;
-    }
-
-    /**
-     * Updates the standard days mapping for a given pattern element type.
-     * @param type The pattern element type
-     * @param days Number of days for this type
-     */
-    public static void updateTypeToDays(PatternElement.Type type, int days) {
-        if (type == null) {
-            throw new IllegalArgumentException("Pattern element type cannot be null");
-        }
-        if (days <= 0) {
-            throw new IllegalArgumentException("Days must be positive");
-        }
-        TYPE_TO_DAYS_MAP.put(type, days);
-    }
-
-    /**
-     * Gets the standard number of days for a pattern element type.
-     * @param type The pattern element type
-     * @return Number of days, or 0 if type is not recognized
-     */
-    public static int getDaysForType(PatternElement.Type type) {
-        return TYPE_TO_DAYS_MAP.getOrDefault(type, 0);
-    }
-
-    /**
-     * Gets the actual calendar days for a pattern element type starting from a specific date.
-     * For time periods like MONTH, QUARTER, and YEAR, this accounts for varying calendar lengths.
-     * @param type The pattern element type
-     * @param startDate The starting date for calculation
-     * @return Actual calendar days for the period
-     */
-    public static int getDaysForTypeWithCalendar(PatternElement.Type type, LocalDate startDate) {
-        if (startDate == null) {
-            throw new IllegalArgumentException("Start date cannot be null");
-        }
-        
-        if (isCalendarSensitiveType(type)) {
-            LocalDate endDate = calculateEndDateForType(type, startDate);
-            return (int) java.time.temporal.ChronoUnit.DAYS.between(startDate, endDate);
-        }
-        
-        return TYPE_TO_DAYS_MAP.getOrDefault(type, 0);
     }
 
     /**
@@ -211,7 +157,6 @@ public class FactorCalculator implements DateCriteriaSummable {
     }
 
     // Private helper methods
-    
     private static void validateConstructorInputs(int precision, Pattern pattern) {
         if (pattern == null) {
             throw new IllegalArgumentException("Pattern must not be null");
@@ -221,21 +166,6 @@ public class FactorCalculator implements DateCriteriaSummable {
         }
     }
 
-    private static boolean isCalendarSensitiveType(PatternElement.Type type) {
-        return type == PatternElement.Type.MONTH || 
-               type == PatternElement.Type.QUARTER || 
-               type == PatternElement.Type.YEAR;
-    }
-
-    private static LocalDate calculateEndDateForType(PatternElement.Type type, LocalDate startDate) {
-        return switch (type) {
-            case MONTH -> startDate.plusMonths(1);
-            case QUARTER -> startDate.plusMonths(3);
-            case YEAR -> startDate.plusYears(1);
-            default -> startDate;
-        };
-    }
-
     private void validateFactorGenerationInputs(LocalDate startDate, FactorType factorType) {
         if (startDate == null) {
             throw new IllegalArgumentException("Start date cannot be null");
@@ -243,13 +173,6 @@ public class FactorCalculator implements DateCriteriaSummable {
         if (factorType == null) {
             throw new IllegalArgumentException("Factor type cannot be null");
         }
-    }
-
-    private List<Factor> generateElementFactors(PatternElement element, LocalDate startDate, FactorType factorType) {
-        return switch (factorType) {
-            case WRITING -> element.generateWritingFactors(startDate);
-            case EARNING -> element.generateEarningFactors(startDate, useCalendar, useLinear, fast);
-        };
     }
 
     private void processAndAddFactors(List<Factor> factors) {
@@ -264,11 +187,6 @@ public class FactorCalculator implements DateCriteriaSummable {
 
     private void addFactor(Factor factor) {
         allFactors.add(factor);
-    }
-
-    private LocalDate advanceToNextElement(PatternElement element, LocalDate currentDate) {
-        int daysToAdvance = getDaysForTypeWithCalendar(element.getType(), currentDate);
-        return currentDate.plusDays(daysToAdvance);
     }
 
     private void logFactorGenerationComplete(long startTime) {

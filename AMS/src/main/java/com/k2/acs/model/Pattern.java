@@ -17,14 +17,14 @@ public class Pattern {
 
     public void addElement(PatternFactor element) {
         if (elements.contains(element)) {
-            throw new IllegalArgumentException("Element already exists in the pattern.");
+            throw new IllegalArgumentException("Factor already exists in the pattern.");
         }
         elements.add(element);
     }
 
-    public void removeElement(PatternElement element) {
+    public void removeElement(PatternFactor element) {
         if (!elements.contains(element)) {
-            throw new IllegalArgumentException("Element does not exist in the pattern.");
+            throw new IllegalArgumentException("Factor does not exist in the pattern.");
         }
         elements.remove(element);
     }

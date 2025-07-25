@@ -104,8 +104,8 @@ public class Main {
     }
 
     private static PeriodConfiguration createPeriodConfiguration(Arguments arguments, AmsConfig config, FactorCalculator factorCalculator) {
-        PatternElement.Type exposureTimeUnit = PatternElement.Type.valueOf(config.getExposedTimeUnit().toUpperCase());
-        PatternElement.Type incurredTimeUnit = PatternElement.Type.valueOf(config.getIncurredTimeUnit().toUpperCase());
+        PatternFactor.Type exposureTimeUnit = PatternFactor.Type.valueOf(config.getExposedTimeUnit().toUpperCase());
+        PatternFactor.Type incurredTimeUnit = PatternFactor.Type.valueOf(config.getIncurredTimeUnit().toUpperCase());
 
         List<LocalDate> financialPeriodsExposure = ExposureMatrix.getEndDatesBetween(
                 factorCalculator.getEarliestExposureDate().getYear(),
@@ -155,7 +155,7 @@ public class Main {
     private static List<LocalDate> createCombinedPeriods(List<LocalDate> financialPeriods, 
                                                          LocalDate insuredPeriodStart, 
                                                          int latestYear, 
-                                                         PatternElement.Type timeUnit) {
+                                                         PatternFactor.Type timeUnit) {
         List<LocalDate> combined = new ArrayList<>(financialPeriods);
         combined.addAll(ExposureMatrix.getBucketEndDates(insuredPeriodStart, latestYear, timeUnit));
         return combined.stream().distinct().sorted().toList();
