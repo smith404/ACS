@@ -2,7 +2,7 @@ package com.k2.acs.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.ToString;
+import lombok.Getter;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -18,6 +18,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class PatternFactor {
 
+    @Getter
     public enum Type {
         DAY(1),
         WEEK(7),
@@ -30,10 +31,7 @@ public class PatternFactor {
         Type(int defaultDays) {
             this.defaultDays = defaultDays;
         }
-        
-        public int getDefaultDays() {
-            return defaultDays;
-        }
+
     }
 
     private static final int DAYS_PER_YEAR = 360;
@@ -87,7 +85,6 @@ public class PatternFactor {
     }
 
     public List<Factor> getFactors(LocalDate startDate, boolean useCalendar, boolean linear) {
-        List<Factor> factors = new ArrayList<>();
 
         if (useCalendar) {
             normalizedElementDays = getNormalizedDuration(startDate, elementDays);
@@ -95,7 +92,7 @@ public class PatternFactor {
             normalizedDistributionDuration = getNormalizedDuration(startDate, distributionDuration);
         }
 
-        factors.addAll(upFrontFactors(startDate));
+        List<Factor> factors = new ArrayList<>(upFrontFactors(startDate));
         for(int i = 0; i < normalizedElementDays; i++) {
             factors.addAll(distributionFactors(startDate.plusDays(i)));
         }

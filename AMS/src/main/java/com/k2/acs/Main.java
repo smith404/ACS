@@ -5,6 +5,7 @@ import lombok.Getter;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.logging.FileHandler;
 import java.util.logging.Logger;
@@ -63,7 +64,7 @@ public class Main {
         List<UltimateValue> ultimateValues = new ArrayList<>();
         if (config.getUltimateValues() != null) {
             for (AmsConfig.UV uv : config.getUltimateValues()) {
-                UltimateValue.Type type = UltimateValue.Type.valueOf(uv.getType().toUpperCase());
+                UltimateValue.BaselineElement type = UltimateValue.BaselineElement.valueOf(uv.getType().toUpperCase());
                 double amount = uv.getValue() != null ? uv.getValue() : 1.0;
                 ultimateValues.add(new UltimateValue(type, amount));
             }
@@ -85,10 +86,6 @@ public class Main {
     }
 
     private static FactorCalculator createFactorCalculator(Arguments arguments, AmsConfig config, Pattern pattern) {
-        FactorCalculator.FactorType factorType = arguments.resultString.toUpperCase().charAt(0) == 'E' 
-            ? FactorCalculator.FactorType.EARNING 
-            : FactorCalculator.FactorType.WRITING;
-
         FactorCalculator factorCalculator = new FactorCalculator(config.getPrecision(), pattern);
         factorCalculator.setUseCalendar(config.isCalendar());
         factorCalculator.setUseLinear(config.isLinear());
@@ -96,8 +93,7 @@ public class Main {
         factorCalculator.setWrittenDate(config.getValuationDateAsLocalDate());
 
         factorCalculator.generateDailyFactors(
-                config.getInsuredPeriodStartDateAsLocalDate(),
-                factorType
+                config.getInsuredPeriodStartDateAsLocalDate()
         );
 
         return factorCalculator;
@@ -181,7 +177,7 @@ public class Main {
             return;
         }
 
-        char outputType = Character.toUpperCase(resultString.charAt(3));
+        char outputType = Character.toUpperCase(resultString.charAt(2));
         switch (outputType) {
             case 'M':
                 logger.info("Output ExposureMatrix (Matrix View):");
@@ -201,7 +197,6 @@ public class Main {
     private static void handleProcessingError(Exception e) {
         logger.warning("Error processing the configuration file: " + e.getMessage());
         System.err.println("Error: " + e.getMessage());
-        e.printStackTrace();
     }
 
     private static class Arguments {
@@ -210,39 +205,24 @@ public class Main {
         boolean csv;
     }
 
-    private static class PeriodConfiguration {
-        private final List<LocalDate> financialPeriodsExposure;
-        private final List<LocalDate> combinedPeriodsExposure;
-        private final List<LocalDate> developmentPeriodsExposure;
-        private final List<LocalDate> financialPeriodsIncurred;
-        private final List<LocalDate> combinedPeriodsIncurred;
-        private final List<LocalDate> developmentPeriodsIncurred;
-        private final String resultString;
-
-        public PeriodConfiguration(List<LocalDate> financialPeriodsExposure, List<LocalDate> combinedPeriodsExposure,
-                                 List<LocalDate> developmentPeriodsExposure, List<LocalDate> financialPeriodsIncurred,
-                                 List<LocalDate> combinedPeriodsIncurred, List<LocalDate> developmentPeriodsIncurred,
-                                 String resultString) {
-            this.financialPeriodsExposure = financialPeriodsExposure;
-            this.combinedPeriodsExposure = combinedPeriodsExposure;
-            this.developmentPeriodsExposure = developmentPeriodsExposure;
-            this.financialPeriodsIncurred = financialPeriodsIncurred;
-            this.combinedPeriodsIncurred = combinedPeriodsIncurred;
-            this.developmentPeriodsIncurred = developmentPeriodsIncurred;
-            this.resultString = resultString;
-        }
+    private record PeriodConfiguration(List<LocalDate> financialPeriodsExposure,
+                                       List<LocalDate> combinedPeriodsExposure,
+                                       List<LocalDate> developmentPeriodsExposure,
+                                       List<LocalDate> financialPeriodsIncurred,
+                                       List<LocalDate> combinedPeriodsIncurred,
+                                       List<LocalDate> developmentPeriodsIncurred, String resultString) {
 
         public List<LocalDate> getIncurredPeriods() {
-            char secondChar = Character.toUpperCase(resultString.charAt(1));
-            return switch (secondChar) {
-                case 'C' -> combinedPeriodsIncurred;
-                case 'D' -> developmentPeriodsIncurred;
-                default -> financialPeriodsIncurred;
-            };
-        }
+                char secondChar = Character.toUpperCase(resultString.charAt(0));
+                return switch (secondChar) {
+                    case 'C' -> combinedPeriodsIncurred;
+                    case 'D' -> developmentPeriodsIncurred;
+                    default -> financialPeriodsIncurred;
+                };
+            }
 
         public List<LocalDate> getExposurePeriods() {
-            char thirdChar = Character.toUpperCase(resultString.charAt(2));
+            char thirdChar = Character.toUpperCase(resultString.charAt(1));
             return switch (thirdChar) {
                 case 'C' -> combinedPeriodsExposure;
                 case 'D' -> developmentPeriodsExposure;
@@ -298,38 +278,27 @@ public class Main {
     /**
      * Validates the output string format.
      * Expected format: 4 characters where:
-     * - 1st character: E (Earning) or W (Writing)
-     * - 2nd character: F (Financial), D (Development), or C (Combined) for incurred periods
-     * - 3rd character: F (Financial), D (Development), or C (Combined) for exposure periods  
-     * - 4th character: C (Columns), R (Rows), or M (Matrix)
+     * - 1st character: F (Financial), D (Development), or C (Combined) for incurred periods
+     * - 2nd character: F (Financial), D (Development), or C (Combined) for exposure periods
+     * - 3rd character: C (Columns), R (Rows), or M (Matrix)
      */
     private static boolean isValidOutputString(String outputString) {
-        if (outputString == null || outputString.length() != 4) {
+        if (outputString == null || outputString.length() != 3) {
             return false;
         }
         
         String upper = outputString.toUpperCase();
         
-        // First character must be E or W
-        char first = upper.charAt(0);
-        if (first != 'E' && first != 'W') {
-            return false;
-        }
-        
-        // Second and third characters must be F, D, or C
+        // First and second characters must be F, D, or C
+        char fist = upper.charAt(0);
         char second = upper.charAt(1);
+        if (!isValidPeriodChar(fist) || !isValidPeriodChar(second)) {
+            return false;
+        }
+        
+        // Third character must be C, R, or M
         char third = upper.charAt(2);
-        if (!isValidPeriodChar(second) || !isValidPeriodChar(third)) {
-            return false;
-        }
-        
-        // Fourth character must be C, R, or M
-        char fourth = upper.charAt(3);
-        if (fourth != 'C' && fourth != 'R' && fourth != 'M') {
-            return false;
-        }
-        
-        return true;
+        return third == 'C' || third == 'R' || third == 'M';
     }
 
     private static boolean isValidPeriodChar(char c) {
@@ -363,13 +332,7 @@ public class Main {
     private static void printFactorsTable(List<Factor> factors, boolean csv) {
         // Sort factors by incurred date first, then by exposure date
         List<Factor> sortedFactors = factors.stream()
-                .sorted((f1, f2) -> {
-                    int incurredComparison = f1.getIncurredDate().compareTo(f2.getIncurredDate());
-                    if (incurredComparison != 0) {
-                        return incurredComparison;
-                    }
-                    return f1.getExposureDate().compareTo(f2.getExposureDate());
-                })
+                .sorted(Comparator.comparing(Factor::getIncurredDate).thenComparing(Factor::getExposureDate))
                 .toList();
         
         StringBuilder table = new StringBuilder();
@@ -420,7 +383,7 @@ public class Main {
         if (csv) {
             sb.append("Date Bucket,Sum\n");
             for (var entry : vector) {
-                sb.append(String.format("%s,%-" + (10 + precision) + "." + precision + "f%n", entry.getDateBucket(), entry.getSum()));
+                sb.append(String.format("%s,%-" + (10 + precision) + "." + precision + "f%n", entry.dateBucket(), entry.sum()));
             }
         } else {
             String formatHeader = "%-15s %-15s%n";
@@ -428,7 +391,7 @@ public class Main {
             sb.append(String.format(formatHeader, "Date Bucket", "Sum"));
             sb.append(String.format(formatHeader, "-----------", "---"));
             for (var entry : vector) {
-                sb.append(String.format(formatRow, entry.getDateBucket(), entry.getSum()));
+                sb.append(String.format(formatRow, entry.dateBucket(), entry.sum()));
             }
         }
         return sb.toString();

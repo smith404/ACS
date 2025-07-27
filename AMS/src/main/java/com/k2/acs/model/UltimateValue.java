@@ -9,13 +9,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UltimateValue extends PropertyObject {
     private double amount;
-    private Type type;
+    private BaselineElement type;
 
-    public enum Type {
+    public enum BaselineElement {
         PREMIUM, COSTS, LOSSES
     }
 
-    public UltimateValue(Type type, double amount) {
+    public UltimateValue(BaselineElement type, double amount) {
         this.type = type;
         this.amount = amount;
     }

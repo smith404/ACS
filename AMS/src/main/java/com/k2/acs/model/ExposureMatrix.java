@@ -1,8 +1,5 @@
 package com.k2.acs.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -20,31 +17,13 @@ public class ExposureMatrix implements DateCriteriaSummable {
     private static final int COLUMN_WIDTH = 10;
     private static final double ZERO_THRESHOLD = 1e-10;
 
-    public enum ExposureType {
-        INCURRED,
-        REPORTED,
-        DUE,
-        SETTLED
+    public record ExposureMatrixEntry(LocalDate incurredDateBucket, LocalDate exposureDateBucket, double sum) {
     }
 
-    @Data
-    @AllArgsConstructor
-    public static class ExposureMatrixEntry {
-        private final LocalDate incurredDateBucket;
-        private final LocalDate exposureDateBucket;
-        private final double sum;
-        private ExposureType exposureType;
+    public record ExposureVectorEntry(LocalDate dateBucket, double sum) {
     }
 
-    @Data
-    @AllArgsConstructor
-    public static class ExposureVectorEntry {
-        private final LocalDate dateBucket;
-        private final double sum;
-        private ExposureType exposureType;
-    }
-
-    private List<ExposureMatrixEntry> matrixEntries;
+    private final List<ExposureMatrixEntry> matrixEntries;
 
     public ExposureMatrix(List<Factor> factors, LocalDate startDate, List<LocalDate> incurredBucketEndDates, List<LocalDate> exposureBucketEndDates) {
         this(factors, startDate, incurredBucketEndDates, exposureBucketEndDates, true);
@@ -175,7 +154,7 @@ public class ExposureMatrix implements DateCriteriaSummable {
      */
     public List<LocalDate> getExposureBuckets() {
         return matrixEntries.stream()
-                .map(ExposureMatrixEntry::getExposureDateBucket)
+                .map(ExposureMatrixEntry::exposureDateBucket)
                 .distinct()
                 .sorted()
                 .toList();
@@ -187,7 +166,7 @@ public class ExposureMatrix implements DateCriteriaSummable {
      */
     public List<LocalDate> getIncurredBuckets() {
         return matrixEntries.stream()
-                .map(ExposureMatrixEntry::getIncurredDateBucket)
+                .map(ExposureMatrixEntry::incurredDateBucket)
                 .distinct()
                 .sorted()
                 .toList();
@@ -199,7 +178,7 @@ public class ExposureMatrix implements DateCriteriaSummable {
         
         return matrixEntries.stream()
                 .filter(entry -> matchesDateCriteria(entry, date, incurredDateComparison, exposureDateComparison))
-                .mapToDouble(ExposureMatrixEntry::getSum)
+                .mapToDouble(ExposureMatrixEntry::sum)
                 .sum();
     }
 
@@ -258,7 +237,6 @@ public class ExposureMatrix implements DateCriteriaSummable {
             case MONTH -> date.plusMonths(1);
             case QUARTER -> date.plusMonths(3);
             case YEAR -> date.plusYears(1);
-            default -> throw new IllegalArgumentException("Unsupported frequency type: " + frequency);
         };
     }
 
@@ -306,7 +284,7 @@ public class ExposureMatrix implements DateCriteriaSummable {
             LocalDate incurredDate = toEnd ? incurredRange.end : incurredRange.start;
             LocalDate exposureDate = toEnd ? exposureRange.end : exposureRange.start;
             
-            entries.add(new ExposureMatrixEntry(incurredDate, exposureDate, sum, ExposureType.INCURRED));
+            entries.add(new ExposureMatrixEntry(incurredDate, exposureDate, sum));
         }
     }
 
@@ -362,33 +340,33 @@ public class ExposureMatrix implements DateCriteriaSummable {
 
     private double getMatrixValue(LocalDate incurredDate, LocalDate exposureDate) {
         return matrixEntries.stream()
-                .filter(entry -> entry.getIncurredDateBucket().equals(incurredDate) &&
-                               entry.getExposureDateBucket().equals(exposureDate))
-                .mapToDouble(ExposureMatrixEntry::getSum)
+                .filter(entry -> entry.incurredDateBucket().equals(incurredDate) &&
+                               entry.exposureDateBucket().equals(exposureDate))
+                .mapToDouble(ExposureMatrixEntry::sum)
                 .sum();
     }
 
     private List<ExposureVectorEntry> aggregateByExposureDate() {
         return matrixEntries.stream()
                 .collect(Collectors.groupingBy(
-                    ExposureMatrixEntry::getExposureDateBucket,
-                    Collectors.summingDouble(ExposureMatrixEntry::getSum)
+                    ExposureMatrixEntry::exposureDateBucket,
+                    Collectors.summingDouble(ExposureMatrixEntry::sum)
                 ))
                 .entrySet().stream()
-                .map(entry -> new ExposureVectorEntry(entry.getKey(), entry.getValue(), ExposureType.INCURRED))
-                .sorted(java.util.Comparator.comparing(ExposureVectorEntry::getDateBucket))
+                .map(entry -> new ExposureVectorEntry(entry.getKey(), entry.getValue()))
+                .sorted(java.util.Comparator.comparing(ExposureVectorEntry::dateBucket))
                 .toList();
     }
 
     private List<ExposureVectorEntry> aggregateByIncurredDate() {
         return matrixEntries.stream()
                 .collect(Collectors.groupingBy(
-                    ExposureMatrixEntry::getIncurredDateBucket,
-                    Collectors.summingDouble(ExposureMatrixEntry::getSum)
+                    ExposureMatrixEntry::incurredDateBucket,
+                    Collectors.summingDouble(ExposureMatrixEntry::sum)
                 ))
                 .entrySet().stream()
-                .map(entry -> new ExposureVectorEntry(entry.getKey(), entry.getValue(), ExposureType.INCURRED))
-                .sorted(java.util.Comparator.comparing(ExposureVectorEntry::getDateBucket))
+                .map(entry -> new ExposureVectorEntry(entry.getKey(), entry.getValue()))
+                .sorted(java.util.Comparator.comparing(ExposureVectorEntry::dateBucket))
                 .toList();
     }
 
@@ -409,8 +387,8 @@ public class ExposureMatrix implements DateCriteriaSummable {
 
     private boolean matchesDateCriteria(ExposureMatrixEntry entry, LocalDate date, 
                                       String incurredComparison, String exposureComparison) {
-        return compareDates(entry.getIncurredDateBucket(), date, incurredComparison) &&
-               compareDates(entry.getExposureDateBucket(), date, exposureComparison);
+        return compareDates(entry.incurredDateBucket(), date, incurredComparison) &&
+               compareDates(entry.exposureDateBucket(), date, exposureComparison);
     }
 
     private boolean compareDates(LocalDate bucketDate, LocalDate targetDate, String comparison) {
@@ -425,31 +403,17 @@ public class ExposureMatrix implements DateCriteriaSummable {
 
     // Helper classes for better organization
 
-    private static class DateRange {
-        final LocalDate start;
-        final LocalDate end;
-
-        DateRange(LocalDate start, LocalDate end) {
-            this.start = start;
-            this.end = end;
-        }
+    private record DateRange(LocalDate start, LocalDate end) {
 
         boolean isValid() {
-            return !start.isAfter(end);
+                return !start.isAfter(end);
+            }
+
+            boolean contains(LocalDate date) {
+                return !date.isBefore(start) && !date.isAfter(end);
+            }
         }
 
-        boolean contains(LocalDate date) {
-            return !date.isBefore(start) && !date.isAfter(end);
-        }
-    }
-
-    private static class MatrixDimensions {
-        final List<LocalDate> exposureBuckets;
-        final List<LocalDate> incurredBuckets;
-
-        MatrixDimensions(List<LocalDate> exposureBuckets, List<LocalDate> incurredBuckets) {
-            this.exposureBuckets = exposureBuckets;
-            this.incurredBuckets = incurredBuckets;
-        }
+    private record MatrixDimensions(List<LocalDate> exposureBuckets, List<LocalDate> incurredBuckets) {
     }
 }

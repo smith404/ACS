@@ -5,9 +5,7 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.EnumMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -23,11 +21,6 @@ public class FactorCalculator implements DateCriteriaSummable {
     private static final double ZERO_THRESHOLD = 1e-10;
     private static final String FACTORS_NULL_ERROR = "Factors must be generated before this operation";
     private static final String FACTORS_EMPTY_ERROR = "Factors list cannot be empty for this operation";
-
-    public enum FactorType {
-        WRITING,
-        EARNING
-    }
 
     // Configuration properties
     private boolean useCalendar = true;
@@ -50,10 +43,9 @@ public class FactorCalculator implements DateCriteriaSummable {
      * Generates daily factors for the entire pattern based on the specified factor type.
      * This is the main entry point for factor calculation.
      * @param startDate Starting date for factor generation
-     * @param factorType Type of factors to generate (WRITING or EARNING)
      */
-    public void generateDailyFactors(LocalDate startDate, FactorType factorType) {
-        validateFactorGenerationInputs(startDate, factorType);
+    public void generateDailyFactors(LocalDate startDate) {
+        validateFactorGenerationInputs(startDate);
         
         long startTime = System.currentTimeMillis();
         allFactors = new ArrayList<>();
@@ -166,12 +158,9 @@ public class FactorCalculator implements DateCriteriaSummable {
         }
     }
 
-    private void validateFactorGenerationInputs(LocalDate startDate, FactorType factorType) {
+    private void validateFactorGenerationInputs(LocalDate startDate) {
         if (startDate == null) {
             throw new IllegalArgumentException("Start date cannot be null");
-        }
-        if (factorType == null) {
-            throw new IllegalArgumentException("Factor type cannot be null");
         }
     }
 
