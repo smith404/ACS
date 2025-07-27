@@ -85,7 +85,10 @@ public class PatternFactor {
     }
 
     public List<Factor> getFactors(LocalDate startDate, boolean useCalendar, boolean linear) {
-
+        if (startDate == null) {
+            return new ArrayList<>();
+        }
+        
         if (useCalendar) {
             normalizedElementDays = getNormalizedDuration(startDate, elementDays);
             normalizedUpFrontDuration = getNormalizedDuration(startDate, upFrontDuration);
