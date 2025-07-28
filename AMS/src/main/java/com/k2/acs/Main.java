@@ -89,7 +89,6 @@ public class Main {
         FactorCalculator factorCalculator = new FactorCalculator(config.getPrecision(), pattern);
         factorCalculator.setUseCalendar(config.isCalendar());
         factorCalculator.setUseLinear(config.isLinear());
-        factorCalculator.setFast(config.isFast());
         factorCalculator.setWrittenDate(config.getValuationDateAsLocalDate());
 
         factorCalculator.generateDailyFactors(

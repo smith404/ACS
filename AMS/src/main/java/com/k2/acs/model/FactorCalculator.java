@@ -25,7 +25,6 @@ public class FactorCalculator implements DateCriteriaSummable {
     // Configuration properties
     private boolean useCalendar = true;
     private boolean useLinear = false;
-    private boolean fast = false;
     private LocalDate writtenDate = LocalDate.now();
     
     // Core components
@@ -52,7 +51,7 @@ public class FactorCalculator implements DateCriteriaSummable {
         
         LocalDate currentStartDate = startDate;
         for (PatternFactor element : pattern.getElements()) {
-            List<Factor> elementFactors = element.getFactors(currentStartDate, true, false);
+            List<Factor> elementFactors = element.getFactors(currentStartDate, useCalendar, useLinear);
             processAndAddFactors(elementFactors);
             currentStartDate = currentStartDate.plusDays(element.getNormalizedElementDays());
             System.out.println("Processed element: " + element.getType() + " from " + currentStartDate);

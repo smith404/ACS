@@ -28,7 +28,6 @@ public class AmsConfig {
 
     private boolean calendar = true;
     private boolean linear = false;
-    private boolean fast = false;
     private boolean endOfPeriod = false;
 
     private Date insuredPeriodStartDate;

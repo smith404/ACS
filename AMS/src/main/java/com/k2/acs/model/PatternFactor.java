@@ -97,7 +97,11 @@ public class PatternFactor {
 
         List<Factor> factors = new ArrayList<>(upFrontFactors(startDate));
         for(int i = 0; i < normalizedElementDays; i++) {
-            factors.addAll(distributionFactors(startDate.plusDays(i)));
+            if (linear) {
+                factors.addAll(distributionFactors(startDate, i));
+            } else {
+                factors.addAll(distributionFactors(startDate.plusDays(i)));
+            }
         }
 
         return factors;
@@ -126,6 +130,25 @@ public class PatternFactor {
             factors.add(new Factor(incurredDate, incurredDate.plusDays(i), dailyFactor, Factor.Type.DIST));
         }
         factors.add(new Factor(incurredDate, incurredDate.plusDays(normalizedDistributionDuration), dailyFactor/2, Factor.Type.DIST));
+
+        return factors;
+    }   
+
+    private List<Factor> distributionFactors(LocalDate incurredDate, int elementDay) {
+        List<Factor> factors = new ArrayList<>();
+
+        double dailyFactor = distribution / normalizedDistributionDuration / normalizedElementDays;
+        double runInOutFactor = (normalizedElementDays - elementDay) > 0 ? distribution / normalizedDistributionDuration / 2 / (normalizedElementDays - elementDay) : 0;
+
+        for (int i = 0; i < normalizedDistributionDuration; i++) {
+            if (i + elementDay < normalizedElementDays) {
+                factors.add(new Factor(incurredDate, incurredDate.plusDays(i), runInOutFactor, Factor.Type.START));
+            } else if (i > normalizedDistributionDuration - elementDay) {
+                factors.add(new Factor(incurredDate, incurredDate.plusDays(i), runInOutFactor, Factor.Type.END));
+            } else {
+                factors.add(new Factor(incurredDate, incurredDate.plusDays(i), dailyFactor, Factor.Type.DIST));
+            }
+        }
 
         return factors;
     }   
