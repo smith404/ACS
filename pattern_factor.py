@@ -1,5 +1,14 @@
+# Copyright (c) 2025 K2-Software GmbH
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the licence conditions.
+
 from enum import Enum
-from datetime import datetime, timedelta
+from datetime import date, timedelta
 from typing import List, Optional
 import uuid
 from dataclasses import dataclass
@@ -20,9 +29,9 @@ class Type(Enum):
 
 @dataclass
 class Factor:
-    """Represents a factor with incurred date, effective date, value and type."""
-    incurred_date: datetime
-    effective_date: datetime
+    """Represents a factor with incurred date, earned date, value and type."""
+    incurred_date: date
+    earned_date: date
     value: float
     factor_type: str
 
@@ -42,18 +51,11 @@ class PatternFactor:
                  type_: Type, 
                  up_front: float = 0.0, 
                  distribution: float = 0.0, 
-                 up_front_duration: int = 0, 
-                 distribution_duration: int = 0):
-        """
-        Initialize a PatternFactor.
-        
-        Args:
-            type_: The time period type
-            up_front: The upfront value (default: 0.0)
-            distribution: The distribution value (default: 0.0)
-            up_front_duration: Duration for upfront distribution in days (default: 0)
-            distribution_duration: Duration for distribution in days (default: 0)
-        """
+                 up_front_duration: int = 1, 
+                 distribution_duration: int = 1):
+        distribution_duration = max(1, distribution_duration)
+        up_front_duration = max(1, up_front_duration)
+
         self.uuid = str(uuid.uuid4())
         self.type = type_
         self.element_days = type_.get_default_days()
@@ -67,28 +69,11 @@ class PatternFactor:
     
     @classmethod
     def create_simple(cls, type_: Type, distribution: float, distribution_duration: int):
-        """
-        Create a PatternFactor with only distribution (no upfront).
-        
-        Args:
-            type_: The time period type
-            distribution: The distribution value
-            distribution_duration: Duration for distribution in days
-        """
-        return cls(type_, 0.0, distribution, 0, distribution_duration)
+        distribution_duration = max(1, distribution_duration)
+        return cls(type_, 0.0, distribution, 1, distribution_duration)
     
     @staticmethod
-    def get_normalized_duration(initial_date: Optional[datetime], duration: int) -> int:
-        """
-        Converts a duration in days (using 360-day year convention) to actual calendar days.
-        
-        Args:
-            initial_date: Starting date for the calculation
-            duration: Duration in 360-day convention
-            
-        Returns:
-            Actual calendar days between initial_date and the calculated end date
-        """
+    def get_normalized_duration(initial_date: Optional[date], duration: int) -> int:
         if initial_date is None:
             return 0
         
@@ -131,18 +116,7 @@ class PatternFactor:
         
         return (normalized_date - initial_date).days
     
-    def get_factors(self, start_date: datetime, use_calendar: bool, linear: bool) -> List[Factor]:
-        """
-        Generate factors based on the pattern configuration.
-        
-        Args:
-            start_date: The starting date for factor generation
-            use_calendar: Whether to use calendar normalization
-            linear: Whether to use linear distribution
-            
-        Returns:
-            List of Factor objects
-        """
+    def get_factors(self, start_date: date, use_calendar: bool = True) -> List[Factor]:
         factors = []
         
         if use_calendar:
@@ -158,16 +132,7 @@ class PatternFactor:
         
         return factors
     
-    def _up_front_factors(self, incurred_date: datetime) -> List[Factor]:
-        """
-        Generate upfront factors.
-        
-        Args:
-            incurred_date: The date when the cost was incurred
-            
-        Returns:
-            List of upfront Factor objects
-        """
+    def _up_front_factors(self, incurred_date: date) -> List[Factor]:
         factors = []
         
         if self.normalized_up_front_duration > 0:
@@ -178,22 +143,13 @@ class PatternFactor:
         
         return factors
     
-    def _distribution_factors(self, incurred_date: datetime) -> List[Factor]:
-        """
-        Generate distribution factors.
-        
-        Args:
-            incurred_date: The date when the cost was incurred
-            
-        Returns:
-            List of distribution Factor objects
-        """
+    def _distribution_factors(self, incurred_date: date) -> List[Factor]:
         factors = []
         
         if self.normalized_distribution_duration > 0 and self.normalized_element_days > 0:
             daily_factor = self.distribution / self.normalized_distribution_duration / self.normalized_element_days
             
-            for i in range(self.normalized_distribution_duration):
+            for i in range(self.normalized_distribution_duration - 1):
                 effective_date = incurred_date + timedelta(days=i)
                 
                 if i == 0:
@@ -210,30 +166,11 @@ class PatternFactor:
     
     def __str__(self) -> str:
         """String representation of the PatternFactor."""
-        return (f"PatternFactor(uuid={self.uuid}, type={self.type.name}, "
-                f"element_days={self.element_days}, up_front={self.up_front}, "
-                f"distribution={self.distribution})")
+        return (f"Type={self.type.name}, element_days={self.element_days}, "
+                f"up_front={self.up_front}, up_front_duration={self.up_front_duration}, "
+                f"distribution={self.distribution} distribution_duration={self.distribution_duration}")
     
     def __repr__(self) -> str:
         """Detailed string representation of the PatternFactor."""
         return self.__str__()
 
-
-# Example usage
-if __name__ == "__main__":
-    # Create a monthly pattern factor
-    pattern = PatternFactor(Type.MONTH, up_front=100.0, distribution=500.0, 
-                          up_front_duration=30, distribution_duration=90)
-    
-    print(f"Pattern: {pattern}")
-    print(f"Element days: {pattern.element_days}")
-    print(f"Type default days: {pattern.type.get_default_days()}")
-    
-    # Create a simple distribution-only pattern
-    simple_pattern = PatternFactor.create_simple(Type.WEEK, 200.0, 14)
-    print(f"Simple pattern: {simple_pattern}")
-    
-    # Generate factors
-    start_date = datetime(2025, 1, 1)
-    factors = pattern.get_factors(start_date, use_calendar=True, linear=False)
-    print(f"Generated {len(factors)} factors")

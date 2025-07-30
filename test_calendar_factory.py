@@ -205,7 +205,6 @@ class TestCalendarFactory(unittest.TestCase):
         self.assertEqual(dates, [date(2022, 1, 1)])
 
     def test_add_duration_360(self):
-        """Test adding duration using 360-day calendar."""
         result = self.calendar_factory.add_duration_360(self.test_date, 392)
         self.assertIsInstance(result, date)
         # Test with known values
@@ -213,7 +212,6 @@ class TestCalendarFactory(unittest.TestCase):
         self.assertIsInstance(expected_date, date)
 
     def test_add_duration_360_zero_days(self):
-        """Test adding zero duration."""
         result = self.calendar_factory.add_duration_360(self.test_date, 0)
         self.assertEqual(result, self.test_date)
 

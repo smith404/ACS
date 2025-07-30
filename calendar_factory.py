@@ -10,6 +10,7 @@
 from datetime import date, timedelta
 from enum import Enum
 
+
 class TimeUnit(Enum):
     DAY = ("day", 1)
     WEEK = ("week", 7)
@@ -59,9 +60,6 @@ class CalendarFactory:
         return dates
 
     def get_relative_dates_until(self, start_date: date, time_unit: TimeUnit, end_date: date):
-        """
-        Generate dates starting from start_date using the given time_unit until the date exceeds end_date.
-        """
         dates = []
         current_date = start_date
 
@@ -151,10 +149,6 @@ class CalendarFactory:
         return dates
 
     def get_quarter_end_dates_until(self, start_date: date, end_date: date, include_final: bool = False):
-        """
-        Generate quarter end dates starting from start_date until the date exceeds end_date.
-        Also includes the quarter end for the quarter after the last date within the range.
-        """
         month = ((start_date.month - 1) // 3 + 1) * 3
         year = start_date.year
         if start_date.month > month or (start_date.month == month and start_date.day == self._last_day_of_month(year, month)):
@@ -176,11 +170,6 @@ class CalendarFactory:
         return dates
 
     def get_month_end_dates(self, start_date: date, buckets: int, include_final: bool = False):
-        """
-        Generate month end dates starting from start_date for the given number of buckets.
-        Always includes the month end for the month containing start_date as the first date.
-        Also includes the month end for the month after the last bucket.
-        """
         year = start_date.year
         month = start_date.month
         month_end = date(year, month, self._last_day_of_month(year, month))
@@ -197,11 +186,6 @@ class CalendarFactory:
         return dates
 
     def get_month_end_dates_until(self, start_date: date, end_date: date, include_final: bool = False):
-        """
-        Generate month end dates starting from start_date until the date exceeds end_date.
-        Always includes the month end for the month containing start_date as the first date.
-        Also includes the month end for the month after the last date within the range.
-        """
         year = start_date.year
         month = start_date.month
         month_end = date(year, month, self._last_day_of_month(year, month))
@@ -234,9 +218,6 @@ class CalendarFactory:
         return dates
 
     def get_quarter_start_dates_until(self, start_date: date, end_date: date):
-        """
-        Generate quarter start dates starting from start_date until the date exceeds end_date.
-        """
         quarter_month = ((start_date.month - 1) // 3) * 3 + 1
         year = start_date.year
         quarter_start = date(year, quarter_month, 1)
@@ -251,9 +232,6 @@ class CalendarFactory:
         return dates
 
     def get_month_start_dates(self, start_date: date, buckets: int):
-        """
-        Generate month start dates starting from start_date for the given number of buckets.
-        """
         year = start_date.year
         month = start_date.month
         month_start = date(year, month, 1)
@@ -268,9 +246,6 @@ class CalendarFactory:
         return dates
 
     def get_month_start_dates_until(self, start_date: date, end_date: date):
-        """
-        Generate month start dates starting from start_date until the date exceeds end_date.
-        """
         year = start_date.year
         month = start_date.month
         month_start = date(year, month, 1)
@@ -319,19 +294,43 @@ class CalendarFactory:
 
     def get_time_unit_duration(self, time_unit: TimeUnit):
         return time_unit.duration
-        # Adjust year and month for overflow
-        while month > 12:
-            year += 1
-            month -= 12
-        day = input_date.day
-        # Try to construct the new date, fallback to last valid day if needed
-        try:
-            result_date = date(year, month, day) + timedelta(days=days)
-        except ValueError:
-            # If day is not valid (e.g. Feb 30), fallback to last day of month
-            last_day = self._last_day_of_month(year, month)
-            result_date = date(year, month, last_day) + timedelta(days=days)
-        return result_date
 
-    def get_time_unit_duration(self, time_unit: TimeUnit):
-        return time_unit.duration
+    def get_factor_date_range(self, factors, use_incurred=True):
+        if not factors:
+            return None, None
+        
+        dates = []
+        for factor in factors:
+            if use_incurred:
+                dates.append(factor.incurred_date)
+            else:
+                dates.append(factor.earned_date)
+        
+        return min(dates), max(dates)
+
+    def get_financial_quarter_end_dates(self, factors, use_incurred=True):
+        if not factors:
+            return []
+        
+        min_date, max_date = self.get_factor_date_range(factors, use_incurred)
+        if min_date is None or max_date is None:
+            return []
+        
+        # Get first quarter start of min_date year and last quarter end of max_date year
+        start_of_first_year = date(min_date.year, 1, 1)
+        end_of_last_year = date(max_date.year, 12, 31)
+        
+        return self.get_quarter_end_dates_until(start_of_first_year, end_of_last_year)
+
+    def get_development_quarter_end_dates(self, factors, start_date: date, use_incurred=True):
+        if not factors:
+            return []
+        
+        min_date, max_date = self.get_factor_date_range(factors, use_incurred)
+        if min_date is None or max_date is None:
+            return []
+        
+        # Get first quarter start of min_date year and last quarter end of max_date year
+        end_of_last_year = date(max_date.year, 12, 31)
+        
+        return self.get_relative_dates_until(start_date, TimeUnit.QUARTER, end_of_last_year)

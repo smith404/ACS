@@ -8,7 +8,7 @@
 # furnished to do so, subject to the licence conditions.
 
 from flask import Blueprint, Response, request, render_template
-from pattern import Pattern
+from pattern_orig import Pattern
 from pattern_evaluator import PatternBlock, PatternEvaluator
 from pattern_element import PatternElement
 

@@ -10,7 +10,7 @@
 from flask import Flask, send_from_directory, render_template, Response, request
 from flask_wtf.csrf import CSRFProtect
 from duckdb_wrapper import DuckDBWrapper
-from pattern import Pattern
+from pattern_orig import Pattern
 from pattern_evaluator import PatternBlock, PatternEvaluator
 from pattern_element import PatternElement
 from pattern_routes import pattern_bp
