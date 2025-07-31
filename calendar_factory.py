@@ -304,7 +304,7 @@ class CalendarFactory:
             if use_incurred:
                 dates.append(factor.incurred_date)
             else:
-                dates.append(factor.earned_date)
+                dates.append(factor.exposed_date)
         
         return min(dates), max(dates)
 

@@ -12,7 +12,7 @@ import json
 import uuid
 import os
 from pattern_factor import PatternFactor
-from datetime import datetime
+from datetime import datetime, timedelta
 
 class Pattern:
     def __init__(self):
@@ -55,9 +55,14 @@ class Pattern:
             return []
         
         all_factors = []
+        current_start_date = start_date
+        
         for element in self.elements:
-            factors = element.get_factors(start_date, use_calendar)
+            factors = element.get_factors(current_start_date, use_calendar)
             all_factors.extend(factors)
+            
+            # Increment start date by the element's normalized_element_days
+            current_start_date = current_start_date + timedelta(days=element.normalized_element_days)
         
         return all_factors
 

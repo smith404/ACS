@@ -34,68 +34,76 @@ def main():
     # Get min and max dates using CalendarFactory
     calendar_factory = CalendarFactory()
     min_incurred, max_incurred = calendar_factory.get_factor_date_range(factors, use_incurred=True)
-    min_earned, max_earned = calendar_factory.get_factor_date_range(factors, use_incurred=False)
+    min_exposed, max_exposed = calendar_factory.get_factor_date_range(factors, use_incurred=False)
     
     print(f"Incurred date range: {min_incurred} to {max_incurred}")
-    print(f"Earned date range: {min_earned} to {max_earned}")
+    print(f"exposed date range: {min_exposed} to {max_exposed}")
     
     # Get quarter end dates from start of start_date year to end of max_incurred year
     if max_incurred:
         incurred_quarter_end = date(max_incurred.year, 12, 31)
-        earned_quarter_end = date(max_earned.year, 12, 31)
+        exposed_quarter_end = date(max_exposed.year, 12, 31)
 
         incurred_financial_quarter_dates = calendar_factory.get_financial_quarter_end_dates(factors, use_incurred=True)
-        earned_financial_quarter_dates = calendar_factory.get_financial_quarter_end_dates(factors, use_incurred=False)
+        exposed_financial_quarter_dates = calendar_factory.get_financial_quarter_end_dates(factors, use_incurred=False)
 
         incurred_development_quarter_dates = calendar_factory.get_relative_dates_until(start_date, TimeUnit.QUARTER, incurred_quarter_end)
-        earned_development_quarter_dates = calendar_factory.get_relative_dates_until(start_date, TimeUnit.QUARTER, earned_quarter_end)
+        exposed_development_quarter_dates = calendar_factory.get_relative_dates_until(start_date, TimeUnit.QUARTER, exposed_quarter_end)
 
         combined_incurred_quarter_dates = calendar_factory.combine_and_sort_dates(
             incurred_financial_quarter_dates, incurred_development_quarter_dates
         )
 
-        combined_earned_quarter_dates = calendar_factory.combine_and_sort_dates(
-            earned_financial_quarter_dates, earned_development_quarter_dates
+        combined_exposed_quarter_dates = calendar_factory.combine_and_sort_dates(
+            exposed_financial_quarter_dates, exposed_development_quarter_dates
         )
 
         print(f"Incurred financial quarter end dates: {incurred_financial_quarter_dates}")
-        print(f"Earned financial quarter end dates: {earned_financial_quarter_dates}")
+        print(f"Exposed financial quarter end dates: {exposed_financial_quarter_dates}")
         print(f"Incurred development quarter end dates: {incurred_development_quarter_dates}")
-        print(f"Earned development quarter end dates: {earned_development_quarter_dates}")
+        print(f"Exposed development quarter end dates: {exposed_development_quarter_dates}")
         print(f"Combined incurred quarter end dates: {combined_incurred_quarter_dates}")
-        print(f"Combined earned quarter end dates: {combined_earned_quarter_dates}")
-    
-    # Test ExposureMatrix
-    print("\n=== Testing ExposureMatrix ===")
-    exposure_matrix = ExposureMatrix(
-        factors=factors,
-        start_date=start_date,
-        incurred_bucket_end_dates=incurred_financial_quarter_dates,
-        exposure_bucket_end_dates=earned_financial_quarter_dates,
-        to_end=True
-    )
-    
-    # Generate matrix table
-    matrix_table = exposure_matrix.generate_exposure_matrix_table(precision=4, csv=False)
-    print("Exposure Matrix Table:")
-    print(matrix_table)
-    
-    # Generate exposure vector (by exposure date)
-    exposure_vector = exposure_matrix.generate_exposure_vector(is_exposure=True)
-    print("\nExposure Vector (by exposure date):")
-    for entry in exposure_vector:
-        print(f"{entry.date_bucket}: {entry.sum:.6f}")
-    
-    # Generate incurred vector (by incurred date)
-    incurred_vector = exposure_matrix.generate_exposure_vector(is_exposure=False)
-    print("\nIncurred Vector (by incurred date):")
-    for entry in incurred_vector:
-        print(f"{entry.date_bucket}: {entry.sum:.6f}")
-    
-    # Test date criteria summation
-    test_date = date(2024, 6, 30)
-    sum_before = exposure_matrix.get_sum_by_date_criteria(test_date, "<=", "<=")
-    print(f"\nSum where incurred <= {test_date} and exposure <= {test_date}: {sum_before:.6f}")
+        print(f"Combined exposed quarter end dates: {combined_exposed_quarter_dates}")
+        
+        # Test ExposureMatrix
+        print("\n" + "="*50)
+        print("TESTING EXPOSURE MATRIX")
+        print("="*50)
+        
+        # Create exposure matrix
+        matrix = ExposureMatrix(
+            factors=factors,
+            incurred_bucket_dates=incurred_financial_quarter_dates,
+            exposure_bucket_dates=exposed_financial_quarter_dates,
+            to_end=True
+        )
+        
+        # Display matrix statistics
+        print(f"Matrix entries count: {len(matrix.get_matrix_entries())}")
+        print(f"Total sum: {matrix.get_total_sum():.6f}")
+        
+        # Display matrix table
+        print("\nMatrix Table:")
+        print(matrix.format_matrix_table(precision=6))
+        
+        # Display exposure vector
+        exposure_vector = matrix.get_exposure_vector()
+        print(f"\nExposure Vector ({len(exposure_vector)} entries):")
+        for entry in exposure_vector:
+            print(f"  {entry.date_bucket}: {entry.sum:.6f}")
+        
+        # Display incurred vector
+        incurred_vector = matrix.get_incurred_vector()
+        print(f"\nIncurred Vector ({len(incurred_vector)} entries):")
+        for entry in incurred_vector:
+            print(f"  {entry.date_bucket}: {entry.sum:.6f}")
+        
+        # Test specific matrix value lookup
+        if combined_incurred_quarter_dates and combined_exposed_quarter_dates:
+            test_inc = combined_incurred_quarter_dates[0]
+            test_exp = combined_exposed_quarter_dates[0]
+            test_value = matrix.get_matrix_value(test_inc, test_exp)
+            print(f"\nTest lookup - Incurred {test_inc}, Exposed {test_exp}: {test_value:.6f}")
 
 
 if __name__ == "__main__":

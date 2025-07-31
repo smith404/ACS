@@ -29,9 +29,9 @@ class Type(Enum):
 
 @dataclass
 class Factor:
-    """Represents a factor with incurred date, earned date, value and type."""
+    """Represents a factor with incurred date, exposed date, value and type."""
     incurred_date: date
-    earned_date: date
+    exposed_date: date
     value: float
     factor_type: str
 
