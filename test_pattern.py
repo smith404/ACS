@@ -27,7 +27,7 @@ def main():
     print("Distribution check:", pattern.check_distribution())
     
     # Generate factors and print count
-    start_date = date(2023, 8, 2)
+    start_date = date(2024, 8, 2)
     factors = pattern.get_factors(start_date, use_calendar=True)
     print(f"Generated {len(factors)} factors")
     
@@ -84,7 +84,7 @@ def main():
         
         # Display matrix table
         print("\nMatrix Table:")
-        print(matrix.format_matrix_table(precision=6))
+        print(matrix.format_matrix_table(precision=9))
         
         # Display exposure vector
         exposure_vector = matrix.get_exposure_vector()

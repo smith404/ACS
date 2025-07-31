@@ -10,8 +10,25 @@
 from typing import List, Optional
 from datetime import date, timedelta
 from dataclasses import dataclass
+from enum import Enum
 from pattern_factor import Factor, Type
 from calendar_factory import CalendarFactory, TimeUnit
+
+
+class Direction(Enum):
+    LEFT = "left"
+    RIGHT = "right"
+    TOP = "top"
+    BOTTOM = "bottom"
+    TOP_LEFT = "top-left"
+    TOP_RIGHT = "top-right"
+    BOTTOM_LEFT = "bottom-left"
+    BOTTOM_RIGHT = "bottom-right"
+
+
+class Comparison(Enum):
+    LESS_THAN_OR_EQUAL = "lte"
+    GREATER_THAN_OR_EQUAL = "gte"
 
 
 @dataclass
@@ -263,3 +280,82 @@ class ExposureMatrix:
             raise ValueError("incurred_bucket_dates cannot be empty")
         if len(exposure_buckets) == 0:
             raise ValueError("exposure_bucket_dates cannot be empty")
+    
+    def get_directional_sum(self, reference_date: date, direction: Direction, 
+                          comparison: Comparison = Comparison.LESS_THAN_OR_EQUAL) -> float:
+        """
+        Get the sum of matrix elements based on their position relative to a reference date.
+        
+        Args:
+            reference_date: The reference date for comparison
+            direction: Direction indicating which elements to include
+            comparison: Whether to use <= or >= for comparisons (default: <=)
+            
+        Returns:
+            Sum of matching matrix elements
+        """
+        total_sum = 0.0
+        
+        for entry in self.entries:
+            include_entry = False
+            inc_date = entry.incurred_date_bucket
+            exp_date = entry.exposure_date_bucket
+            
+            if direction == Direction.LEFT:
+                # Elements where exposure date is left of reference
+                include_entry = self._compare_dates(exp_date, reference_date, comparison)
+                
+            elif direction == Direction.RIGHT:
+                # Elements where exposure date is right of reference
+                include_entry = self._compare_dates(exp_date, reference_date, self._flip_comparison(comparison))
+                
+            elif direction == Direction.TOP:
+                # Elements where incurred date is above reference
+                include_entry = self._compare_dates(inc_date, reference_date, comparison)
+                
+            elif direction == Direction.BOTTOM:
+                # Elements where incurred date is below reference
+                include_entry = self._compare_dates(inc_date, reference_date, self._flip_comparison(comparison))
+                
+            elif direction == Direction.TOP_LEFT:
+                # Elements where both incurred and exposure dates are <= reference
+                inc_match = self._compare_dates(inc_date, reference_date, comparison)
+                exp_match = self._compare_dates(exp_date, reference_date, comparison)
+                include_entry = inc_match and exp_match
+                
+            elif direction == Direction.TOP_RIGHT:
+                # Elements where incurred <= reference and exposure >= reference
+                inc_match = self._compare_dates(inc_date, reference_date, comparison)
+                exp_match = self._compare_dates(exp_date, reference_date, self._flip_comparison(comparison))
+                include_entry = inc_match and exp_match
+                
+            elif direction == Direction.BOTTOM_LEFT:
+                # Elements where incurred >= reference and exposure <= reference
+                inc_match = self._compare_dates(inc_date, reference_date, self._flip_comparison(comparison))
+                exp_match = self._compare_dates(exp_date, reference_date, comparison)
+                include_entry = inc_match and exp_match
+                
+            elif direction == Direction.BOTTOM_RIGHT:
+                # Elements where both incurred and exposure dates are >= reference
+                inc_match = self._compare_dates(inc_date, reference_date, self._flip_comparison(comparison))
+                exp_match = self._compare_dates(exp_date, reference_date, self._flip_comparison(comparison))
+                include_entry = inc_match and exp_match
+            
+            if include_entry:
+                total_sum += entry.sum
+        
+        return total_sum
+    
+    def _compare_dates(self, date1: date, date2: date, comparison: Comparison) -> bool:
+        """Compare two dates based on the comparison type."""
+        if comparison == Comparison.LESS_THAN_OR_EQUAL:
+            return date1 <= date2
+        else:  # GREATER_THAN_OR_EQUAL
+            return date1 >= date2
+    
+    def _flip_comparison(self, comparison: Comparison) -> Comparison:
+        """Flip the comparison type."""
+        if comparison == Comparison.LESS_THAN_OR_EQUAL:
+            return Comparison.GREATER_THAN_OR_EQUAL
+        else:
+            return Comparison.LESS_THAN_OR_EQUAL
