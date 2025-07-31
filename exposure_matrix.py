@@ -49,7 +49,7 @@ class ExposureMatrix:
     """
     
     EXPOSURE_HEADER = "Exp x Inc"
-    COLUMN_WIDTH = 10
+    COLUMN_WIDTH = 12
     ZERO_THRESHOLD = 1e-10
     
     def __init__(self, factors: List[Factor],
@@ -68,12 +68,17 @@ class ExposureMatrix:
         self._validate_constructor_inputs(factors, incurred_bucket_dates, exposure_bucket_dates)
         
         self.factors = factors
-        self.incurred_bucket_dates = sorted(incurred_bucket_dates)
-        self.exposure_bucket_dates = sorted(exposure_bucket_dates)
+        # Store original bucket dates for matrix generation
+        self._original_incurred_dates = sorted(incurred_bucket_dates)
+        self._original_exposure_dates = sorted(exposure_bucket_dates)
         self.to_end = to_end
         
         # Generate the matrix entries by aggregating factors
         self.entries = self._generate_matrix_entries()
+        
+        # Filter out bucket dates with no non-zero values
+        self.incurred_bucket_dates = self._get_active_incurred_buckets()
+        self.exposure_bucket_dates = self._get_active_exposure_buckets()
     
     def _generate_matrix_entries(self) -> List[ExposureMatrixEntry]:
         """Generate matrix entries by aggregating factors into buckets."""
@@ -83,8 +88,8 @@ class ExposureMatrix:
         bucket_sums = {}
         
         for factor in self.factors:
-            incurred_bucket = self._get_bucket_date(factor.incurred_date, self.incurred_bucket_dates)
-            exposure_bucket = self._get_bucket_date(factor.exposure_date, self.exposure_bucket_dates)
+            incurred_bucket = self._get_bucket_date(factor.incurred_date, self._original_incurred_dates)
+            exposure_bucket = self._get_bucket_date(factor.exposed_date, self._original_exposure_dates)
             
             if incurred_bucket is not None and exposure_bucket is not None:
                 key = (incurred_bucket, exposure_bucket)
@@ -100,6 +105,16 @@ class ExposureMatrix:
                 ))
         
         return entries
+    
+    def _get_active_incurred_buckets(self) -> List[date]:
+        """Get incurred bucket dates that have non-zero values."""
+        active_buckets = set(entry.incurred_date_bucket for entry in self.entries)
+        return sorted([bucket for bucket in self._original_incurred_dates if bucket in active_buckets])
+    
+    def _get_active_exposure_buckets(self) -> List[date]:
+        """Get exposure bucket dates that have non-zero values."""
+        active_buckets = set(entry.exposure_date_bucket for entry in self.entries)
+        return sorted([bucket for bucket in self._original_exposure_dates if bucket in active_buckets])
     
     def _get_bucket_date(self, target_date: date, bucket_dates: List[date]) -> Optional[date]:
         """
