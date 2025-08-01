@@ -9,8 +9,8 @@
 
 from pattern import Pattern
 from pattern_evaluator import PatternEvaluator
-from pattern_factor import PatternFactor, Factor, Type
-from datetime import date
+from pattern_factor import PatternFactor, Type
+from datetime import date, timedelta
 from calendar_factory import CalendarFactory, TimeUnit
 from exposure_matrix import ExposureMatrix
 
@@ -28,6 +28,7 @@ def main():
     
     # Generate factors and print count
     start_date = date(2024, 8, 2)
+    previous_date = start_date - timedelta(days=1)
     factors = pattern.get_factors(start_date, use_calendar=True)
     print(f"Generated {len(factors)} factors")
     
@@ -47,8 +48,9 @@ def main():
         incurred_financial_quarter_dates = calendar_factory.get_financial_quarter_end_dates(factors, use_incurred=True)
         exposed_financial_quarter_dates = calendar_factory.get_financial_quarter_end_dates(factors, use_incurred=False)
 
-        incurred_development_quarter_dates = calendar_factory.get_relative_dates_until(start_date, TimeUnit.QUARTER, incurred_quarter_end)
-        exposed_development_quarter_dates = calendar_factory.get_relative_dates_until(start_date, TimeUnit.QUARTER, exposed_quarter_end)
+        # Use the previous date to get end dates of development periods
+        incurred_development_quarter_dates = calendar_factory.get_relative_dates_until(previous_date, TimeUnit.QUARTER, incurred_quarter_end)
+        exposed_development_quarter_dates = calendar_factory.get_relative_dates_until(previous_date, TimeUnit.QUARTER, exposed_quarter_end)
 
         combined_incurred_quarter_dates = calendar_factory.combine_and_sort_dates(
             incurred_financial_quarter_dates, incurred_development_quarter_dates
@@ -73,7 +75,7 @@ def main():
         # Create exposure matrix
         matrix = ExposureMatrix(
             factors=factors,
-            incurred_bucket_dates=incurred_financial_quarter_dates,
+            incurred_bucket_dates=incurred_development_quarter_dates,
             exposure_bucket_dates=exposed_financial_quarter_dates,
             to_end=True
         )

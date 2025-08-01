@@ -149,7 +149,7 @@ class PatternFactor:
         if self.normalized_distribution_duration > 0 and self.normalized_element_days > 0:
             daily_factor = self.distribution / self.normalized_distribution_duration / self.normalized_element_days
             
-            for i in range(self.normalized_distribution_duration - 1):
+            for i in range(self.normalized_distribution_duration):
                 effective_date = incurred_date + timedelta(days=i)
                 
                 if i == 0:
