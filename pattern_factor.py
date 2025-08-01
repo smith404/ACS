@@ -14,6 +14,13 @@ import uuid
 from dataclasses import dataclass
 
 
+class FactorType(Enum):
+    UPFRONT = "UPFRONT"
+    FIRST_DISTRIBUTED = "FIRST_DISTRIBUTED"
+    DISTRIBUTED = "DISTRIBUTED"
+    LAST_DISTRIBUTED = "LAST_DISTRIBUTED"
+
+
 class Type(Enum):
     """Enum representing different time period types with their default days."""
     DAY = 1
@@ -33,7 +40,7 @@ class Factor:
     incurred_date: date
     exposed_date: date
     value: float
-    factor_type: str
+    factor_type: FactorType
 
 
 class PatternFactor:
@@ -139,7 +146,7 @@ class PatternFactor:
             daily_factor = self.up_front / self.normalized_up_front_duration
             for i in range(self.normalized_up_front_duration):
                 effective_date = incurred_date + timedelta(days=i)
-                factors.append(Factor(incurred_date, effective_date, daily_factor, "UPFRONT"))
+                factors.append(Factor(incurred_date, effective_date, daily_factor, FactorType.UPFRONT))
         
         return factors
     
@@ -154,13 +161,13 @@ class PatternFactor:
                 
                 if i == 0:
                     # First day gets half factor
-                    factors.append(Factor(incurred_date, effective_date, daily_factor / 2, "DISTRIBUTION"))
+                    factors.append(Factor(incurred_date, effective_date, daily_factor / 2, FactorType.FIRST_DISTRIBUTED))
                 else:
-                    factors.append(Factor(incurred_date, effective_date, daily_factor, "DISTRIBUTION"))
+                    factors.append(Factor(incurred_date, effective_date, daily_factor, FactorType.DISTRIBUTED))
             
             # Last day gets half factor
             final_date = incurred_date + timedelta(days=self.normalized_distribution_duration)
-            factors.append(Factor(incurred_date, final_date, daily_factor / 2, "DISTRIBUTION"))
+            factors.append(Factor(incurred_date, final_date, daily_factor / 2, FactorType.LAST_DISTRIBUTED))
         
         return factors
     
