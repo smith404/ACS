@@ -102,10 +102,10 @@ def main():
         
         # Test specific matrix value lookup
         if combined_incurred_quarter_dates and combined_exposed_quarter_dates:
-            test_inc = combined_incurred_quarter_dates[0]
-            test_exp = combined_exposed_quarter_dates[0]
+            test_inc = date(2025, 2, 1)
+            test_exp = date(2025, 9, 30)
             test_value = matrix.get_matrix_value(test_inc, test_exp)
-            print(f"\nTest lookup - Incurred {test_inc}, Exposed {test_exp}: {test_value:.6f}")
+            print(f"\nTest lookup - Incurred {test_inc}, Exposed {test_exp}: {test_value:.9f}")
 
 
 if __name__ == "__main__":

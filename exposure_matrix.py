@@ -125,12 +125,12 @@ class ExposureMatrix:
     
     def _get_active_incurred_buckets(self) -> List[date]:
         """Get incurred bucket dates that have non-zero values."""
-        active_buckets = set(entry.incurred_date_bucket for entry in self.entries)
+        active_buckets = {entry.incurred_date_bucket for entry in self.entries}
         return sorted([bucket for bucket in self._original_incurred_dates if bucket in active_buckets])
     
     def _get_active_exposure_buckets(self) -> List[date]:
         """Get exposure bucket dates that have non-zero values."""
-        active_buckets = set(entry.exposure_date_bucket for entry in self.entries)
+        active_buckets = {entry.exposure_date_bucket for entry in self.entries}
         return sorted([bucket for bucket in self._original_exposure_dates if bucket in active_buckets])
     
     def _get_bucket_date(self, target_date: date, bucket_dates: List[date]) -> Optional[date]:
