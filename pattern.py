@@ -7,11 +7,11 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the licence conditions.
 
+from pattern_factor import PatternFactor
+
 from typing import List, Optional
 import json
 import uuid
-import os
-from pattern_factor import PatternFactor
 from datetime import datetime, timedelta
 
 class Pattern:

@@ -8,11 +8,11 @@
 # furnished to do so, subject to the licence conditions.
 
 from pattern import Pattern
-from pattern_evaluator import PatternEvaluator
 from pattern_factor import PatternFactor, Type
-from datetime import date, timedelta
 from calendar_factory import CalendarFactory, TimeUnit
 from exposure_matrix import ExposureMatrix
+
+from datetime import date, timedelta
 
 
 def main():
@@ -75,7 +75,7 @@ def main():
         # Create exposure matrix
         matrix = ExposureMatrix(
             factors=factors,
-            incurred_bucket_dates=incurred_development_quarter_dates,
+            incurred_bucket_dates=incurred_financial_quarter_dates,
             exposure_bucket_dates=exposed_financial_quarter_dates,
             to_end=True
         )
