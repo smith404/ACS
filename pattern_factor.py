@@ -60,8 +60,10 @@ class PatternFactor:
                  distribution: float = 0.0, 
                  up_front_duration: int = 1, 
                  distribution_duration: int = 1):
-        distribution_duration = max(1, distribution_duration)
-        up_front_duration = max(1, up_front_duration)
+        # Allow duration 0 for QE factors (Quarter Exposure), but enforce minimum 1 for others
+        # Duration 0 represents instant exposure/occurrence
+        distribution_duration = max(0, int(distribution_duration))  # Ensure integer, allow 0
+        up_front_duration = max(0, int(up_front_duration))  # Ensure integer, allow 0
 
         self.uuid = str(uuid.uuid4())
         self.type = type_
@@ -76,7 +78,8 @@ class PatternFactor:
     
     @classmethod
     def create_simple(cls, type_: Type, distribution: float, distribution_duration: int):
-        distribution_duration = max(1, distribution_duration)
+        # Ensure duration is integer and allow 0 for QE factors
+        distribution_duration = max(0, int(distribution_duration))
         return cls(type_, 0.0, distribution, 1, distribution_duration)
     
     @staticmethod
