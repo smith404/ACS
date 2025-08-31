@@ -1,0 +1,7 @@
+# Reproducible Python deps for this project
+# Installed and tested in the project's virtualenv during troubleshooting
+pyspark==3.3.4
+delta-spark==2.3.0
+cloudpickle==3.1.1
+# Optional (only if you need pandas for other parts of the project)
+# pandas==1.5.3

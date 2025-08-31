@@ -183,7 +183,17 @@ class PySparkFrameMapper(FrameMapper):
         return df.withColumn(col_name, sf.col(col_name).cast("date"))
 
     def apply_timestamp_type(self, df, col_name, col_format):
+        # Special-case: if col_format == "nano" remove the first 2 characters
+        # from the string when it's long enough (preserve otherwise).
         if col_format:
+            if col_format == "nano":
+                # substring(startPos, length) uses 1-based indexing for start
+                length_col = sf.length(sf.col(col_name))
+                trimmed = sf.when(
+                    length_col > 2,
+                    sf.substring(sf.col(col_name), 3, length_col - 2)
+                ).otherwise(sf.col(col_name))
+                return df.withColumn(col_name, trimmed)
             return df.withColumn(col_name, sf.to_timestamp(sf.col(col_name), col_format))
         return df.withColumn(col_name, sf.col(col_name).cast("timestamp"))
 

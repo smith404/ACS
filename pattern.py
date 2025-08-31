@@ -12,7 +12,7 @@ from pattern_factor import PatternFactor
 from typing import List, Optional
 import json
 import uuid
-from datetime import datetime, timedelta
+from datetime import date, timedelta
 
 class Pattern:
     def __init__(self):
@@ -50,7 +50,7 @@ class Pattern:
                 'elements': [element.__dict__ for element in self.elements]
             }, file)
 
-    def get_factors(self, start_date: datetime, use_calendar: bool = False) -> List:
+    def get_factors(self, start_date: date, use_calendar: bool = False) -> List:
         if start_date is None:
             return []
         
